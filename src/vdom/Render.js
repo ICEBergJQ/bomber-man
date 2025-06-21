@@ -1,8 +1,15 @@
-const renderElement = ({ tagName, attrs, children }) => {
+const renderElement = ({ tagName, attrs, children, events }) => {
   const element = document.createElement(tagName);
   // set attributes
   for (const [key, value] of Object.entries(attrs)) {
     element.setAttribute(key, value);
+  }
+
+  // Bind events
+  if (events) {
+    for (const [eventName, handler] of Object.entries(events)) {
+      element[`on${eventName}`] = handler;
+    }
   }
 
   // set children

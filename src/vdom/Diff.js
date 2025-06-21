@@ -10,6 +10,7 @@ const zip = (xs, ys) => {
 
 const diffAttrs = (oldAttrs, newAttrs) => {
   const patches = [];
+  
   // set new Attributes
   for (const [key, value] of Object.entries(newAttrs)) {
     patches.push((node) => {
@@ -37,12 +38,24 @@ const diffAttrs = (oldAttrs, newAttrs) => {
 
 const diffChildren = (oldVChildren, newVChildren) => {
   const childPatches = [];
-  for (const [oldVChild, newVChild] of zip(oldVChildren, newVChildren)) {
-    childPatches.push(Diff(oldVChild, newVChild));
+  oldVChildren.forEach((oldVChild, i) => {
+    childPatches.push(Diff(oldVChild, newVChildren[i]));
+  });
+
+  const additionalPatches = [];
+  for (const additionalVChild of newVChildren.slice(oldVChildren.length)) {
+    additionalPatches.push(node => {
+      node.appendChild(render(additionalVChild));
+    });
   }
+
   return (parent) => {
-    for(const [patch, child] of zip(childPatches, parent.childNodes)) {
+    for (const [patch, child] of zip(childPatches, parent.childNodes)) {
       patch(child);
+    }
+
+    for (const patch of additionalPatches) {
+      patch(parent);
     }
     return parent;
   };

@@ -3,34 +3,47 @@ import render from "./vdom/Render.js";
 import Mount from "./vdom/Mount.js";
 import Diff from "./vdom/Diff.js";
 
-const createVApp = (count) =>
+const createVApp = () =>
   createElement("div", {
     attrs: {
       id: "app",
-      dataCount: count,
     },
     children: [
-      String(count),
-      createElement("img", {
+      createElement("input", {
         attrs: {
-          src: "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExZWltZ3htZGtrb2U3eDgyYWkweTNscWh3djNrOHFnYm1yYzV1c3Q0cSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/SKAQ4kWov6tdC/giphy.gif",
+          id: "input",
         },
       }),
-    ],
+      createElement("button", {
+        attrs: {
+          id: "submit",
+        },
+        events: {
+          click: (e) => addToDo(e)
+        },
+        children: ["click you"]
+      })
+    ]
   });
 
-let count = 0;
-let vApp = createVApp(count);
+function addToDo(e) {
+  if (e.key === 'Enter' && e.target.value.trim() && e.target.value.trim().length >= 2) {
+    e.target.value = '';
+  }
+
+}
+
+
+let vApp = createVApp();
 const app = render(vApp);
 
 let rootElement = Mount(app, document.getElementById("app"));
 
-setInterval(() => {
-  count++;
-  const vNewApp = createVApp(count);
+function init() {
+  const vNewApp = createVApp();
   const patch = Diff(vApp, vNewApp);
   rootElement = patch(rootElement);
   vApp = vNewApp;
-}, 1000);
-
+}
+init();
 console.log(app);
