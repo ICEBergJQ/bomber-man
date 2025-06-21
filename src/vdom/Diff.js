@@ -1,5 +1,13 @@
 import render from "./Render.js";
 
+const zip = (xs, ys) => {
+  const zipped = [];
+  for (let i = 0; i < Math.min(xs.length, ys.length); i++) {
+    zipped.push([xs[i], ys[i]]);
+  }
+  return zipped;
+};
+
 const diffAttrs = (oldAttrs, newAttrs) => {
   const patches = [];
   // set new Attributes
@@ -20,12 +28,24 @@ const diffAttrs = (oldAttrs, newAttrs) => {
     }
   }
 
-  return node => {
+  return (node) => {
     for (const patch of patches) {
       patch(node);
     }
-    // return node;
+  };
+};
+
+const diffChildren = (oldVChildren, newVChildren) => {
+  const childPatches = [];
+  for (const [oldVChild, newVChild] of zip(oldVChildren, newVChildren)) {
+    childPatches.push(Diff(oldVChild, newVChild));
   }
+  return (parent) => {
+    for(const [patch, child] of zip(childPatches, parent.childNodes)) {
+      patch(child);
+    }
+    return parent;
+  };
 };
 
 const Diff = (vOldNode, vNewNode) => {
@@ -59,11 +79,11 @@ const Diff = (vOldNode, vNewNode) => {
   }
 
   const patchAttrs = diffAttrs(vOldNode.attrs, vNewNode.attrs);
-//   const patchChildren = diffChildren(vOldNode.children, vNewNode.children);
+  const patchChildren = diffChildren(vOldNode.children, vNewNode.children);
 
   return (node) => {
     patchAttrs(node);
-    // patchChildren(node);
+    patchChildren(node);
     return node;
   };
 };
