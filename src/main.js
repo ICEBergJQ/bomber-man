@@ -2,48 +2,128 @@ import createElement from "./vdom/CreateElement.js";
 import render from "./vdom/Render.js";
 import Mount from "./vdom/Mount.js";
 import Diff from "./vdom/Diff.js";
+import { createStore } from "./core/store.js";
+import { createRouter } from "./core/router.js";
+import { on } from "./core/events.js";
 
-const createVApp = () =>
-  createElement("div", {
+const initialTodos = [];
+const store = createStore({ todos: initialTodos, filter: "all" });
+
+function toggleTodo(index) {
+  const todos = store.getState().todos.map((todo, i) => {
+    return i === index ? { ...todo, done: !todo.done } : todo;
+  });
+  store.setState({ ...store.getState(), todos });
+}
+
+function getFilteredTodos() {
+  const { todos, filter } = store.getState();
+  if (filter === "active") return todos.filter((t) => !t.done);
+  if (filter === "completed") return todos.filter((t) => t.done);
+  return todos;
+}
+
+function createVApp() {
+  const input = createElement("input", {
     attrs: {
-      id: "app",
+      id: "input",
+      placeholder: "Add todo",
     },
-    children: [
-      createElement("input", {
-        attrs: {
-          id: "input",
-        },
-      }),
-      createElement("button", {
-        attrs: {
-          id: "submit",
-        },
-        events: {
-          click: (e) => addToDo(e)
-        },
-        children: ["click you"]
-      })
-    ]
   });
 
-function addToDo(e) {
-  if (e.key === 'Enter' && e.target.value.trim() && e.target.value.trim().length >= 2) {
-    e.target.value = '';
-  }
+  // const button = createElement("button", {
+  //   attrs: { id: "submit" },
+  //   events: {
+  //     click: () => {
+  //       const inputEl = document.getElementById("input");
+  //       const text = inputEl.value.trim();
+  //       if (text.length >= 2) {
+  //         const newTodo = { text, done: false };
+  //         const updatedTodos = [...store.getState().todos, newTodo];
+  //         store.setState({ ...store.getState(), todos: updatedTodos });
+  //         inputEl.value = "";
+  //       }
+  //     },
+  //   },
+  //   children: ["Add"],
+  // });
+  const button = createElement("button", {
+    attrs: { id: "submit" },
+    children: ["Add"],
+  });
 
+  const filtered = getFilteredTodos();
+  const todoList = createElement("ul", {
+    children: filtered.map((todo, index) =>
+      createElement("li", {
+        children: [
+          createElement("input", {
+            attrs: {
+              type: "checkbox",
+              checked: todo.done ? "checked" : null,
+            },
+            events: {
+              click: () => toggleTodo(index),
+            },
+          }),
+          todo.text,
+        ],
+      })
+    ),
+  });
+
+  const nav = createElement("div", {
+    attrs: { id: "nav" },
+    children: [
+      createElement("a", {
+        attrs: { href: "#/" },
+        children: ["All"],
+      }),
+      createElement("a", {
+        attrs: { href: "#/active" },
+        children: ["Active"],
+      }),
+      createElement("a", {
+        attrs: { href: "#/completed" },
+        children: ["Completed"],
+      }),
+    ],
+  });
+
+  return createElement("div", {
+    attrs: { id: "app" },
+    children: [input, button, nav, todoList],
+  });
 }
 
-
+// Initial mount
 let vApp = createVApp();
-const app = render(vApp);
+let rootElement = Mount(render(vApp), document.getElementById("app"));
 
-let rootElement = Mount(app, document.getElementById("app"));
-
-function init() {
-  const vNewApp = createVApp();
-  const patch = Diff(vApp, vNewApp);
+// Re-render on state change
+store.subscribe(() => {
+  const newVApp = createVApp();
+  const patch = Diff(vApp, newVApp);
   rootElement = patch(rootElement);
-  vApp = vNewApp;
-}
-init();
-console.log(app);
+  vApp = newVApp;
+});
+
+// Setup router
+createRouter({
+  "/": () => store.setState({ ...store.getState(), filter: "all" }),
+  "/active": () => store.setState({ ...store.getState(), filter: "active" }),
+  "/completed": () =>
+    store.setState({ ...store.getState(), filter: "completed" }),
+});
+
+on("click", "#submit", () => {
+  const inputEl = document.getElementById("input");
+  const text = inputEl.value.trim();
+  if (text.length >= 2) {
+    const newTodo = { text, done: false };
+    const updatedTodos = [...store.getState().todos, newTodo];
+    store.setState({ ...store.getState(), todos: updatedTodos });
+    inputEl.value = "";
+  }
+});
+
