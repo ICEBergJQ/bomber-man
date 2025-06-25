@@ -29,6 +29,19 @@ function createVApp() {
       id: "input",
       placeholder: "Add todo",
     },
+    events: {
+      keydown: (e) => {
+        if (e.key === "Enter") {
+          const text = e.target.value.trim();
+          if (text.length >= 2) {
+            const newTodo = { text, done: false };
+            const updatedTodos = [...store.getState().todos, newTodo];
+            store.setState({ ...store.getState(), todos: updatedTodos });
+            e.target.value = "";
+          }
+        }
+      },
+    },
   });
 
   // const button = createElement("button", {
@@ -47,10 +60,7 @@ function createVApp() {
   //   },
   //   children: ["Add"],
   // });
-  const button = createElement("button", {
-    attrs: { id: "submit" },
-    children: ["Add"],
-  });
+
 
   const filtered = getFilteredTodos();
   const todoList = createElement("ul", {
@@ -92,7 +102,7 @@ function createVApp() {
 
   return createElement("div", {
     attrs: { id: "app" },
-    children: [input, button, nav, todoList],
+    children: [input, nav, todoList],
   });
 }
 
@@ -116,14 +126,13 @@ createRouter({
     store.setState({ ...store.getState(), filter: "completed" }),
 });
 
-on("click", "#submit", () => {
-  const inputEl = document.getElementById("input");
-  const text = inputEl.value.trim();
-  if (text.length >= 2) {
-    const newTodo = { text, done: false };
-    const updatedTodos = [...store.getState().todos, newTodo];
-    store.setState({ ...store.getState(), todos: updatedTodos });
-    inputEl.value = "";
-  }
-});
-
+// on("click", "#submit", () => {
+//   const inputEl = document.getElementById("input");
+//   const text = inputEl.value.trim();
+//   if (text.length >= 2) {
+//     const newTodo = { text, done: false };
+//     const updatedTodos = [...store.getState().todos, newTodo];
+//     store.setState({ ...store.getState(), todos: updatedTodos });
+//     inputEl.value = "";
+//   }
+// });
