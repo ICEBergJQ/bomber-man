@@ -1,0 +1,36 @@
+
+
+.game {
+  display: grid;
+  grid-template-columns: repeat(23, 30px);
+  grid-template-rows: repeat(13, 30px);
+  gap: 1px;
+}
+
+.cell {
+  width: 40px;
+  height: 40px;
+  box-sizing: border-box;
+}
+
+.wall {
+  background-color: gray;
+  background-image: url('img/obsidian.jpg');
+  background-size: cover;
+}
+
+.box {
+  background-color: orange;
+   background-image: url('img/stone.jpg');
+  background-size: cover;
+}
+
+.empty {
+  background-color: white;
+   background-image: url('img/dirt.jpg');
+  background-size: cover;
+}
+
+.player {
+  background-color: dodgerblue;
+}
