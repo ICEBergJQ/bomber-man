@@ -31,6 +31,54 @@
   background-size: cover;
 }
 
-.player {
-  background-color: dodgerblue;
+.player1 {
+  background-color: #ff4444; /* Red */
+}
+
+.player2 {
+  background-color: #4444ff; /* Blue */
+}
+
+.player3 {
+  background-color: #44ff44; /* Green */
+}
+
+.player4 {
+  background-color: #ffff44; /* Yellow */
+}
+
+.bomb {
+  background-color: #333;
+  border-radius: 50%;
+  position: relative;
+}
+
+.bomb::after {
+  content: '💣';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+.explosion {
+  background-color: #ff6600;
+  animation: explosion-flash 0.5s ease-in-out;
+  position: relative;
+}
+
+.explosion::after {
+  content: '💥';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+@keyframes explosion-flash {
+  0% { background-color: #ffff00; }
+  50% { background-color: #ff6600; }
+  100% { background-color: #ff0000; }
 }
