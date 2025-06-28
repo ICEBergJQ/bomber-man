@@ -1,13 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>bomber man</title>
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bomberman Multiplayer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+        }
+
+        #status {
+            text-align: center;
+            margin: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ff00;
+        }
+
+        .game {
+            display: grid;
+            grid-template-columns: repeat(23, 25px);
+            grid-template-rows: repeat(13, 25px);
+            gap: 1px;
+            margin: 20px auto;
+            width: fit-content;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .cell {
+            width: 25px;
+            height: 25px;
+            border: 1px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .empty {
+            background-color: #2a2a2a;
+        }
+
+        .wall {
+            background-color: #666;
+        }
+
+        .box {
+            background-color: #8B4513;
+        }
+
+        .player1 {
+            background-color: #ff4444;
+            border-radius: 50%;
+        }
+
+        .player2 {
+            background-color: #4444ff;
+            border-radius: 50%;
+        }
+
+        .player3 {
+            background-color: #44ff44;
+            border-radius: 50%;
+        }
+
+        .player4 {
+            background-color: #ffff44;
+            border-radius: 50%;
+        }
+
+        .my-player {
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+            50% { box-shadow: 0 0 20px rgba(255, 255, 255, 1); }
+            100% { box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+        }
+
+        .bomb {
+            background-color: #333;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .bomb::after {
+            content: '💣';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+        }
+
+        .explosion {
+            background-color: #ff6600;
+            animation: explosion-flash 0.5s ease-in-out;
+            position: relative;
+        }
+
+        .explosion::after {
+            content: '💥';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+        }
+
+        @keyframes explosion-flash {
+            0% { background-color: #ffff00; }
+            50% { background-color: #ff6600; }
+            100% { background-color: #ff0000; }
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px;
+            color: #ccc;
+        }
+
+        .controls h3 {
+            color: #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #00ff00;">Bomberman Multiplayer</h1>
+    
+    <div id="status">Connecting to server...</div>
+    
     <div id="app"></div>
-    <script type="module" src="./main.js"></script>
-  </body>
+    
+    <div class="controls">
+        <h3>Controls:</h3>
+        <p>Arrow Keys: Move</p>
+        <p>Spacebar: Place Bomb</p>
+        <br>
+        <p>🔴 Player 1 &nbsp; 🔵 Player 2 &nbsp; 🟢 Player 3 &nbsp; 🟡 Player 4</p>
+        <p>Your player will have a glowing outline</p>
+    </div>
+
+    <script type="module" src="client.js"></script>
+</body>
 </html>
