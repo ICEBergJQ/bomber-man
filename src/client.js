@@ -1,225 +1,318 @@
-import render from "./vdom/Render.js";
-import createElement from "./vdom/CreateElement.js";
+import createElement from './vdom/CreateElement.js';
+import render from './vdom/Render.js';
+import Diff from './vdom/Diff.js';
+import mount from './vdom/Mount.js';
+import { createStore } from './core/store.js';
+import { createRouter } from './core/router.js';
+import { on } from './core/events.js'; // your delegated event system
 
-// Client game state (read-only, updated from server)
-let gameState = {
-  players: {},
-  bombs: [],
-  explosions: [],
-  maze: null,
-  gameStarted: false,
-  gameOver: false,
-  winner: null
-};
+// --------- Store to hold client state ---------
 
-let myPlayerId = null;
-let ws = null;
+const store = createStore({
+  view: 'lobby',       // 'lobby', 'waiting', 'game'
+  ws: null,            // WebSocket instance
+  playerId: null,
+  roomCode: '',
+  lobbyError: '',
+  gameState: {
+    players: {},
+    bombs: [],
+    explosions: [],
+    maze: null,
+    gameStarted: false,
+    gameOver: false,
+    winner: null,
+  },
+});
 
-// Connect to WebSocket server
-function connectToServer() {
-  const SERVER_IP = '10.1.16.3'; // Change this per machine
-ws = new WebSocket(`ws://${SERVER_IP}:8080`);
-  
-  ws.onopen = () => {
-    console.log('Connected to server');
-    showStatus('Connected to server');
-  };
-  
-  ws.onmessage = (event) => {
-    try {
-      const message = JSON.parse(event.data);
-      handleServerMessage(message);
-    } catch (error) {
-      console.error('Error parsing server message:', error);
-    }
-  };
-  
-  ws.onclose = () => {
-    console.log('Disconnected from server');
-    showStatus('Disconnected from server');
-  };
-  
-  ws.onerror = (error) => {
-    console.error('WebSocket error:', error);
-    showStatus('Connection error');
-  };
-}
+// --------- Helper to send messages ---------
 
-// Handle messages from server
-function handleServerMessage(message) {
-  switch (message.type) {
-    case 'welcome':
-      myPlayerId = message.data.playerId;
-      console.log(`I am player ${myPlayerId}`);
-      showStatus(`You are Player ${myPlayerId}`);
-      break;
-      
-    case 'gameState':
-      gameState = message.data;
-      renderGame();
-      
-      if (gameState.gameOver && gameState.winner) {
-        showStatus(`${gameState.winner.id.toUpperCase()} WINS! Press R to restart.`);
-      } else if (gameState.gameOver) {
-        showStatus('DRAW! Everyone died! Press R to restart.');
-      } else if (!gameState.gameStarted) {
-        showStatus('Waiting for more players...');
-      } else {
-        showStatus(`You are Player ${myPlayerId} - Use arrow keys to move, spacebar for bomb`);
-      }
-      break;
-      
-    case 'error':
-      showStatus(`Error: ${message.data.message}`);
-      break;
-  }
-}
-
-// Send message to server
 function sendToServer(type, data = {}) {
+  const ws = store.getState().ws;
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type, ...data }));
   }
 }
 
-// Show status message
-function showStatus(message) {
-  const statusDiv = document.getElementById('status');
-  if (statusDiv) {
-    statusDiv.textContent = message;
-  }
-}
+// --------- Connect to server with optional room code ---------
 
-// Generate maze for testing or offline mode
-function generateMaze(rows, cols) {
-  const maze = [];
-  for (let r = 0; r < rows; r++) {
-    const row = [];
-    for (let c = 0; c < cols; c++) {
-      // Border walls all around
-      if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) {
-        row.push('#');
-      }
-      // Place walls in a checkerboard pattern (for solid walls)
-      else if (r % 2 === 0 && c % 2 === 0) {
-        row.push('#');
-      }
-      else {
-        // Randomly place boxes (*) or empty spaces ( )
-        const rand = Math.random();
-        if (rand < 0.2) row.push('*');    // 20% chance box
-        else row.push(' ');               // empty space
-      }
+function connectToServer(roomCode = '') {
+  if (store.getState().ws) {
+    store.getState().ws.close();
+  }
+  const ws = new WebSocket('ws://localhost:8080');
+
+  ws.onopen = () => {
+    console.log('Connected to server');
+    store.setState({ ws, lobbyError: '' });
+    if (roomCode) {
+      sendToServer('joinRoom', { roomCode });
     }
-    maze.push(row);
-  }
-  
-  // Clear starting positions for all 4 players
-  // Player 1 - Top Left
-  maze[1][1] = ' ';
-  maze[1][2] = ' ';
-  maze[2][1] = ' ';
-  
-  // Player 2 - Top Right  
-  maze[1][cols-2] = ' ';
-  maze[1][cols-3] = ' ';
-  maze[2][cols-2] = ' ';
-  
-  // Player 3 - Bottom Left
-  maze[rows-2][1] = ' ';
-  maze[rows-2][2] = ' ';
-  maze[rows-3][1] = ' ';
-  
-  // Player 4 - Bottom Right
-  maze[rows-2][cols-2] = ' ';
-  maze[rows-2][cols-3] = ' ';
-  maze[rows-3][cols-2] = ' ';
-  
-  return maze;
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const message = JSON.parse(event.data);
+      handleServerMessage(message);
+    } catch (err) {
+      console.error('Error parsing server message:', err);
+    }
+  };
+
+  ws.onclose = () => {
+    console.log('Disconnected from server');
+    store.setState({ ws: null, playerId: null, view: 'lobby' });
+  };
+
+  ws.onerror = (error) => {
+    console.error('WebSocket error:', error);
+    store.setState({ lobbyError: 'Connection error' });
+  };
 }
 
-// Render maze cell
-const mazeCell = (type, rowIndex, colIndex) => {
+// --------- Handle messages from server ---------
+
+function handleServerMessage(message) {
+  switch (message.type) {
+    case 'welcome':
+      store.setState({ playerId: message.data.playerId });
+      console.log(`I am player ${message.data.playerId}`);
+      break;
+
+    case 'roomCreated':
+      store.setState({
+        roomCode: message.data.roomCode,
+        view: 'waiting',
+        lobbyError: '',
+      });
+      break;
+
+    case 'roomJoined':
+      store.setState({
+        roomCode: message.data.roomCode,
+        view: 'waiting',
+        lobbyError: '',
+      });
+      break;
+
+    case 'roomJoinFailed':
+      store.setState({ lobbyError: message.data.message });
+      break;
+
+    case 'gameState':
+      store.setState({
+        gameState: message.data,
+        view: 'game',
+      });
+      break;
+
+    case 'error':
+      store.setState({ lobbyError: message.data.message });
+      break;
+  }
+}
+
+// --------- Lobby UI ---------
+
+function LobbyView() {
+  const state = store.getState();
+
+  return createElement('div', {
+    attrs: { class: 'lobby' },
+    children: [
+      createElement('h2', { children: ['Bomberman Lobby'] }),
+      state.lobbyError ? createElement('p', {
+        attrs: { class: 'error' },
+        children: [state.lobbyError]
+      }) : null,
+      createElement('button', {
+        attrs: { id: 'btn-create-room' },
+        children: ['Create Room'],
+        events: {}
+      }),
+      createElement('div', {
+        attrs: { style: 'margin-top: 20px;' },
+        children: [
+          createElement('input', {
+            attrs: {
+              type: 'text',
+              id: 'input-room-code',
+              placeholder: 'Enter Room Code',
+              value: state.roomCode || ''
+            },
+            events: {
+              input: (e) => {
+                store.setState({ roomCode: e.target.value.toUpperCase() });
+              }
+            }
+          }),
+          createElement('button', {
+            attrs: { id: 'btn-join-room', disabled: !state.roomCode.trim() },
+            children: ['Join Room'],
+            events: {}
+          })
+        ]
+      }),
+      createElement('p', {
+        attrs: { style: 'margin-top: 10px; font-size: 12px; color: #555;' },
+        children: ['Share your room code with friends to join!']
+      })
+    ].filter(Boolean),
+  });
+}
+
+// --------- Waiting Room UI ---------
+
+function WaitingRoomView() {
+  const state = store.getState();
+  return createElement('div', {
+    attrs: { class: 'waiting-room' },
+    children: [
+      createElement('h2', { children: [`Waiting in Room: ${state.roomCode}`] }),
+      createElement('p', { children: ['Waiting for players to join...'] }),
+      createElement('button', {
+        attrs: { id: 'btn-leave-room' },
+        children: ['Leave Room'],
+        events: {}
+      }),
+    ],
+  });
+}
+
+// --------- Game UI ---------
+
+function MazeCell(type, row, col) {
+  const state = store.getState();
+  const gameState = state.gameState;
+
   let className = 'cell';
-  
-  // Check if there's an explosion at this position (highest priority)
-  const explosionAtPosition = gameState.explosions.find(exp => 
-    exp.row === rowIndex && exp.col === colIndex
-  );
-  
-  if (explosionAtPosition) {
+
+  const explosionAt = gameState.explosions.find(e => e.row === row && e.col === col);
+  if (explosionAt) {
     className += ' explosion';
-  }
-  // Check if there's a bomb at this position
-  else {
-    const bombAtPosition = gameState.bombs.find(bomb => 
-      bomb.row === rowIndex && bomb.col === colIndex
-    );
-    
-    if (bombAtPosition) {
+  } else {
+    const bombAt = gameState.bombs.find(b => b.row === row && b.col === col);
+    if (bombAt) {
       className += ' bomb';
-    }
-    // Check if any ALIVE player is at this position
-    else {
-      const playerAtPosition = Object.values(gameState.players).find(p => 
-        p.alive && p.row === rowIndex && p.col === colIndex
-      );
-      
-      if (playerAtPosition) {
-        className += ` ${playerAtPosition.id}`;
-        // Highlight my player
-        if (playerAtPosition.playerId === myPlayerId) {
+    } else {
+      const playerAt = Object.values(gameState.players).find(p => p.alive && p.row === row && p.col === col);
+      if (playerAt) {
+        className += ` ${playerAt.id}`;
+        if (playerAt.playerId === state.playerId) {
           className += ' my-player';
         }
       } else {
         switch (type) {
           case '#': className += ' wall'; break;
           case '*': className += ' box'; break;
-          default:  className += ' empty'; break;
+          default: className += ' empty'; break;
         }
       }
     }
   }
-  
+
   return createElement('div', {
     attrs: { class: className }
   });
-};
+}
 
-// Render the game
-function renderGame() {
-  if (!gameState.maze) return;
-  
-  const gameDiv = createElement('div', {
+function GameView() {
+  const state = store.getState();
+  const maze = state.gameState.maze;
+  if (!maze) return createElement('div', { children: ['Loading...'] });
+
+  const cells = maze.flatMap((row, r) =>
+    row.map((cell, c) => MazeCell(cell, r, c))
+  );
+
+  return createElement('div', {
     attrs: { class: 'game' },
-    children: gameState.maze.flatMap((row, rowIndex) =>
-      row.map((cell, colIndex) => mazeCell(cell, rowIndex, colIndex))
-    ),
+    children: cells
   });
-  
-  const gameContainer = document.getElementById('game-container');
-  if (gameContainer) {
-    gameContainer.innerHTML = '';
-    gameContainer.appendChild(render(gameDiv));
+}
+
+// --------- Render function with diff and mount ---------
+
+let currentVNode = null;
+let currentNode = document.getElementById('app') || document.body;
+
+function renderApp() {
+  const state = store.getState();
+
+  let newVNode;
+  switch (state.view) {
+    case 'lobby':
+      newVNode = LobbyView();
+      break;
+    case 'waiting':
+      newVNode = WaitingRoomView();
+      break;
+    case 'game':
+      newVNode = GameView();
+      break;
+    default:
+      newVNode = createElement('div', { children: ['Unknown view'] });
+  }
+
+  if (!currentVNode) {
+    const node = render(newVNode);
+    currentNode = mount(node, currentNode);
+    currentVNode = newVNode;
+  } else {
+    const patch = Diff(currentVNode, newVNode);
+    currentNode = patch(currentNode);
+    currentVNode = newVNode;
   }
 }
 
-// Handle input
+// --------- Subscribe render to store updates ---------
+
+store.subscribe(renderApp);
+renderApp();
+
+// --------- Event delegation for buttons ---------
+
+// Create room button
+on('click', '#btn-create-room', () => {
+  connectToServer();
+  sendToServer('createRoom');
+});
+
+// Join room button
+on('click', '#btn-join-room', () => {
+  const roomCode = store.getState().roomCode.trim();
+  if (roomCode) {
+    connectToServer(roomCode);
+  }
+});
+
+// Leave room button
+on('click', '#btn-leave-room', () => {
+  const ws = store.getState().ws;
+  if (ws) {
+    ws.close();
+  }
+  store.setState({ view: 'lobby', playerId: null, roomCode: '', lobbyError: '' });
+});
+
+// --------- Keyboard input for game ---------
+
 document.addEventListener('keydown', (e) => {
-  // Handle restart
-  if (e.key.toLowerCase() === 'r' && gameState.gameOver) {
+  const state = store.getState();
+
+  if (state.view !== 'game') return;
+
+  // Restart on R if game over
+  if (e.key.toLowerCase() === 'r' && state.gameState.gameOver) {
     sendToServer('restart');
     return;
   }
-  
-  // Don't process game input if no player ID or game is over
-  if (!myPlayerId || gameState.gameOver) return;
-  
-  // Handle movement keys
+
+  if (!state.playerId || state.gameState.gameOver) return;
+
+  // Movement keys
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-    // Only allow movement if game has started
-    if (!gameState.gameStarted) return;
-    
+    if (!state.gameState.gameStarted) return;
     let direction;
     switch (e.key) {
       case 'ArrowUp': direction = 'up'; break;
@@ -227,15 +320,11 @@ document.addEventListener('keydown', (e) => {
       case 'ArrowLeft': direction = 'left'; break;
       case 'ArrowRight': direction = 'right'; break;
     }
-    
     sendToServer('move', { direction });
   }
-  
-  // Handle WASD keys for alternative controls
+  // WASD keys alternative
   else if (['KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code)) {
-    // Only allow movement if game has started
-    if (!gameState.gameStarted) return;
-    
+    if (!state.gameState.gameStarted) return;
     let direction;
     switch (e.code) {
       case 'KeyW': direction = 'up'; break;
@@ -243,80 +332,12 @@ document.addEventListener('keydown', (e) => {
       case 'KeyA': direction = 'left'; break;
       case 'KeyD': direction = 'right'; break;
     }
-    
     sendToServer('move', { direction });
   }
-  
-  // Handle bomb placement
+  // Bomb placement (space or Q)
   else if (e.key === ' ' || e.code === 'KeyQ') {
-    e.preventDefault(); // Prevent page scroll for spacebar
-    
-    // Only allow bombs if game has started
-    if (!gameState.gameStarted) return;
-    
+    e.preventDefault();
+    if (!state.gameState.gameStarted) return;
     sendToServer('bomb');
   }
-  
-  // Testing: Generate local maze (only when not connected or game not started)
-  else if (e.key.toLowerCase() === 'g' && (!gameState.gameStarted || !ws || ws.readyState !== WebSocket.OPEN)) {
-    // Generate test maze locally for testing UI
-    gameState.maze = generateMaze(13, 23);
-    renderGame();
-    showStatus('Test maze generated locally (Press G)');
-  }
 });
-
-// Initialize
-function init() {
-  // Create UI elements if they don't exist
-  if (!document.getElementById('status')) {
-    const statusDiv = document.createElement('div');
-    statusDiv.id = 'status';
-    statusDiv.style.cssText = 'text-align: center; margin: 10px; font-size: 18px; font-weight: bold; color: #333;';
-    document.body.insertBefore(statusDiv, document.body.firstChild);
-  }
-  
-  if (!document.getElementById('game-container')) {
-    const gameContainer = document.createElement('div');
-    gameContainer.id = 'game-container';
-    gameContainer.style.cssText = 'display: flex; justify-content: center; margin: 20px;';
-    
-    // Try to append to existing app element, or create one
-    const appElement = document.getElementById('app') || document.body;
-    appElement.appendChild(gameContainer);
-  }
-  
-  // Add instructions
-  if (!document.getElementById('instructions')) {
-    const instructionsDiv = document.createElement('div');
-    instructionsDiv.id = 'instructions';
-    instructionsDiv.style.cssText = 'text-align: center; margin: 10px; font-size: 14px; color: #666;';
-    instructionsDiv.innerHTML = `
-      <p><strong>Controls:</strong> Arrow Keys or WASD to move, Spacebar or Q for bomb</p>
-      <p><strong>Testing:</strong> Press G to generate test maze when offline</p>
-    `;
-    document.body.appendChild(instructionsDiv);
-  }
-  
-  showStatus('Connecting to server...');
-  connectToServer();
-}
-
-// Auto-reconnect functionality
-function setupAutoReconnect() {
-  if (!ws || ws.readyState === WebSocket.CLOSED) {
-    console.log('Attempting to reconnect...');
-    showStatus('Reconnecting...');
-    connectToServer();
-  }
-}
-
-// Try to reconnect every 5 seconds if disconnected
-setInterval(() => {
-  if (!ws || ws.readyState === WebSocket.CLOSED) {
-    setupAutoReconnect();
-  }
-}, 5000);
-
-// Start the client
-init();
