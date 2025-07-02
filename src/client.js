@@ -6,394 +6,147 @@ import { createStore } from './core/store.js';
 import { createRouter } from './core/router.js';
 import { on } from './core/events.js'; // your delegated event system
 
-// --------- Store to hold client state ---------
+
+
+
 
 const store = createStore({
-  view: 'lobby',       // 'lobby', 'waiting', 'game'
-  ws: null,            // WebSocket instance
+  roomCode: null,
   playerId: null,
-  roomCode: '',
-  lobbyError: '',
-  gameState: {
-    players: {},
-    bombs: [],
-    explosions: [],
-    maze: null,
-    gameStarted: false,
-    gameOver: false,
-    winner: null,
-  },
+  gameState: null,
+  error: null
 });
-
-// --------- Helper to send messages ---------
-
-function sendToServer(type, data = {}) {
-  const ws = store.getState().ws;
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type, ...data }));
-  } else {
-    console.warn('WebSocket not open, cannot send:', type);
-  }
-}
-
-// --------- Connect to server with optional room code ---------
-
-function connectToServer(roomCode = '') {
-  if (store.getState().ws) {
-    store.getState().ws.close();
-  }
-  const ws = new WebSocket('ws://localhost:8080');
-
-  ws.onopen = () => {
-    console.log('Connected to server');
-    store.setState({ ws, lobbyError: '' });
-
-    if (roomCode) {
-      sendToServer('joinRoom', { roomCode });
-    } else {
-      // Create room if no code provided
-      sendToServer('createRoom');
-    }
-  };
-
-  ws.onmessage = (event) => {
-    try {
-      const message = JSON.parse(event.data);
-      handleServerMessage(message);
-    } catch (err) {
-      console.error('Error parsing server message:', err);
-    }
-  };
-
-  ws.onclose = () => {
-    console.log('Disconnected from server');
-    store.setState({ ws: null, playerId: null, view: 'lobby' });
-  };
-
-  ws.onerror = (error) => {
-    console.error('WebSocket error:', error);
-    store.setState({ lobbyError: 'Connection error' });
-  };
-}
-
-// --------- Handle messages from server ---------
-
-function handleServerMessage(message) {
-  console.log('Received message:', message);
-
-  switch (message.type) {
-    case 'welcome':
-      store.setState({ playerId: message.data.playerId });
-      console.log(`I am player ${message.data.playerId}`);
-      break;
-
-    case 'roomCreated':
-      console.log('Room created message received:', message);
-      store.setState({
-        roomCode: message.roomCode || message.data?.roomCode || message.data,
-        view: 'waiting',
-        lobbyError: '',
-      });
-      console.log('Updated view:', store.getState().view);
-      break;
-
-    case 'roomJoined':
-      store.setState({
-        roomCode: message.data.roomCode,
-        view: 'waiting',
-        lobbyError: '',
-      });
-      break;
-
-    case 'roomJoinFailed':
-      store.setState({ lobbyError: message.data.message });
-      break;
-
-    case 'gameState':
-      store.setState({
-        gameState: message.data,
-        view: 'game',
-      });
-      break;
-
-    case 'error':
-      store.setState({ lobbyError: message.data.message });
-      break;
-
-    default:
-      console.warn('Unknown message type:', message.type);
-  }
-}
-
-// --------- Lobby UI ---------
-
-// function LobbyView() {
-//   const state = store.getState();
-
-//   return createElement('div', {
-//     attrs: { class: 'lobby' },
-//     children: [
-//       createElement('h2', { children: ['Bomberman Lobby'] }),
-//       state.lobbyError ? createElement('p', {
-//         attrs: { class: 'error' },
-//         children: [state.lobbyError]
-//       }) : null,
-//       createElement('button', {
-//         attrs: { id: 'btn-create-room' },
-//         children: ['Create Room'],
-//         events: {}
-//       }),
-//       createElement('div', {
-//         attrs: { style: 'margin-top: 20px;' },
-//         children: [
-//           createElement('input', {
-//             attrs: {
-//               type: 'text',
-//               id: 'input-room-code',
-//               placeholder: 'Enter Room Code',
-//               value: state.roomCode || ''
-//             },
-//             events: {
-//               input: (e) => {
-//                 store.setState({ roomCode: e.target.value.toUpperCase() });
-//               }
-//             }
-//           }),
-//           createElement('button', {
-//             attrs: { id: 'btn-join-room', disabled: !state.roomCode.trim() },
-//             children: ['Join Room'],
-//             events: {}
-//           })
-//         ]
-//       }),
-//       createElement('p', {
-//         children: ['Share your room code with friends to join!']
-//       })
-//     ].filter(Boolean),
-//   });
-// }
-
-function LobbyView() {
-  const state = store.getState();
-
-  return createElement('div', {
-    attrs: { class: 'lobby' },
-    children: [
-      createElement('h2', { children: ['Bomberman Lobby'] }),
-      state.lobbyError ? createElement('p', {
-        attrs: { class: 'error' },
-        children: [state.lobbyError]
-      }) : null,
-      createElement('button', {
-        attrs: { id: 'btn-create-room' },
-        children: ['Create Room'],
-        events: {}
-      }),
-      createElement('div', {
-        attrs: { style: 'margin-top: 20px;' },
-        children: [
-          createElement('input', {
-            attrs: {
-              type: 'text',
-              id: 'input-room-code',
-              placeholder: 'Enter Room Code',
-            },
-            events: {
-              // no input event
-            }
-          }),
-          createElement('button', {
-            attrs: { id: 'btn-join-room' }, // always enabled
-            children: ['Join Room'],
-            events: {}
-          })
-        ]
-      }),
-      createElement('p', {
-        children: ['Share your room code with friends to join!']
-      })
-    ].filter(Boolean),
-  });
-}
-
-
-// --------- Waiting Room UI ---------
-
-function WaitingRoomView() {
-  const state = store.getState();
-  return createElement('div', {
-    attrs: { class: 'waiting-room' },
-    children: [
-      createElement('h2', { children: [`Waiting in Room: ${state.roomCode}`] }),
-      createElement('p', { children: ['Waiting for players to join...'] }),
-      createElement('button', {
-        attrs: { id: 'btn-leave-room' },
-        children: ['Leave Room'],
-        events: {}
-      }),
-    ],
-  });
-}
-
-// --------- Game UI ---------
-
-function MazeCell(type, row, col) {
-  const state = store.getState();
-  const gameState = state.gameState;
-
-  let className = 'cell';
-
-  const explosionAt = gameState.explosions.find(e => e.row === row && e.col === col);
-  if (explosionAt) {
-    className += ' explosion';
-  } else {
-    const bombAt = gameState.bombs.find(b => b.row === row && b.col === col);
-    if (bombAt) {
-      className += ' bomb';
-    } else {
-      const playerAt = Object.values(gameState.players).find(p => p.alive && p.row === row && p.col === col);
-      if (playerAt) {
-        className += ` ${playerAt.id}`;
-        if (playerAt.playerId === state.playerId) {
-          className += ' my-player';
-        }
-      } else {
-        switch (type) {
-          case '#': className += ' wall'; break;
-          case '*': className += ' box'; break;
-          default: className += ' empty'; break;
-        }
-      }
-    }
-  }
-
-  return createElement('div', {
-    attrs: { class: className }
-  });
-}
-
-function GameView() {
-  const state = store.getState();
-  const maze = state.gameState.maze;
-  if (!maze) return createElement('div', { children: ['Loading...'] });
-
-  const cells = maze.flatMap((row, r) =>
-    row.map((cell, c) => MazeCell(cell, r, c))
-  );
-
-  return createElement('div', {
-    attrs: { class: 'game' },
-    children: cells
-  });
-}
-
-// --------- Render function with diff and mount ---------
 
 let currentVNode = null;
-let currentNode = document.getElementById('app') || document.body;
+let rootNode = null;
+let socket = null;
 
-function renderApp() {
-  const state = store.getState();
-  console.log('Rendering view:', state.view);
-
-  let newVNode;
-  switch (state.view) {
-    case 'lobby':
-      newVNode = LobbyView();
-      break;
-    case 'waiting':
-      newVNode = WaitingRoomView();
-      break;
-    case 'game':
-      newVNode = GameView();
-      break;
-    default:
-      newVNode = createElement('div', { children: ['Unknown view'] });
+function App(state) {
+  if (state.error) {
+    return createElement('div', { attrs: {}, children: [
+      createElement('h2', { children: ['Error: ' + state.error] }),
+      createElement('a', { attrs: { href: '#/' }, children: ['Go back'] })
+    ]});
   }
 
-  if (!currentVNode) {
-    const node = render(newVNode);
-    currentNode = mount(node, currentNode);
-    currentVNode = newVNode;
-  } else {
-    const patch = Diff(currentVNode, newVNode);
-    currentNode = patch(currentNode);
-    currentVNode = newVNode;
+  if (!state.roomCode) {
+    return createElement('div', { attrs: {}, children: [
+      createElement('h1', { children: ['Bomberman'] }),
+      createElement('button', { attrs: { id: 'createRoom' }, children: ['Create Room'] }),
+      createElement('form', { attrs: { id: 'joinForm' }, children: [
+        createElement('input', { attrs: { type: 'text', placeholder: 'Room Code', id: 'roomInput' } }),
+        createElement('button', { attrs: { type: 'submit' }, children: ['Join Room'] })
+      ]})
+    ]});
   }
+
+  return createElement('div', { attrs: {}, children: [
+    createElement('h2', { children: ['Room: ' + state.roomCode] }),
+    createElement('div', { attrs: { id: 'game' }, children: renderGame(state.gameState, state.playerId) }),
+    createElement('button', { attrs: { id: 'restart' }, children: ['Restart'] })
+  ]});
 }
 
-// --------- Subscribe render to store updates ---------
+function renderGame(gameState, playerId) {
+  if (!gameState) return [];
 
-store.subscribe(renderApp);
-renderApp();
+  const rows = gameState.maze.map((row, rIdx) =>
+    createElement('div', { attrs: { class: 'row' }, children: 
+      row.map((cell, cIdx) => {
+        let content = cell;
+        // Check for bombs
+        if (gameState.bombs.find(b => b.row === rIdx && b.col === cIdx)) content = 'B';
+        // Check for explosions
+        if (gameState.explosions.find(e => e.row === rIdx && e.col === cIdx)) content = 'X';
+        // Check for players
+        const player = Object.values(gameState.players).find(p => p.row === rIdx && p.col === cIdx && p.alive);
+        if (player) content = player.playerId === playerId ? 'Y' : 'P';
 
-// --------- Event delegation for buttons ---------
+        return createElement('span', { attrs: { class: 'cell' }, children: [content] });
+      })
+    })
+  );
+  return rows;
+}
 
-// Create room button
-on('click', '#btn-create-room', () => {
-  connectToServer();
+// Handle WebSocket messages
+function setupSocket() {
+  socket = new WebSocket('ws://localhost:8080');
+
+  socket.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+    if (message.type === 'roomCreated') {
+      store.setState({ ...store.getState(), roomCode: message.data.roomCode });
+    } else if (message.type === 'welcome') {
+      store.setState({ ...store.getState(), playerId: message.data.playerId });
+    } else if (message.type === 'gameState') {
+      store.setState({ ...store.getState(), gameState: message.data });
+    } else if (message.type === 'error') {
+      store.setState({ roomCode: null, playerId: null, gameState: null, error: message.data.message });
+    }
+  };
+
+  socket.onerror = () => {
+    store.setState({ ...store.getState(), error: 'Connection error' });
+  };
+}
+
+// Send helpers
+const send = (type, data) => {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ type, data }));
+  }
+};
+
+// Events
+on('click', '#createRoom', () => {
+  send('createRoom', {});
 });
 
-// Join room button
-on('click', '#btn-join-room', () => {
-  const roomCode = store.getState().roomCode.trim();
+on('submit', '#joinForm', (e) => {
+  e.preventDefault();
+  const roomCode = document.querySelector('#roomInput').value.trim().toUpperCase();
   if (roomCode) {
-    connectToServer(roomCode);
+    send('joinRoom', { roomCode });
   }
 });
 
-// Leave room button
-on('click', '#btn-leave-room', () => {
-  const ws = store.getState().ws;
-  if (ws) {
-    ws.close();
-  }
-  store.setState({ view: 'lobby', playerId: null, roomCode: '', lobbyError: '' });
+on('click', '#restart', () => {
+  send('restart', {});
 });
-
-// --------- Keyboard input for game ---------
 
 document.addEventListener('keydown', (e) => {
-  const state = store.getState();
-
-  if (state.view !== 'game') return;
-
-  // Restart on R if game over
-  if (e.key.toLowerCase() === 'r' && state.gameState.gameOver) {
-    sendToServer('restart');
-    return;
-  }
-
-  if (!state.playerId || state.gameState.gameOver) return;
-
-  // Movement keys
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-    if (!state.gameState.gameStarted) return;
-    let direction;
-    switch (e.key) {
-      case 'ArrowUp': direction = 'up'; break;
-      case 'ArrowDown': direction = 'down'; break;
-      case 'ArrowLeft': direction = 'left'; break;
-      case 'ArrowRight': direction = 'right'; break;
+  if (!store.getState().gameState?.gameStarted) return;
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+    if (e.key === ' ') {
+      send('bomb', {});
+    } else {
+      const dirMap = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+      send('move', { direction: dirMap[e.key] });
     }
-    sendToServer('move', { direction });
-  }
-  // WASD keys alternative
-  else if (['KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code)) {
-    if (!state.gameState.gameStarted) return;
-    let direction;
-    switch (e.code) {
-      case 'KeyW': direction = 'up'; break;
-      case 'KeyS': direction = 'down'; break;
-      case 'KeyA': direction = 'left'; break;
-      case 'KeyD': direction = 'right'; break;
-    }
-    sendToServer('move', { direction });
-  }
-  // Bomb placement (space or Q)
-  else if (e.key === ' ' || e.code === 'KeyQ') {
-    e.preventDefault();
-    if (!state.gameState.gameStarted) return;
-    sendToServer('bomb');
   }
 });
+
+// Router
+createRouter({
+  '/': () => {
+    store.setState({ roomCode: null, playerId: null, gameState: null, error: null });
+  }
+});
+
+// Watch state changes and re-render
+store.subscribe(() => {
+  const newVNode = App(store.getState());
+  if (!currentVNode) {
+    currentVNode = newVNode;
+    rootNode = render(currentVNode);
+    document.querySelector('#app').replaceWith(rootNode);
+  } else {
+    const patch = Diff(currentVNode, newVNode);
+    patch(rootNode);
+    currentVNode = newVNode;
+  }
+});
+
+// Init
+setupSocket();
