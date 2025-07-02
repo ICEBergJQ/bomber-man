@@ -30,23 +30,26 @@ wss.on('connection', (ws) => {
 
       if (data.type === 'createRoom') {
         const roomCode = generateRoomCode();
+        console.log(`Creating room with code: ${roomCode}`);
+        
         rooms[roomCode] = {
           gameState: initializeGame(),
           clients: new Set()
         };
         ws.roomCode = roomCode;
         rooms[roomCode].clients.add(ws);
-        ws.send(JSON.stringify({ type: 'roomCreated', roomCode }));
+        // Send with data wrapper
+        ws.send(JSON.stringify({ type: 'roomCreated', data: { roomCode } }));
 
       } else if (data.type === 'joinRoom') {
         const roomCode = data.roomCode;
         const room = rooms[roomCode];
         if (!room) {
-          ws.send(JSON.stringify({ type: 'error', message: 'Room not found' }));
+          ws.send(JSON.stringify({ type: 'error', data: { message: 'Room not found' } }));
           return;
         }
         if (room.gameState.playerCount >= 4) {
-          ws.send(JSON.stringify({ type: 'error', message: 'Room is full' }));
+          ws.send(JSON.stringify({ type: 'error', data: { message: 'Room is full' } }));
           return;
         }
 
@@ -64,7 +67,8 @@ wss.on('connection', (ws) => {
         ws.playerId = playerId;
         room.clients.add(ws);
 
-        ws.send(JSON.stringify({ type: 'welcome', playerId }));
+        // Send welcome with data wrapper
+        ws.send(JSON.stringify({ type: 'welcome', data: { playerId } }));
         broadcastGameState(room);
 
         // If enough players, start
@@ -118,6 +122,16 @@ function broadcastGameState(room) {
   });
 }
 
-// movePlayer, placeBomb etc updated to take `room`
-function movePlayer(room, playerId, direction) { /* similar to yours */ }
-function placeBomb(room, playerId) { /* similar to yours */ }
+// movePlayer, placeBomb, generateMaze, startingPositions etc assumed implemented elsewhere
+
+function movePlayer(room, playerId, direction) { /* your implementation */ }
+function placeBomb(room, playerId) { /* your implementation */ }
+function generateMaze(rows, cols) { /* your implementation */ }
+
+// Example starting positions (make sure you define this in your code)
+const startingPositions = [
+  { row: 1, col: 1 },
+  { row: 1, col: 21 },
+  { row: 11, col: 1 },
+  { row: 11, col: 21 }
+];

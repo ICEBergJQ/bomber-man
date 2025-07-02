@@ -31,6 +31,8 @@ function sendToServer(type, data = {}) {
   const ws = store.getState().ws;
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type, ...data }));
+  } else {
+    console.warn('WebSocket not open, cannot send:', type);
   }
 }
 
@@ -45,8 +47,12 @@ function connectToServer(roomCode = '') {
   ws.onopen = () => {
     console.log('Connected to server');
     store.setState({ ws, lobbyError: '' });
+
     if (roomCode) {
       sendToServer('joinRoom', { roomCode });
+    } else {
+      // Create room if no code provided
+      sendToServer('createRoom');
     }
   };
 
@@ -73,6 +79,8 @@ function connectToServer(roomCode = '') {
 // --------- Handle messages from server ---------
 
 function handleServerMessage(message) {
+  console.log('Received message:', message);
+
   switch (message.type) {
     case 'welcome':
       store.setState({ playerId: message.data.playerId });
@@ -80,11 +88,13 @@ function handleServerMessage(message) {
       break;
 
     case 'roomCreated':
+      console.log('Room created message received:', message);
       store.setState({
-        roomCode: message.data.roomCode,
+        roomCode: message.roomCode || message.data?.roomCode || message.data,
         view: 'waiting',
         lobbyError: '',
       });
+      console.log('Updated view:', store.getState().view);
       break;
 
     case 'roomJoined':
@@ -109,10 +119,59 @@ function handleServerMessage(message) {
     case 'error':
       store.setState({ lobbyError: message.data.message });
       break;
+
+    default:
+      console.warn('Unknown message type:', message.type);
   }
 }
 
 // --------- Lobby UI ---------
+
+// function LobbyView() {
+//   const state = store.getState();
+
+//   return createElement('div', {
+//     attrs: { class: 'lobby' },
+//     children: [
+//       createElement('h2', { children: ['Bomberman Lobby'] }),
+//       state.lobbyError ? createElement('p', {
+//         attrs: { class: 'error' },
+//         children: [state.lobbyError]
+//       }) : null,
+//       createElement('button', {
+//         attrs: { id: 'btn-create-room' },
+//         children: ['Create Room'],
+//         events: {}
+//       }),
+//       createElement('div', {
+//         attrs: { style: 'margin-top: 20px;' },
+//         children: [
+//           createElement('input', {
+//             attrs: {
+//               type: 'text',
+//               id: 'input-room-code',
+//               placeholder: 'Enter Room Code',
+//               value: state.roomCode || ''
+//             },
+//             events: {
+//               input: (e) => {
+//                 store.setState({ roomCode: e.target.value.toUpperCase() });
+//               }
+//             }
+//           }),
+//           createElement('button', {
+//             attrs: { id: 'btn-join-room', disabled: !state.roomCode.trim() },
+//             children: ['Join Room'],
+//             events: {}
+//           })
+//         ]
+//       }),
+//       createElement('p', {
+//         children: ['Share your room code with friends to join!']
+//       })
+//     ].filter(Boolean),
+//   });
+// }
 
 function LobbyView() {
   const state = store.getState();
@@ -138,28 +197,25 @@ function LobbyView() {
               type: 'text',
               id: 'input-room-code',
               placeholder: 'Enter Room Code',
-              value: state.roomCode || ''
             },
             events: {
-              input: (e) => {
-                store.setState({ roomCode: e.target.value.toUpperCase() });
-              }
+              // no input event
             }
           }),
           createElement('button', {
-            attrs: { id: 'btn-join-room', disabled: !state.roomCode.trim() },
+            attrs: { id: 'btn-join-room' }, // always enabled
             children: ['Join Room'],
             events: {}
           })
         ]
       }),
       createElement('p', {
-        attrs: { style: 'margin-top: 10px; font-size: 12px; color: #555;' },
         children: ['Share your room code with friends to join!']
       })
     ].filter(Boolean),
   });
 }
+
 
 // --------- Waiting Room UI ---------
 
@@ -238,6 +294,7 @@ let currentNode = document.getElementById('app') || document.body;
 
 function renderApp() {
   const state = store.getState();
+  console.log('Rendering view:', state.view);
 
   let newVNode;
   switch (state.view) {
@@ -275,7 +332,6 @@ renderApp();
 // Create room button
 on('click', '#btn-create-room', () => {
   connectToServer();
-  sendToServer('createRoom');
 });
 
 // Join room button
