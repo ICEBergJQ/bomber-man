@@ -1,137 +1,122 @@
 const WebSocket = require('ws');
+const PORT = 8080;
+const TICK_INTERVAL = 100; // server tick every 100ms
+const ROWS = 13, COLS = 23;
 
-const rooms = {};  // key = roomCode, value = { gameState, clients }
+// Cell types
+const CELL_EMPTY = ' ';
+const CELL_WALL  = '#';
+const CELL_BOX   = '*';
 
-function generateRoomCode() {
-  return Math.random().toString(36).substring(2, 6).toUpperCase();
+let maze, player, bombs = [], explosions = [], gameOver = false;
+
+// Setup maze and player
+function initGame() {
+  maze = generateMaze(ROWS, COLS);
+  player = { row:1, col:1, alive: true, id: 'player1' };
+  bombs = [];
+  explosions = [];
+  gameOver = false;
 }
 
-function initializeGame() {
-  return {
-    players: {},
-    bombs: [],
-    explosions: [],
-    maze: generateMaze(13, 23),
-    gameStarted: false,
-    gameOver: false,
-    winner: null,
-    playerCount: 0
-  };
+// Maze generation
+function generateMaze(rows, cols) {
+  // similar to your prototype
+  const m = [];
+  for (let r=0; r<rows; r++) {
+    m[r] = [];
+    for (let c=0; c<cols; c++) {
+      if (r===0||r===rows-1||c===0||c===cols-1 || (r%2===0 && c%2===0)) m[r][c] = CELL_WALL;
+      else if (Math.random()<0.2) m[r][c] = CELL_BOX;
+      else m[r][c] = CELL_EMPTY;
+    }
+  }
+  // clear top-left area for player
+  for (let dr=0; dr<=1; dr++) for (let dc=0; dc<=1; dc++) m[1+dr][1+dc] = CELL_EMPTY;
+  return m;
 }
 
-const wss = new WebSocket.Server({ port: 8080, host: '0.0.0.0' });
+// Explosion logic
+function explodeBomb(b) {
+  const center = { row: b.row, col: b.col };
+  const cells = [center];
+  const dirs = [{dr:-1,dc:0},{dr:1,dc:0},{dr:0,dc:-1},{dr:0,dc:1}];
+  for (const d of dirs) {
+    for (let dist=1; dist<=2; dist++) {
+      const rr=b.row+d.dr*dist, cc=b.col+d.dc*dist;
+      if (!maze[rr] || maze[rr][cc]===CELL_WALL) break;
+      cells.push({row:rr, col:cc});
+      if (maze[rr][cc]===CELL_BOX) { maze[rr][cc]=CELL_EMPTY; break; }
+    }
+  }
+  explosions.push(...cells.map(c => ({...c, expireAt:Date.now()+500})));
+}
 
-wss.on('connection', (ws) => {
-  console.log('New client connected');
+// Game tick
+function gameLoop() {
+  const now = Date.now();
+  for (let i=bombs.length-1; i>=0; i--) {
+    if (now >= bombs[i].explodeAt) {
+      explodeBomb(bombs[i]);
+      bombs.splice(i,1);
+    }
+  }
+  explosions = explosions.filter(e=>e.expireAt>now);
+  // Check player death
+  if (player.alive && explosions.find(e=>e.row===player.row && e.col===player.col)) {
+    player.alive = false;
+    gameOver = true;
+  }
+  broadcastState();
+}
 
-  ws.on('message', (message) => {
+// WebSocket server
+const wss = new WebSocket.Server({ port: PORT });
+initGame();
+setInterval(gameLoop, TICK_INTERVAL);
+
+wss.on('connection', ws => {
+  console.log('Client connected');
+  ws.on('message', msg => {
     try {
-      const data = JSON.parse(message);
-
-      if (data.type === 'createRoom') {
-        const roomCode = generateRoomCode();
-        console.log(`Creating room with code: ${roomCode}`);
-        
-        rooms[roomCode] = {
-          gameState: initializeGame(),
-          clients: new Set()
-        };
-        ws.roomCode = roomCode;
-        rooms[roomCode].clients.add(ws);
-        // Send with data wrapper
-        ws.send(JSON.stringify({ type: 'roomCreated', data: { roomCode } }));
-
-      } else if (data.type === 'joinRoom') {
-        const roomCode = data.roomCode;
-        const room = rooms[roomCode];
-        if (!room) {
-          ws.send(JSON.stringify({ type: 'error', data: { message: 'Room not found' } }));
-          return;
+      const m = JSON.parse(msg);
+      if (gameOver && m.type !== 'restart') return;
+      if (m.type === 'move') {
+        const d = m.data.direction;
+        let nr = player.row, nc = player.col;
+        if (d==='up') nr--;
+        else if (d==='down') nr++;
+        else if (d==='left') nc--;
+        else if (d==='right') nc++;
+        if (maze[nr] && maze[nr][nc]===CELL_EMPTY) {
+          // ensure bomb not blocking
+          if (!bombs.find(b=>b.row===nr&&b.col===nc)) {
+            player.row=nr; player.col=nc;
+          }
         }
-        if (room.gameState.playerCount >= 4) {
-          ws.send(JSON.stringify({ type: 'error', data: { message: 'Room is full' } }));
-          return;
-        }
-
-        room.gameState.playerCount++;
-        const playerId = room.gameState.playerCount;
-        const pos = startingPositions[playerId - 1];
-        room.gameState.players[playerId] = {
-          playerId,
-          row: pos.row,
-          col: pos.col,
-          alive: true
-        };
-
-        ws.roomCode = roomCode;
-        ws.playerId = playerId;
-        room.clients.add(ws);
-
-        // Send welcome with data wrapper
-        ws.send(JSON.stringify({ type: 'welcome', data: { playerId } }));
-        broadcastGameState(room);
-
-        // If enough players, start
-        if (Object.keys(room.gameState.players).length >= 2) {
-          room.gameState.gameStarted = true;
-          broadcastGameState(room);
-        }
-
-      } else if (data.type === 'move' || data.type === 'bomb') {
-        const roomCode = ws.roomCode;
-        if (!roomCode || !rooms[roomCode]) return;
-        const room = rooms[roomCode];
-        if (data.type === 'move') {
-          movePlayer(room, ws.playerId, data.direction);
-        } else if (data.type === 'bomb') {
-          placeBomb(room, ws.playerId);
-        }
+      } else if (m.type === 'bomb') {
+        bombs.push({ row: player.row, col: player.col, explodeAt: Date.now()+3000 });
+      } else if (m.type === 'restart') {
+        initGame();
       }
-
-    } catch (err) {
-      console.error('Parse error:', err);
+    } catch(e) {
+      console.error('Invalid message', e);
     }
   });
-
-  ws.on('close', () => {
-    const roomCode = ws.roomCode;
-    if (roomCode && rooms[roomCode]) {
-      const room = rooms[roomCode];
-      if (ws.playerId) {
-        delete room.gameState.players[ws.playerId];
-      }
-      room.clients.delete(ws);
-      broadcastGameState(room);
-      if (room.clients.size === 0) {
-        delete rooms[roomCode];
-        console.log(`Room ${roomCode} deleted (empty)`);
-      }
-    }
-  });
+  ws.on('close', ()=> console.log('Client disconnected'));
+  broadcastState(ws); // send state to new client
 });
 
-function broadcastGameState(room) {
-  const message = JSON.stringify({
+function broadcastState(targetWs) {
+  const payload = {
     type: 'gameState',
-    data: room.gameState
-  });
-  room.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  });
+    data: { maze, player, bombs, explosions, gameOver }
+  };
+  const str = JSON.stringify(payload);
+  if (targetWs) {
+    targetWs.send(str);
+  } else {
+    wss.clients.forEach(c=> c.readyState===WebSocket.OPEN && c.send(str));
+  }
 }
-
-// movePlayer, placeBomb, generateMaze, startingPositions etc assumed implemented elsewhere
-
-function movePlayer(room, playerId, direction) { /* your implementation */ }
-function placeBomb(room, playerId) { /* your implementation */ }
-function generateMaze(rows, cols) { /* your implementation */ }
-
-// Example starting positions (make sure you define this in your code)
-const startingPositions = [
-  { row: 1, col: 1 },
-  { row: 1, col: 21 },
-  { row: 11, col: 1 },
-  { row: 11, col: 21 }
-];
+console.log(`Server running on ws://localhost:${PORT}`);
