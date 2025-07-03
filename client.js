@@ -18,7 +18,7 @@ const INITIAL_MAZE_COLS = 23;
 
 const gameState = createStore({
   players: {},
-  bombs: [],  
+  bombs: [],
   explosions: [],
   gameOver: false,
   winner: null,
@@ -215,38 +215,43 @@ function generateMaze(rows, cols) {
 
 export const mazeCell = (type, rowIndex, colIndex) => {
   const state = gameState.getState();
-  let className = 'cell';
+  let className = "cell";
 
-  const explosionAtPosition = state.explosions.find(exp =>
-    exp.row === rowIndex && exp.col === colIndex
+  const explosionAtPosition = state.explosions.find(
+    (exp) => exp.row === rowIndex && exp.col === colIndex
   );
 
   if (explosionAtPosition) {
-    className += ' explosion';
+    className += " explosion";
   } else {
-    const bombAtPosition = state.bombs.find(bomb =>
-      bomb.row === rowIndex && bomb.col === colIndex
+    const bombAtPosition = state.bombs.find(
+      (bomb) => bomb.row === rowIndex && bomb.col === colIndex
     );
     if (bombAtPosition) {
-      className += ' bomb';
+      className += " bomb";
     } else {
-      const playerAtPosition = Object.values(state.players).find(p =>
-        p.alive && p.row === rowIndex && p.col === colIndex
+      const playerAtPosition = Object.values(state.players).find(
+        (p) => p.alive && p.row === rowIndex && p.col === colIndex
       );
       if (playerAtPosition) {
         className += ` ${playerAtPosition.id}`;
       } else {
         switch (type) {
-          case '#': className += ' wall'; break;
-          case '*': className += ' box'; break;
-          default:  className += ' empty'; break;
+          case "#":
+            className += " wall";
+            break;
+          case "*":
+            className += " box";
+            break;
+          default:
+            className += " empty";
+            break;
         }
       }
     }
   }
-  return createElement('div', { attrs: { class: className } });
+  return createElement("div", { attrs: { class: className } });
 };
-
 
 // Render the game
 function renderGame() {
@@ -352,6 +357,7 @@ document.addEventListener("keydown", (e) => {
 createRouter({
   "/": () => {
     gameState.setState({ ...gameState.getState(), currentScreen: "join" });
+    renderApp();
   },
   "/lobby": () => {
     gameState.setState({ ...gameState.getState(), currentScreen: "lobby" });
@@ -365,7 +371,7 @@ createRouter({
 // gameState.subscribe(renderApp);
 
 function renderApp() {
-   let appRootElement = document.getElementById("app");
+  // let appRootElement = document.getElementById("app");
   if (!appRootElement) {
     // If #app doesn't exist, create it and append to body
     const statusVNode = createElement("div", {
@@ -373,12 +379,11 @@ function renderApp() {
         id: "app",
       },
     });
-    appRootElement = render(statusVNode);
-    document.body.insertBefore(appRootElement, document.body.firstChild);
+   appRootElement = render(statusVNode);
+    // document.body.insertBefore(appRootElement, document.body.firstChild);
   }
 
- 
-  // const appRootElement = document.getElementById("app");
+  const appRootElement = document.getElementById("app");
 
   console.log(
     "Rendering app with current screen:",
@@ -389,8 +394,8 @@ function renderApp() {
   switch (gameState.getState().currentScreen) {
     case "join":
       console.log("Rendering lobby screen");
-      // vNodeToRender = JoinView(gameState);
-      vNodeToRender = GameView(gameState);
+      vNodeToRender = JoinView(gameState);
+
       break;
     case "lobby":
       console.log("Rendering lobby screen");
@@ -410,11 +415,11 @@ function renderApp() {
 
   console.log(vNodeToRender);
   console.log(document.getElementById("app"));
-  
+
   // Render the VNode to a real DOM element and mount it into the app root.
   mount(render(vNodeToRender), appRootElement);
 }
 
 ///////////////////////////////ok
 
-document.addEventListener("DOMContentLoaded", renderApp);
+// document.addEventListener("DOMContentLoaded", renderApp);
