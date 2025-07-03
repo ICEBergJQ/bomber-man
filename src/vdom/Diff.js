@@ -1,4 +1,4 @@
-import render from "./Render.js";
+import render from './Render.js';
 
 const zip = (xs, ys) => {
   const zipped = [];
@@ -10,16 +10,55 @@ const zip = (xs, ys) => {
 
 const diffAttrs = (oldAttrs, newAttrs) => {
   const patches = [];
-  
-  // set new Attributes
-  for (const [key, value] of Object.entries(newAttrs)) {
-    patches.push((node) => {
-      node.setAttribute(key, value);
+
+  // Always remove all old events first
+  if (oldAttrs.events) {
+    patches.push(node => {
+      for (const [event, handler] of Object.entries(oldAttrs.events)) {
+        node.removeEventListener(event, handler);
+      }
       return node;
     });
   }
 
-  // remove old Attributes
+  // Then add new events
+  if (newAttrs.events) {
+    patches.push(node => {
+      for (const [event, handler] of Object.entries(newAttrs.events)) {
+        node.addEventListener(event, handler);
+      }
+      return node;
+    });
+  }
+
+  if (newAttrs.type === 'checkbox' || newAttrs.type === 'radio') {
+    patches.push(node => {
+      node.checked = !!newAttrs.checked;
+      return node;
+    });
+  }
+
+  // handling for input values
+  if ('value' in newAttrs && newAttrs.value !== oldAttrs.value) {
+    patches.push(node => {
+      node.value = newAttrs.value;
+      return node;
+    });
+  }
+
+  // Set or remove new attributes
+  for (const [key, value] of Object.entries(newAttrs)) {
+    patches.push((node) => {
+      if (value === false || value === null || value === undefined) {
+        node.removeAttribute(key);
+      } else {
+        node.setAttribute(key, value === true ? '' : value);
+      }
+      return node;
+    });
+  }
+
+  // Remove attributes that no longer exist
   for (const key in oldAttrs) {
     if (!(key in newAttrs)) {
       patches.push((node) => {
@@ -33,19 +72,21 @@ const diffAttrs = (oldAttrs, newAttrs) => {
     for (const patch of patches) {
       patch(node);
     }
+    return node;
   };
 };
 
 const diffChildren = (oldVChildren, newVChildren) => {
   const childPatches = [];
   oldVChildren.forEach((oldVChild, i) => {
-    childPatches.push(Diff(oldVChild, newVChildren[i]));
+    childPatches.push(diff(oldVChild, newVChildren[i]));
   });
 
   const additionalPatches = [];
   for (const additionalVChild of newVChildren.slice(oldVChildren.length)) {
     additionalPatches.push(node => {
       node.appendChild(render(additionalVChild));
+      return node;
     });
   }
 
@@ -57,11 +98,17 @@ const diffChildren = (oldVChildren, newVChildren) => {
     for (const patch of additionalPatches) {
       patch(parent);
     }
+
+    // Remove extra children
+    while (parent.childNodes.length > newVChildren.length) {
+      parent.removeChild(parent.lastChild);
+    }
+
     return parent;
   };
 };
 
-const Diff = (vOldNode, vNewNode) => {
+export default function diff(vOldNode, vNewNode) {
   if (vNewNode === undefined) {
     return (node) => {
       node.remove();
@@ -77,9 +124,7 @@ const Diff = (vOldNode, vNewNode) => {
         return newNode;
       };
     } else {
-      return (node) => {
-        return undefined;
-      };
+      return (node) => node;
     }
   }
 
@@ -99,6 +144,4 @@ const Diff = (vOldNode, vNewNode) => {
     patchChildren(node);
     return node;
   };
-};
-
-export default Diff;
+}

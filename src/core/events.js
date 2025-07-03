@@ -16,3 +16,16 @@ export function on(eventType, selector, handler) {
 
   eventRegistry[eventType].push({ selector, handler });
 }
+
+export function off(eventType, selector, handler) {
+  if (eventRegistry[eventType]) {
+    eventRegistry[eventType] = eventRegistry[eventType].filter(
+      ({ selector: s, handler: h }) => !(s === selector && h === handler)
+    );
+  }
+}
+
+export function emit(eventType, detail = {}) {
+  const event = new CustomEvent(eventType, { detail });
+  document.dispatchEvent(event);
+}
