@@ -17,7 +17,7 @@ let ws = null;
 
 // Connect to WebSocket server
 function connectToServer() {
-  const SERVER_IP = '10.1.16.3'; // Change this per machine
+  const SERVER_IP = '10.1.19.9'; // Change this per machine
 ws = new WebSocket(`ws://${SERVER_IP}:8080`);
   
   ws.onopen = () => {
