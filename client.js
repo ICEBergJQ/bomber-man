@@ -289,62 +289,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-function init() {
-  // Create UI elements using createElement and render, then mount them
-
-  // 1. Status Div
-  if (!document.getElementById('status')) {
-    const statusVNode = createElement('div', {
-      attrs: {
-        id: 'status'
-      }
-    });
-    const statusDomElement = render(statusVNode);
-    document.body.insertBefore(statusDomElement, document.body.firstChild);
-  }
-
-  // 2. Game Container
-  if (!document.getElementById('game-container')) {
-    const gameContainerVNode = createElement('div', {
-      attrs: {
-        id: 'game-container'
-      }
-    });
-    const gameContainerDomElement = render(gameContainerVNode);
-
-    const appElement = document.getElementById('app') || document.body;
-    appElement.appendChild(gameContainerDomElement);
-  }
-
-  // 3. Instructions Div
-  if (!document.getElementById('instructions')) {
-    const instructionsVNode = createElement('div', {
-      attrs: {
-        id: 'instructions'
-      },
-      children: [
-        createElement('p', {
-          children: [
-            createElement('strong', { children: ['Controls:'] }),
-            ' Arrow Keys or WASD to move, Spacebar or Q for bomb'
-          ]
-        }),
-        createElement('p', {
-          children: [
-            createElement('strong', { children: ['Testing:'] }),
-            ' Press G to generate test maze when offline'
-          ]
-        })
-      ]
-    });
-    const instructionsDomElement = render(instructionsVNode);
-    document.body.appendChild(instructionsDomElement);
-  }
-  // Call original functions
-  showStatus('Connecting to server...');
-  connectToServer();
-}
-
 ////////////////////////////////ok
 
 function renderJoinScreen() {
@@ -387,7 +331,9 @@ function renderJoinScreen() {
 function renderLobbyScreen() {
   const state = gameState.getState();
   let lobbyContent;
-
+  console.log('Rendering lobby screen with state:', state);
+  
+  
   if (state.isPlayer1) {
     lobbyContent = [
       createElement('h2', { children: ['Lobby: You are Player 1'] }),
@@ -405,7 +351,7 @@ function renderLobbyScreen() {
             gameOver: false,
             winner: null,
             mazeLayout: generateMaze(INITIAL_MAZE_ROWS, INITIAL_MAZE_COLS),
-            currentScreen: 'game' // Switch to game screen
+            currentScreen: 'game'
           });
           window.location.hash = '#/game'; // Update URL hash
         }}
@@ -417,7 +363,7 @@ function renderLobbyScreen() {
       createElement('p', { children: ['Please wait for Player 1 to start the game.'] })
     ];
   }
-
+  
   return createElement('div', {
     attrs: { class: 'screen lobby-screen' },
     children: lobbyContent
@@ -437,55 +383,111 @@ createRouter({
 });
 
 function renderApp() {
-  const state = gameState.getState();
-  const appRootElement = document.getElementById('app'); // Main container defined in index.html
-
-  if (!appRootElement) {
-    console.error("Root element with ID 'app' not found. Ensure your index.html has <div id='app'></div>");
-    return;
-  }
-
+  
+  const statusVNode = createElement('div', {
+    attrs: {
+      id: 'app'
+    }
+  });
+  const statusDomElement = render(statusVNode);
+  document.body.insertBefore(statusDomElement, document.body.firstChild);
+  const appRootElement = document.getElementById('app');
+  
   let vNodeToRender;
-  switch (state.currentScreen) {
+  switch (gameState.currentScreen) {
     case 'join':
       vNodeToRender = renderJoinScreen();
       break;
-    case 'lobby':
-      vNodeToRender = renderLobbyScreen();
-      break;
-    case 'game':
+      case 'lobby':
+        vNodeToRender = renderLobbyScreen();
+        break;
+        case 'game':
       vNodeToRender = renderGameScreen();
       break;
     default:
       vNodeToRender = createElement('div', { children: ['404 - Page Not Found'] });
+    }
+    
+    // Render the VNode to a real DOM element and mount it into the app root.
+    Mount(render(vNodeToRender), appRootElement);
   }
-
-  // Render the VNode to a real DOM element and mount it into the app root.
-  Mount(render(vNodeToRender), appRootElement);
-}
-
-///////////////////////////////ok
-
-// Call init when the DOM is fully loaded
-// document.addEventListener('DOMContentLoaded', init);
-document.addEventListener('DOMContentLoaded', renderApp);
-
-// Auto-reconnect functionality
-// function setupAutoReconnect() {
-//   if (!ws || ws.readyState === WebSocket.CLOSED) {
-//     console.log('Attempting to reconnect...');
-//     showStatus('Reconnecting...');
-//     connectToServer();
-//   }
-// }
-
-// Try to reconnect every 5 seconds if disconnected
-// setInterval(() => {
-//   if (!ws || ws.readyState === WebSocket.CLOSED) {
+  
+  ///////////////////////////////ok
+  
+  document.addEventListener('DOMContentLoaded', renderApp);
+  
+  // Auto-reconnect functionality
+  // function setupAutoReconnect() {
+    //   if (!ws || ws.readyState === WebSocket.CLOSED) {
+      //     console.log('Attempting to reconnect...');
+      //     showStatus('Reconnecting...');
+      //     connectToServer();
+      //   }
+      // }
+      
+      // Try to reconnect every 5 seconds if disconnected
+      // setInterval(() => {
+        //   if (!ws || ws.readyState === WebSocket.CLOSED) {
 //     setupAutoReconnect();
 //   }
 // }, 5000);
 
 // Start the client
 // init();
-renderApp()
+// renderApp()
+
+// function init() {
+//   // Create UI elements using createElement and render, then mount them
+
+//   // 1. Status Div
+//   if (!document.getElementById('status')) {
+//     const statusVNode = createElement('div', {
+//       attrs: {
+//         id: 'status'
+//       }
+//     });
+//     const statusDomElement = render(statusVNode);
+//     document.body.insertBefore(statusDomElement, document.body.firstChild);
+//   }
+
+//   // 2. Game Container
+//   if (!document.getElementById('game-container')) {
+//     const gameContainerVNode = createElement('div', {
+//       attrs: {
+//         id: 'game-container'
+//       }
+//     });
+//     const gameContainerDomElement = render(gameContainerVNode);
+
+//     const appElement = document.getElementById('app') || document.body;
+//     appElement.appendChild(gameContainerDomElement);
+//   }
+
+//   // 3. Instructions Div
+//   if (!document.getElementById('instructions')) {
+//     const instructionsVNode = createElement('div', {
+//       attrs: {
+//         id: 'instructions'
+//       },
+//       children: [
+//         createElement('p', {
+//           children: [
+//             createElement('strong', { children: ['Controls:'] }),
+//             ' Arrow Keys or WASD to move, Spacebar or Q for bomb'
+//           ]
+//         }),
+//         createElement('p', {
+//           children: [
+//             createElement('strong', { children: ['Testing:'] }),
+//             ' Press G to generate test maze when offline'
+//           ]
+//         })
+//       ]
+//     });
+//     const instructionsDomElement = render(instructionsVNode);
+//     document.body.appendChild(instructionsDomElement);
+//   }
+//   // Call original functions
+//   showStatus('Connecting to server...');
+//   connectToServer();
+// }
