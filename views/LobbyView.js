@@ -1,5 +1,4 @@
-import createElement  from "../src/vdom/CreateElement.js";
-
+import createElement from "../src/vdom/CreateElement.js";
 
 export default function renderLobbyScreen(gameState) {
   const state = gameState.getState();
@@ -10,26 +9,26 @@ export default function renderLobbyScreen(gameState) {
     lobbyContent = [
       createElement("h2", { children: ["Lobby: You are Player 1"] }),
       createElement("p", { children: ['Click "Start Game" when ready.'] }),
-    //   createElement("button", {
-    //     attrs: { class: "btn btn-success" },
-    //     children: ["Start Game (Player 1)"],
-    //     events: {
-    //       click: () => {
-    //         // When Player 1 starts, reset game state for a fresh game
-    //         gameState.setState({
-    //           ...gameState.getState(),
-    //           players: {},
-    //           bombs: [],
-    //           explosions: [],
-    //           gameOver: false,
-    //           winner: null,
-    //           mazeLayout: generateMaze(INITIAL_MAZE_ROWS, INITIAL_MAZE_COLS),
-    //           currentScreen: "game",
-    //         });
-    //         window.location.hash = "#/game"; // Update URL hash
-    //       },
-    //     },
-    //   }),
+      createElement("button", {
+        attrs: { class: "btn btn-success" },
+        children: ["Start Game (Player 1)"],
+        events: {
+          click: () => {
+            // When Player 1 starts, reset game state for a fresh game
+            gameState.setState({
+              ...gameState.getState(),
+              players: {},
+              bombs: [],
+              explosions: [],
+              gameOver: false,
+              winner: null,
+              // Removed mazeLayout generation here as it will come from the server
+              currentScreen: "game",
+            });
+            window.location.hash = "#/game"; // Update URL hash
+          },
+        },
+      }),
     ];
   } else {
     lobbyContent = [
@@ -39,6 +38,9 @@ export default function renderLobbyScreen(gameState) {
       }),
     ];
   }
+
+  // The outer div should not have an id="app" as #app is the root element.
+  // The content generated here will be mounted inside the existing #app element.
   return createElement("div", {
     attrs: { class: "screen lobby-screen" },
     children: lobbyContent,

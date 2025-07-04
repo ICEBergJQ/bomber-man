@@ -5,7 +5,7 @@ let gameState = {
   players: {},
   bombs: [],
   explosions: [],
-  maze: null,
+  mazeLayout: null,
   gameStarted: false,
   gameOver: false,
   winner: null,
@@ -50,7 +50,7 @@ function generateMaze(rows, cols) {
 
 // Initialize game
 function initializeGame() {
-  gameState.maze = generateMaze(13, 23);
+  gameState.mazeLayout = generateMaze(13, 23);
   gameState.bombs = [];
   gameState.explosions = [];
   gameState.gameStarted = false;
@@ -75,17 +75,17 @@ function explodeBomb(bomb) {
       const newRow = row + (dir.row * distance);
       const newCol = col + (dir.col * distance);
       
-      if (newRow < 0 || newRow >= gameState.maze.length || 
-          newCol < 0 || newCol >= gameState.maze[0].length) {
+      if (newRow < 0 || newRow >= gameState.mazeLayout.length || 
+          newCol < 0 || newCol >= gameState.mazeLayout[0].length) {
         break;
       }
       
-      const cellType = gameState.maze[newRow][newCol];
+      const cellType = gameState.mazeLayout[newRow][newCol];
       
       if (cellType === '#') {
         break;
       } else if (cellType === '*') {
-        gameState.maze[newRow][newCol] = ' ';
+        gameState.mazeLayout[newRow][newCol] = ' ';
         explosionCells.push({ row: newRow, col: newCol });
         break;
       } else {
@@ -205,10 +205,10 @@ function movePlayer(playerId, direction) {
   }
   
   if (
-    gameState.maze[newRow] &&
-    gameState.maze[newRow][newCol] !== '#' && 
-    gameState.maze[newRow][newCol] !== '*' &&
-    gameState.maze[newRow][newCol] !== undefined
+    gameState.mazeLayout[newRow] &&
+    gameState.mazeLayout[newRow][newCol] !== '#' && 
+    gameState.mazeLayout[newRow][newCol] !== '*' &&
+    gameState.mazeLayout[newRow][newCol] !== undefined
   ) {
     player.row = newRow;
     player.col = newCol;

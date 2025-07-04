@@ -13,8 +13,8 @@ import JoinView from "./views/JoinView.js";
 import LobbyView from "./views/LobbyView.js";
 import GameView from "./views/GameView.js";
 
-const INITIAL_MAZE_ROWS = 13;
-const INITIAL_MAZE_COLS = 23;
+// const INITIAL_MAZE_ROWS = 13;
+// const INITIAL_MAZE_COLS = 23;
 
 const gameState = createStore({
   players: {},
@@ -24,7 +24,7 @@ const gameState = createStore({
   winner: null,
   gameStarted: false,
   gameOver: false,
-  mazeLayout: generateMaze(INITIAL_MAZE_ROWS, INITIAL_MAZE_COLS),
+  mazeLayout: null,
   currentScreen: "join",
   isPlayer1: false,
   LobbyView,
@@ -35,7 +35,7 @@ let ws = null;
 
 // Connect to WebSocket server
 function connectToServer() {
-  const SERVER_IP = "10.1.19.9"; // Change this per machine
+  const SERVER_IP = "192.168.1.10"; // Change this per machine
   ws = new WebSocket(`ws://${SERVER_IP}:8080`);
 
   ws.onopen = () => {
@@ -74,7 +74,7 @@ function handleServerMessage(message) {
 
     case "gameState":
       gameState = message.data;
-      renderGame();
+      // renderGame();
 
       if (gameState.gameOver && gameState.winner) {
         showStatus(
@@ -368,22 +368,16 @@ createRouter({
     renderApp();
   },
 });
-// gameState.subscribe(renderApp);
 
 function renderApp() {
-  // let appRootElement = document.getElementById("app");
-  if (!appRootElement) {
-    // If #app doesn't exist, create it and append to body
-    const statusVNode = createElement("div", {
-      attrs: {
-        id: "app",
-      },
-    });
-   appRootElement = render(statusVNode);
-    // document.body.insertBefore(appRootElement, document.body.firstChild);
-  }
+  let appRootElement = document.getElementById("app");
 
-  const appRootElement = document.getElementById("app");
+  // If #app doesn't exist, create it and append to body
+  if (!appRootElement) {
+    appRootElement = document.createElement("div");
+    appRootElement.id = "app";
+    document.body.appendChild(appRootElement); // Append the created div to the body
+  }
 
   console.log(
     "Rendering app with current screen:",
@@ -393,32 +387,86 @@ function renderApp() {
   let vNodeToRender;
   switch (gameState.getState().currentScreen) {
     case "join":
-      console.log("Rendering lobby screen");
+      console.log("Rendering join screen");
       vNodeToRender = JoinView(gameState);
-
       break;
     case "lobby":
       console.log("Rendering lobby screen");
-
       vNodeToRender = LobbyView(gameState);
       break;
     case "game":
-      vNodeToRender = GameView();
+      console.log("Rendering game screen");
+      vNodeToRender = GameView(gameState);
       break;
     default:
-      console.log(`Unknown screen: ${gameState.currentScreen}`);
-
+      console.log(`Unknown screen: ${gameState.getState().currentScreen}`); // Use getState()
       vNodeToRender = createElement("div", {
         children: ["404 - Page Not Found"],
       });
   }
 
-  console.log(vNodeToRender);
-  console.log(document.getElementById("app"));
+  console.log("VNode to render:", vNodeToRender);
+  console.log("App root element (before render):", appRootElement);
 
-  // Render the VNode to a real DOM element and mount it into the app root.
-  mount(render(vNodeToRender), appRootElement);
+  // Clear existing content and append new content to the appRootElement
+  appRootElement.innerHTML = ''; // Clear existing children
+  appRootElement.appendChild(render(vNodeToRender)); // Append the new rendered content
+
+  console.log("App root element (after render):", appRootElement);
 }
+
+// gameState.subscribe(renderApp);
+
+// function renderApp() {
+//   let appRootElement = document.getElementById("app");
+//   if (!appRootElement) {
+//     // If #app doesn't exist, create it and append to body
+//     const statusVNode = createElement("div", {
+//       attrs: {
+//         id: "app",
+//       },
+//     });
+//    appRootElement = render(statusVNode);
+//     // document.body.insertBefore(appRootElement, document.body.firstChild);
+//   }
+
+//   // const appRootElement = document.getElementById("app");
+
+//   console.log(
+//     "Rendering app with current screen:",
+//     gameState.getState().currentScreen
+//   );
+
+//   let vNodeToRender;
+//   switch (gameState.getState().currentScreen) {
+//     case "join":
+//       console.log("Rendering lobby screen");
+//       vNodeToRender = JoinView(gameState);
+
+//       break;
+//     case "lobby":
+//       console.log("Rendering lobby screen");
+
+//       vNodeToRender = LobbyView(gameState);
+//       break;
+//     case "game":
+//       vNodeToRender = GameView();
+//       break;
+//     default:
+//       console.log(`Unknown screen: ${gameState.currentScreen}`);
+
+//       vNodeToRender = createElement("div", {
+//         children: ["404 - Page Not Found"],
+//       });
+//   }
+
+//   console.log(vNodeToRender);
+//   console.log(document.getElementById("app"));
+
+//   // Render the VNode to a real DOM element and mount it into the app root.
+//   mount(render(vNodeToRender), appRootElement);
+// }
+
 
 ///////////////////////////////ok
 
