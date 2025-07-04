@@ -34,8 +34,8 @@ let myPlayerId = null;
 let ws = null;
 
 // Connect to WebSocket server
-function connectToServer() {
-  const SERVER_IP = "192.168.1.10"; // Change this per machine
+export function connectToServer() {
+  const SERVER_IP = "10.1.19.9"; // Change this per machine
   ws = new WebSocket(`ws://${SERVER_IP}:8080`);
 
   ws.onopen = () => {
@@ -45,7 +45,7 @@ function connectToServer() {
 
   ws.onmessage = (event) => {
     try {
-      const message = JSON.parse(event.data);
+      let message = JSON.parse(event.data);
       handleServerMessage(message);
     } catch (error) {
       console.error("Error parsing server message:", error);
@@ -90,7 +90,9 @@ function handleServerMessage(message) {
         );
       }
       break;
-
+      case "gameState":
+      gameState.setState(message.data);
+      break;
     case "error":
       showStatus(`Error: ${message.data.message}`);
       break;
@@ -98,7 +100,7 @@ function handleServerMessage(message) {
 }
 
 // Send message to server
-function sendToServer(type, data = {}) {
+export function sendToServer(type, data = {}) {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type, ...data }));
   }
@@ -393,6 +395,7 @@ function renderApp() {
     case "lobby":
       console.log("Rendering lobby screen");
       vNodeToRender = LobbyView(gameState);
+      connectToServer();
       break;
     case "game":
       console.log("Rendering game screen");

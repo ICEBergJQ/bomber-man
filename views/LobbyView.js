@@ -1,3 +1,4 @@
+import { sendToServer } from "../client.js";
 import createElement from "../src/vdom/CreateElement.js";
 
 export default function renderLobbyScreen(gameState) {
@@ -25,7 +26,10 @@ export default function renderLobbyScreen(gameState) {
               // Removed mazeLayout generation here as it will come from the server
               currentScreen: "game",
             });
-            window.location.hash = "#/game"; // Update URL hash
+            window.location.hash = "#/game";
+            sendToServer(
+              "startGame"
+            )
           },
         },
       }),

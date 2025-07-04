@@ -53,9 +53,24 @@ function initializeGame() {
   gameState.mazeLayout = generateMaze(13, 23);
   gameState.bombs = [];
   gameState.explosions = [];
-  gameState.gameStarted = false;
+  // gameState.gameStarted = false;
   gameState.gameOver = false;
   gameState.winner = null;
+}
+
+function broadcastGameState(t) {
+  const message = JSON.stringify({
+    type: t || 'gameState',
+    data: gameState
+  });
+  
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      console.log("state broadcasted", gameState);
+      
+      client.send(message);
+    }
+  });
 }
 
 // Explode bomb function
@@ -217,18 +232,6 @@ function movePlayer(playerId, direction) {
 }
 
 // Broadcast game state to all clients
-function broadcastGameState() {
-  const message = JSON.stringify({
-    type: 'gameState',
-    data: gameState
-  });
-  
-  wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  });
-}
 
 // Get server IP address for display
 function getServerIP() {
@@ -256,17 +259,16 @@ console.log(`  Local: ws://localhost:8080`);
 console.log(`  Network: ws://${serverIP}:8080`);
 
 // Initialize the game
-initializeGame();
+
 
 wss.on('connection', (ws) => {
-  console.log('New client connected');
   
+  console.log('New client connected');
   // Assign player ID
   gameState.playerCount++;
   const playerId = gameState.playerCount;
   const playerIndex = playerId - 1;
-  
-  if (playerId <= 4) {
+  if (playerId <= 4 && gameState.gameStarted === false) {
     // Add new player
     gameState.players[playerId] = {
       playerId: playerId,
@@ -289,10 +291,9 @@ wss.on('connection', (ws) => {
     
     broadcastGameState();
   } else {
-    // Too many players
     ws.send(JSON.stringify({
       type: 'error',
-      data: { message: 'Game is full (max 4 players)' }
+      data: { message: 'Game is full or already started' }
     }));
     ws.close();
     return;
@@ -305,6 +306,7 @@ wss.on('connection', (ws) => {
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
+      console.log(`Received message from player ${ws.playerId}:`, data);
       
       switch (data.type) {
         case 'move':
@@ -313,6 +315,16 @@ wss.on('connection', (ws) => {
         case 'bomb':
           placeBomb(ws.playerId);
           break;
+        case 'startGame':
+          console.log('dkhl lcase');
+          
+          if (!gameState.gameStarted) {
+            console.log(`dkhl l if`);
+            gameState.gameStarted = true;
+            initializeGame();
+            gameState.playerCount = Object.keys(gameState.players).length;
+            broadcastGameState('startGame');
+          }
       }
     } catch (error) {
       console.error('Error parsing message:', error);
