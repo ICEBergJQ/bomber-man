@@ -8,7 +8,7 @@ export function connectWebSocket(gameState) {
         return;
     }
 
-    socket = new WebSocket("ws://localhost:8080");
+    socket = new WebSocket("ws://192.168.1.10:8080");
 
     socket.onopen = () => {
         console.log("WebSocket connected.");
