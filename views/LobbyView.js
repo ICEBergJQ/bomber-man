@@ -1,6 +1,7 @@
 import { sendToServer, socket } from "../ws.js";
 import createElement from "../src/vdom/CreateElement.js";
 // No longer importing globalGameState, it's passed as a parameter
+console.log(socket);
 
 export default function renderLobbyScreen(gameState) { // Accept gameState as parameter
   const state = gameState.getState();
