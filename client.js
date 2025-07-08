@@ -1,11 +1,8 @@
 import {
-  createElement,
   render,
   createStore,
   createRouter,
-  mount,
   diff,
-  on,
 } from "./src/main.js";
 import { connectWebSocket } from './ws.js';
 
