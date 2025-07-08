@@ -1,9 +1,9 @@
-// src/pages/renderJoinScreen.js
-import createElement from "../src/vdom/CreateElement.js";
-// No longer importing globalGameState, it's passed as a parameter
+import { createElement } from "../src/main.js";
 
-export default function renderJoinScreen(gameState) { // Accept gameState as parameter
+export default function renderJoinScreen(gameState) {
+  // Accept gameState as parameter
   const state = gameState.getState(); // Get state from passed param
+  console.log(state);
 
   return createElement("div", {
     attrs: { class: "screen join-screen" },
@@ -21,22 +21,31 @@ export default function renderJoinScreen(gameState) { // Accept gameState as par
         },
         events: {
           input: (e) => {
-            gameState.setState({ nickname: e.target.value }); // Use passed gameState
+            gameState.setState({ nickname: e.target.value });
+            console.log("Input event - new nickname value in store:", gameState.getState().nickname);
+          },
+          keypress: (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              console.log("Current nickname in store:", gameState.getState().nickname);
+              
+            }
           },
         },
       }),
       createElement("button", {
-        attrs: { class: "btn btn-primary", disabled: !state.nickname.trim() },
+        attrs: { class: "btn btn-primary" },
         children: ["Join Game"],
         events: {
           click: () => {
-            if (state.nickname.trim()) {
-                // Ensure the nickname is set in state before navigating
-                gameState.setState({ nickname: state.nickname.trim() });
-                window.location.hash = "#/lobby";
+            if (gameState.getState().nickname.trim()) {
+              console.log("----Current nickname: ", gameState.getState().nickname);0..toExponential.
+              // Ensure the nickname is set in state before navigating
+              gameState.setState({ nickname: gameState.getState().nickname.trim() });
+              window.location.hash = "#/lobby";
             } else {
-                // TODO: Replace with a custom modal/message box
-                alert("Please enter a nickname!");
+              // TODO: Replace with a custom modal/message box
+              alert("Please enter a nickname!");
             }
           },
         },

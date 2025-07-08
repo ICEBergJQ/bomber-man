@@ -1,66 +1,89 @@
-let socket; // Declare socket globally within this module
-let _gameStateInstance = null; // Private variable to hold the gameState instance
+import {
+  createElement,
+  render,
+  createStore,
+  createRouter,
+  mount,
+  diff,
+  on,
+} from "./src/main.js";
+import { connectWebSocket } from './ws.js';
 
-export function connectWebSocket(gameState) { // Accept gameState as parameter
-    _gameStateInstance = gameState; // Store the instance
+import renderJoinScreen from './views/JoinView.js';
+import renderLobbyScreen from './views/LobbyView.js';
+import renderGameScreen from './views/GameView.js';
 
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        console.log("WebSocket already connected.");
+// 1. Define your initial game state and create the store instance
+const gameState = createStore({
+  players: {},
+  bombs: [],
+  explosions: [],
+  gameOver: false,
+  winner: null,
+  gameStarted: false,
+  mazeLayout: null,
+  currentScreen: "join",
+  isPlayer1: false,
+  nickname: '',
+  lobbyPlayers: [],
+  lobbyCountdown: null,
+  gameId: null,
+  initialGameData: null,
+});
+
+
+const appRoot = document.getElementById('app');
+let currentVDomTree = null; 
+
+export function renderApp(newVDomTree) {
+    if (!appRoot) {
+        console.error("Root element #app not found!");
         return;
     }
 
-    socket = new WebSocket("ws://localhost:8080"); // Or wss://your-server.com
-
-    socket.onopen = () => {
-        console.log("WebSocket connected.");
-        // After connection, send initial player registration/nickname
-        const nickname = _gameStateInstance.getState().nickname; // Use stored instance
-        if (nickname) {
-            sendToServer({ type: 'registerPlayer', nickname: nickname });
-        } else {
-            console.warn("No nickname set yet. Player will register after entering one.");
-        }
-    };
-
-    // This onmessage will be overridden by screen-specific listeners (Lobby, Game)
-    // For general messages not handled by specific screens, you can add fallbacks here.
-    socket.onmessage = (event) => {
-        console.log("Unhandled WebSocket message:", JSON.parse(event.data));
-    };
-
-    socket.onclose = () => {
-        console.log("WebSocket disconnected. Attempting to reconnect in 3 seconds...");
-        setTimeout(() => connectWebSocket(_gameStateInstance), 3000); // Pass instance on reconnect
-    };
-
-    socket.onerror = (error) => {
-        console.error("WebSocket error:", error);
-    };
-}
-
-export function sendToServer(message) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(message));
+    if (currentVDomTree === null) {
+        const actualDomNode = render(newVDomTree);
+        appRoot.appendChild(actualDomNode);
     } else {
-        console.warn("WebSocket not open. Message not sent:", message);
+        const patchFunction = diff(currentVDomTree, newVDomTree);
+        patchFunction(appRoot.firstChild);
     }
+    currentVDomTree = newVDomTree; // Update the reference to the current VDOM tree
 }
 
-// Export socket itself so screen components can attach specific onmessage handlers
-export { socket };
+const routes = {
+  "/": () => {
+    gameState.setState({ currentScreen: "join"}); // Update state
+    renderApp(renderJoinScreen(gameState)); // Render the screen
+    console.log("Rendering join screen with current game state:", gameState.getState());
+    
+  },
+  "/lobby": () => {
+    gameState.setState({ currentScreen: "lobby" }); // Update state
+    renderApp(renderLobbyScreen(gameState)); // Render the screen
+  },
+  "/game": () => {
+    gameState.setState({ currentScreen: "game" }); // Update state
+    renderApp(renderGameScreen(gameState)); // Render the screen
+  },
+  // You can add a 404-like route if needed, or let the default "/" handle it
+};
 
-// Helper for maze cell rendering (example, adjust as needed)
-export function mazeCell(cellType, rowIndex, colIndex) {
-    let className = "maze-cell";
-    if (cellType === 'W') { // Wall
-        className += " wall";
-    } else if (cellType === 'B') { // Breakable Block
-        className += " block";
-    } else { // Empty space
-        className += " empty";
+gameState.subscribe(() => {
+    console.log("Global state changed. Re-rendering current active screen.");
+    const currentScreenName = gameState.getState().currentScreen;
+
+    console.log("Current screen name:", gameState.getState().currentScreen);
+    
+    if (currentScreenName === 'join') {
+        renderApp(renderJoinScreen(gameState));
+    } else if (currentScreenName === 'lobby') {
+        renderApp(renderLobbyScreen(gameState));
+    } else if (currentScreenName === 'game') {
+        renderApp(renderGameScreen(gameState));
     }
-    return createElement("div", {
-        attrs: { class: className, 'data-row': rowIndex, 'data-col': colIndex },
-        children: []
-    });
-}
+});
+
+
+createRouter(routes);
+connectWebSocket(gameState);

@@ -1,7 +1,8 @@
-// src/pages/renderGameScreen.js
-import { createElement } from "../src/vdom/CreateElement.js";
-import { mazeCell } from "../client.js"; // Assuming mazeCell is a helper for rendering individual cells
-import { sendToServer, socket } from "../client.js"; // Needed for joinGameRoom message
+import {
+  createElement,
+} from "../src/main.js";
+import { mazeCell } from "../ws.js"; // Assuming mazeCell is a helper for rendering individual cells
+import { sendToServer} from "../ws.js"; // Needed for joinGameRoom message
 // No longer importing globalGameState, it's passed as a parameter
 
 export default function renderGameScreen(gameState) { // Accept gameState as parameter
