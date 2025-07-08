@@ -7,7 +7,7 @@ export function createRouter(routes) {
       routeAction();
     } else {
       console.warn(`No route found for "${path}", loading default "/"`);
-      routes["/"]?.();
+      routes["/404"]?.();
     }
   };
 

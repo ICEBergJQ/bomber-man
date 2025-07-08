@@ -39,7 +39,8 @@ export default function renderJoinScreen(gameState) {
         events: {
           click: () => {
             if (gameState.getState().nickname.trim()) {
-              console.log("----Current nickname: ", gameState.getState().nickname);0..toExponential.
+              console.log("----Current nickname: ", gameState.getState().nickname);
+              ///0..toExponential.
               // Ensure the nickname is set in state before navigating
               gameState.setState({ nickname: gameState.getState().nickname.trim() });
               window.location.hash = "#/lobby";
