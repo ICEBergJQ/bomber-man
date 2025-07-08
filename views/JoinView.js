@@ -21,7 +21,7 @@ export default function renderJoinScreen(gameState) {
         },
         events: {
           input: (e) => {
-            gameState.setState({ nickname: e.target.value });
+            gameState.setState({ ...gameState.getState(), nickname: e.target.value });
             console.log("Input event - new nickname value in store:", gameState.getState().nickname);
           },
           keypress: (e) => {

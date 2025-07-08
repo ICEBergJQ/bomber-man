@@ -8,13 +8,20 @@ export default function renderLobbyScreen(gameState) {
 
   let lobbyContent;
 
+  // Defensive: Ensure lobbyPlayers is always an array
+  const lobbyPlayers = Array.isArray(state.lobbyPlayers) ? state.lobbyPlayers : [];
+
   // Build players list
-  const playersList = state.lobbyPlayers.length > 0
-    ? state.lobbyPlayers.map(player => createElement("li", { children: [player.nickname] }))
+  const playersList = lobbyPlayers.length > 0
+    ? lobbyPlayers.map(player =>
+        createElement("li", {
+          children: [player.nickname || "Unnamed Player"]
+        })
+      )
     : [createElement("li", { children: ["No players yet..."] })];
 
   // Optional countdown
-  const countdownDisplay = state.lobbyCountdown !== null && state.lobbyCountdown > 0
+  const countdownDisplay = (state.lobbyCountdown !== null && state.lobbyCountdown > 0)
     ? createElement("p", { children: [`Game starts in: ${state.lobbyCountdown} seconds!`] })
     : null;
 
@@ -28,7 +35,6 @@ export default function renderLobbyScreen(gameState) {
       createElement("button", {
         attrs: { class: "btn btn-success" },
         children: ["Start Game (Player 1)"],
-        // You may later wire this to a UI event dispatcher, since we removed direct socket calls
         events: {
           click: () => console.log("Start Game button clicked (no direct socket here)")
         },
