@@ -1,0 +1,218 @@
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(23, 30px);
+  grid-template-rows: repeat(13, 30px);
+  gap: 1px;
+}
+
+.cell {
+  width: 30px;
+  height: 30px;
+  box-sizing: border-box;
+}
+
+.wall {
+  background-color: gray;
+  background-image: url("img/obsidian.jpg");
+  background-size: cover;
+}
+
+.box {
+  background-color: orange;
+  background-image: url("img/stone.jpg");
+  background-size: cover;
+}
+
+.empty {
+  background-color: white;
+  background-image: url("img/dirt.jpg");
+  background-size: cover;
+}
+
+.player1 {
+  background-color: #ff4444; /* Red */
+}
+
+.player2 {
+  background-color: #4444ff; /* Blue */
+}
+
+.player3 {
+  background-color: #44ff44; /* Green */
+}
+
+.player4 {
+  background-color: #ffff44; /* Yellow */
+}
+
+.bomb {
+  background-color: #333;
+  border-radius: 50%;
+  position: relative;
+}
+
+.bomb::after {
+  content: "💣";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+.explosion {
+  background-color: #ff6600;
+  animation: explosion-flash 0.5s ease-in-out;
+  position: relative;
+}
+
+.explosion::after {
+  content: "💥";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+@keyframes explosion-flash {
+  0% {
+    background-color: #ffff00;
+  }
+  50% {
+    background-color: #ff6600;
+  }
+  100% {
+    background-color: #ff0000;
+  }
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #1a1a1a;
+  color: white;
+}
+
+#status {
+  text-align: center;
+  margin: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #00ff00;
+}
+
+.game {
+  display: grid;
+  grid-template-columns: repeat(23, 25px);
+  grid-template-rows: repeat(13, 25px);
+  gap: 1px;
+  margin: 20px auto;
+  width: fit-content;
+  background-color: #333;
+  padding: 10px;
+  border-radius: 5px;
+}
+ 
+
+.empty {
+  background-color: #2a2a2a;
+}
+
+.wall {
+  background-color: #666;
+}
+
+.box {
+  background-color: #8b4513;
+}
+
+.player1 {
+  background-color: #ff4444;
+  border-radius: 50%;
+}
+
+.player2 {
+  background-color: #4444ff;
+  border-radius: 50%;
+}
+
+.player3 {
+  background-color: #44ff44;
+  border-radius: 50%;
+}
+
+.player4 {
+  background-color: #ffff44;
+  border-radius: 50%;
+}
+
+.my-player {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 1);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  }
+}
+
+.bomb {
+  background-color: #333;
+  border-radius: 50%;
+  position: relative;
+}
+
+.bomb::after {
+  content: "💣";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+.explosion {
+  background-color: #ff6600;
+  animation: explosion-flash 0.5s ease-in-out;
+  position: relative;
+}
+
+.explosion::after {
+  content: "💥";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+@keyframes explosion-flash {
+  0% {
+    background-color: #ffff00;
+  }
+  50% {
+    background-color: #ff6600;
+  }
+  100% {
+    background-color: #ff0000;
+  }
+}
+
+.controls {
+  text-align: center;
+  margin: 20px;
+  color: #ccc;
+}
+
+.controls h3 {
+  color: #00ff00;
+}
