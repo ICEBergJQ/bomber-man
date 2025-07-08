@@ -42,7 +42,7 @@ export default function renderJoinScreen(gameState) {
               console.log("----Current nickname: ", gameState.getState().nickname);
               ///0..toExponential.
               // Ensure the nickname is set in state before navigating
-              gameState.setState({ nickname: gameState.getState().nickname.trim() });
+              gameState.setState({ ...gameState.getState(), nickname: gameState.getState().nickname.trim() });
               window.location.hash = "#/lobby";
             } else {
               // TODO: Replace with a custom modal/message box
@@ -65,6 +65,7 @@ export default function renderJoinScreen(gameState) {
                 events: {
                   change: (e) => {
                     gameState.setState({
+                      ...gameState.getState(),
                       isPlayer1: e.target.checked,
                     });
                   },

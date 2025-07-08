@@ -1,62 +1,24 @@
-import { sendToServer, socket } from "../ws.js";
 import createElement from "../src/vdom/CreateElement.js";
-// No longer importing globalGameState, it's passed as a parameter
-console.log(socket);
 
-export default function renderLobbyScreen(gameState) { // Accept gameState as parameter
+export default function renderLobbyScreen(gameState) {
   const state = gameState.getState();
 
-  console.log("Rendering lobby screen with state:", state);
-  console.log("Is Player 1 (simulated):", state.isPlayer1);
+  console.log("Rendering lobby screen with state:", state.nickname);
+  console.log("Is Player 1:", state.isPlayer1);
 
   let lobbyContent;
 
-  // IMPORTANT: This WebSocket listener setup should ideally be done ONCE
-  // when your main application initializes, or within a dedicated WebSocket module,
-  // not repeatedly every time renderLobbyScreen is called.
-  // For now, we'll keep the simple flag, but be aware of this for larger apps.
-  if (!window._lobbyGameStartedListenerSet) {
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      console.log("Lobby received WebSocket message:", message);
-
-      if (message.type === 'gameStarted') {
-        const { gameId, initialState: serverInitialState } = message.payload;
-
-        // Update the global game state with the initial game data
-        gameState.setState({ // Use passed gameState
-          gameId: gameId,
-          initialGameData: serverInitialState, // Store the maze and other initial data here
-          gameStarted: true, // Mark game as started
-          currentScreen: "game", // Update client's internal screen state
-        });
-        console.log('Game started message received. Storing initial state and redirecting...');
-
-        window.location.hash = `#/game`; // Redirect to the game page (no ID needed in hash for single room)
-      }
-      // Handle other lobby-related messages here (e.g., playerJoinedLobby, countdownUpdate)
-      else if (message.type === 'playerJoinedLobby') {
-          gameState.setState({ // Use passed gameState
-              lobbyPlayers: message.payload.players // Assuming payload has an updated list of players
-          });
-      } else if (message.type === 'lobbyCountdown') {
-          gameState.setState({ // Use passed gameState
-              lobbyCountdown: message.payload.timeRemaining
-          });
-      }
-    };
-    window._lobbyGameStartedListenerSet = true;
-  }
-
-  // Display lobby players and countdown
+  // Build players list
   const playersList = state.lobbyPlayers.length > 0
     ? state.lobbyPlayers.map(player => createElement("li", { children: [player.nickname] }))
     : [createElement("li", { children: ["No players yet..."] })];
 
+  // Optional countdown
   const countdownDisplay = state.lobbyCountdown !== null && state.lobbyCountdown > 0
     ? createElement("p", { children: [`Game starts in: ${state.lobbyCountdown} seconds!`] })
     : null;
 
+  // Different view for player 1 (host) vs others
   if (state.isPlayer1) {
     lobbyContent = [
       createElement("h2", { children: ["Lobby: You are Player 1"] }),
@@ -66,11 +28,9 @@ export default function renderLobbyScreen(gameState) { // Accept gameState as pa
       createElement("button", {
         attrs: { class: "btn btn-success" },
         children: ["Start Game (Player 1)"],
+        // You may later wire this to a UI event dispatcher, since we removed direct socket calls
         events: {
-          click: () => {
-            console.log("Player 1 clicked Start Game. Sending request to server...");
-            sendToServer({ type: 'startGameRequest' }); // No roomId needed for single room
-          },
+          click: () => console.log("Start Game button clicked (no direct socket here)")
         },
       }),
     ];

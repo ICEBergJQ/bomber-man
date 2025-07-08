@@ -22,7 +22,7 @@ const gameState = createStore({
   mazeLayout: null,
   currentScreen: "join",
   isPlayer1: false,
-  nickname: '111',
+  nickname: '',
   lobbyPlayers: [],
   lobbyCountdown: null,
   gameId: null,
