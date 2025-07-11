@@ -27,29 +27,57 @@ let gameStartCountdownTimer = null;
 let connectionIdCounter = 0;
 const clients = {}; // connectionId -> { ws, nickname, playerId }
 
+// function generateMaze(rows, cols) {
+//   const maze = [];
+//   for (let r = 0; r < rows; r++) {
+//     const row = [];
+//     for (let c = 0; c < cols; c++) {
+//       if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) row.push("#");
+//       else if (r % 2 === 0 && c % 2 === 0) row.push("#");
+//       else row.push(Math.random() < 0.2 ? "*" : " ");
+//     }
+//     maze.push(row);
+//   }
+//   [
+//     [1, 1],
+//     [1, cols - 2],
+//     [rows - 2, 1],
+//     [rows - 2, cols - 2],
+//   ].forEach(([r, c]) => {
+//     maze[r][c] = " ";
+//     maze[r][c - 1] = " ";
+//     maze[r - 1][c] = " ";
+//   });
+//   return maze;
+// }
+
 function generateMaze(rows, cols) {
   const maze = [];
   for (let r = 0; r < rows; r++) {
     const row = [];
     for (let c = 0; c < cols; c++) {
-      if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) row.push("#");
-      else if (r % 2 === 0 && c % 2 === 0) row.push("#");
-      else row.push(Math.random() < 0.2 ? "*" : " ");
+      if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) {
+        row.push('#');
+      } else if (r % 2 === 0 && c % 2 === 0) {
+        row.push('#');
+      } else {
+        const rand = Math.random();
+        if (rand < 0.2) row.push('*');
+        else row.push(' ');
+      }
     }
     maze.push(row);
   }
-  [
-    [1, 1],
-    [1, cols - 2],
-    [rows - 2, 1],
-    [rows - 2, cols - 2],
-  ].forEach(([r, c]) => {
-    maze[r][c] = " ";
-    maze[r][c - 1] = " ";
-    maze[r - 1][c] = " ";
-  });
+  
+  // Clear starting positions for all 4 players
+  maze[1][1] = maze[1][2] = maze[2][1] = ' ';
+  maze[1][cols-2] = maze[1][cols-3] = maze[2][cols-2] = ' ';
+  maze[rows-2][1] = maze[rows-2][2] = maze[rows-3][1] = ' ';
+  maze[rows-2][cols-2] = maze[rows-2][cols-3] = maze[rows-3][cols-2] = ' ';
+  
   return maze;
 }
+
 
 function initializeGame() {
   gameState = {
