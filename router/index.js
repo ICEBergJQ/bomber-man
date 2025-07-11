@@ -1,39 +1,34 @@
-import { renderApp } from "../client.js";
+// No need to import renderApp here anymore
 import renderJoinScreen from '../views/JoinView.js';
 import renderLobbyScreen from '../views/LobbyView.js';
 import renderGameScreen from '../views/GameView.js';
 import NotfoundView from '../views/NotfoundView.js';
 
 export default function routes(gameState) {
-    // This function should return the routes OBJECT that the framework expects.
     return {
         "/": () => {
+            // This handler's only job is to update the state
             gameState.setState({ ...gameState.getState(), currentScreen: "join" });
-            renderApp(renderJoinScreen(gameState));
         },
         "/lobby": () => {
-            const state = gameState.getState();
-            if (!state.nickname) {
-                // Guard: If no nickname, redirect to home.
+            if (!gameState.getState().nickname) {
                 window.location.hash = '#/';
                 return;
             }
-            gameState.setState({ ...state, currentScreen: "lobby" });
-            renderApp(renderLobbyScreen(gameState));
+            // This handler's only job is to update the state
+            gameState.setState({ ...gameState.getState(), currentScreen: "lobby" });
         },
         "/game": () => {
-            const state = gameState.getState();
-            if (!state.nickname) {
-                // Guard: If no nickname, redirect to home.
+            if (!gameState.getState().nickname) {
                 window.location.hash = '#/';
                 return;
             }
-            gameState.setState({ ...state, currentScreen: "game" });
-            renderApp(renderGameScreen(gameState));
+            // This handler's only job is to update the state
+            gameState.setState({ ...gameState.getState(), currentScreen: "game" });
         },
         "/404": () => {
+            // This handler's only job is to update the state
             gameState.setState({ ...gameState.getState(), currentScreen: "404" });
-            renderApp(NotfoundView());
         }
     };
 }
