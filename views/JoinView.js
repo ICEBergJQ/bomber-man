@@ -15,8 +15,9 @@ export default function renderJoinScreen(gameState) {
         attrs: {
           type: "text",
           placeholder: "Enter your nickname",
-          value: state.nickname,
+          value:'Moh',// state.nickname,
           id: "nicknameInput",
+
         },
         events: {
           input: (e) => {
@@ -35,6 +36,9 @@ export default function renderJoinScreen(gameState) {
         children: ["Join Game"],
         events: {
           click: () => {
+            //remove
+            gameState.setState({ ...gameState.getState(), nickname: 'Moh' });
+
             if (gameState.getState().nickname.trim()) {
               console.log("----Current nickname: ", gameState.getState().nickname);
               ///0..toExponential.
