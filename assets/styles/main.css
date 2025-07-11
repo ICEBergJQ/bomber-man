@@ -3,6 +3,16 @@ a {
     text-decoration: none;
     margin: 5px;
 }
+
+button, input {
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+label {
+    cursor: pointer;
+}
+
 /* 404 */
 .x404-screen {
     text-align: center;
@@ -45,4 +55,3 @@ a {
 .x404-screen button:hover {
     background-color: #0056b3;
 }
-

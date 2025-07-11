@@ -8,7 +8,7 @@ import getRoutes from './router/index.js'; // Renamed for clarity
 const gameState = createStore({
   players: {}, bombs: [], explosions: [],
   gameOver: false, winner: null, gameStarted: false,
-  mazeLayout: null, currentScreen: "join", isPlayer1: false,
+  mazeLayout: null, currentScreen: "join", isPlayer1: true, // false
   nickname: "", lobbyCountdown: null,
 });
 
