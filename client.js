@@ -1,34 +1,16 @@
-import {
-  render,
-  createStore,
-  createRouter,
-  diff,
-} from "./src/main.js";
+import { render, createStore, createRouter, diff } from "./src/main.js";
 import { connectWebSocket } from './ws.js';
-
 import renderJoinScreen from './views/JoinView.js';
 import renderLobbyScreen from './views/LobbyView.js';
 import renderGameScreen from './views/GameView.js';
-import router from './router/index.js';
+import getRoutes from './router/index.js'; // Renamed for clarity
 
-// 1. Define your initial game state and create the store instance
 const gameState = createStore({
-  players: {},
-  bombs: [],
-  explosions: [],
-  gameOver: false,
-  winner: null,
-  gameStarted: false,
-  mazeLayout: null,
-  currentScreen: "join",
-  isPlayer1: false,
-  nickname: '',
-  lobbyPlayers: [],
-  lobbyCountdown: null,
-  gameId: null,
-  initialGameData: null,
+  players: {}, bombs: [], explosions: [],
+  gameOver: false, winner: null, gameStarted: false,
+  mazeLayout: null, currentScreen: "join", isPlayer1: false,
+  nickname: "", lobbyCountdown: null,
 });
-
 
 const appRoot = document.getElementById('app');
 let currentVDomTree = null;
@@ -38,33 +20,48 @@ export function renderApp(newVDomTree) {
     console.error("Root element #app not found!");
     return;
   }
-
-  if (currentVDomTree === null) {
+  if (!newVDomTree) {
+      console.error("renderApp called with null or undefined VDOM tree.");
+      return;
+  }
+  if (currentVDomTree === null || !appRoot.hasChildNodes()) {
+    appRoot.innerHTML = '';
     const actualDomNode = render(newVDomTree);
     appRoot.appendChild(actualDomNode);
   } else {
     const patchFunction = diff(currentVDomTree, newVDomTree);
     patchFunction(appRoot.firstChild);
   }
-  currentVDomTree = newVDomTree; // Update the reference to the current VDOM tree
+  currentVDomTree = newVDomTree;
 }
 
-const routes = router(gameState)
+// Get the routes OBJECT from your router file.
+const routes = getRoutes(gameState);
+
+// Pass the OBJECT to the framework's router. This will now work correctly.
+createRouter(routes);
+
+// Subscribe to state changes from the server
 gameState.subscribe(() => {
-  // console.log("Global state changed. Re-rendering current active screen.");
-  const currentScreenName = gameState.getState().currentScreen;
+  const state = gameState.getState();
+  const currentScreenName = state.currentScreen;
 
-  // console.log("Current screen name:", gameState.getState().currentScreen);
+  // If the server signals the game has started, navigate
+  if (state.gameStarted && currentScreenName === "lobby") {
+    window.location.hash = "#/game";
+    return;
+  }
 
-  if (currentScreenName === 'join') {
-    renderApp(renderJoinScreen(gameState));
-  } else if (currentScreenName === 'lobby') {
-    renderApp(renderLobbyScreen(gameState));
-  } else if (currentScreenName === 'game') {
-    renderApp(renderGameScreen(gameState));
+  // This logic is for re-rendering a view when data changes,
+  // e.g., the lobby countdown or player list updates.
+  // The initial render is handled by createRouter on page load.
+  if (state.currentScreen === 'join') {
+      renderApp(renderJoinScreen(gameState));
+  } else if (state.currentScreen === 'lobby') {
+      renderApp(renderLobbyScreen(gameState));
+  } else if (state.currentScreen === 'game') {
+      renderApp(renderGameScreen(gameState));
   }
 });
 
-
-createRouter(routes);
 connectWebSocket(gameState);

@@ -1,59 +1,121 @@
-import {
-  createElement,
-} from "../src/main.js";
-import { mazeCell } from "../ws.js"; // Assuming mazeCell is a helper for rendering individual cells
-import { sendToServer} from "../ws.js"; // Needed for joinGameRoom message
-// No longer importing globalGameState, it's passed as a parameter
+import { createElement } from "../src/main.js";
+import { sendToServer } from "../ws.js";
 
-export default function renderGameScreen(gameState) { // Accept gameState as parameter
+// --- Player Controls ---
+const handleKeyDown = (e) => {
+    let direction = null;
+    switch (e.key) {
+        case "ArrowUp": direction = "up"; break;
+        case "ArrowDown": direction = "down"; break;
+        case "ArrowLeft": direction = "left"; break;
+        case "ArrowRight": direction = "right"; break;
+        case " ": // Space bar
+            e.preventDefault();
+            sendToServer({ type: "bomb" });
+            return;
+    }
+    if (direction) {
+        e.preventDefault();
+        sendToServer({ type: "move", direction: direction });
+    }
+};
+
+function addPlayerControls() {
+    // Remove listener first to prevent duplicates, then add it.
+    window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+}
+
+function removePlayerControls() {
+    window.removeEventListener("keydown", handleKeyDown);
+}
+
+
+// --- View Rendering ---
+export default function renderGameScreen(gameState) {
   const state = gameState.getState();
-  console.log("Rendering game screen with current state:", state);
+  const maze = state.mazeLayout;
 
-  const gameId = state.gameId || 'single-room'; // Fallback if not set yet
-
-  const initialGameData = state.initialGameData;
-
-  if (!initialGameData || !initialGameData.maze) {
-      console.error("Error: Initial game data (maze) not found in store. Cannot render game board.");
-      return createElement("div", {
-          attrs: { class: "screen error-screen" },
-          children: [
-              createElement("h2", { children: ["Game Data Missing!"] }),
-              createElement("p", { children: ["Please try joining a game from the lobby."] }),
-          ],
-      });
+  if (!maze) {
+    removePlayerControls();
+    return createElement("div", {
+      attrs: { class: "screen loading-screen" },
+      children: [createElement("h2", { children: ["Loading Game..."] })],
+    });
   }
 
-  console.log("Initial game data available. Building game board.");
+  addPlayerControls();
 
-  // Inform the server that this client has successfully loaded the game screen
-  // and is ready to receive ongoing updates for this specific game room.
-  if (!window._gameScreenJoinSent) {
-      sendToServer({ type: 'joinGameRoom', gameId: gameId });
-      window._gameScreenJoinSent = true;
+  const displayGrid = maze.map((row) => row.slice());
+
+  // Use optional chaining (?.) in case these objects are not yet defined
+  state.explosions?.forEach((exp) => { displayGrid[exp.row][exp.col] = "EXP"; });
+  state.bombs?.forEach((bomb) => { displayGrid[bomb.row][bomb.col] = "BOMB"; });
+
+  // --- THIS IS THE CRITICAL LOGIC ---
+  // We now safely check if state.players exists before trying to render them.
+  if (state.players) {
+    Object.values(state.players).forEach((p) => {
+        if (p && p.alive) { // Ensure player object and `alive` property exist
+            displayGrid[p.row][p.col] = `P${p.playerId}`;
+        }
+    });
   }
 
-  const gameBoardChildren = initialGameData.maze.flatMap((row, rowIndex) =>
-    row.map((cell, colIndex) => mazeCell(cell, rowIndex, colIndex))
+  const gameBoardChildren = displayGrid.flatMap((row) =>
+    row.map((cellType) => {
+        let className = "cell";
+        switch (cellType) {
+            case "#": className += " wall"; break;
+            case "*": className += " box"; break;
+            case "P1": className += " player1"; break;
+            case "P2": className += " player2"; break;
+            case "P3": className += " player3"; break;
+            case "P4": className += " player4"; break;
+            case "BOMB": className += " bomb"; break;
+            case "EXP": className += " explosion"; break;
+            default: className += " empty"; break;
+        }
+        return createElement("div", { attrs: { class: className } });
+    })
   );
 
-  const gameDiv = createElement("div", {
+  const playerList = state.players ? Object.values(state.players).map(p =>
+    createElement("li", {
+        children: [`${p.nickname}: ${p.alive ? "Alive" : "Out"}`],
+        attrs: { style: p.alive ? "color: white;" : "color: red; text-decoration: line-through;"}
+    })
+  ) : [];
+
+  return createElement("div", {
     attrs: { class: "screen game-screen" },
     children: [
-      createElement("h2", { children: [`Game in Progress (ID: ${gameId})`] }),
+      createElement("h2", { children: ["Bomberman"] }),
       createElement("div", {
-        attrs: { class: "game-info" },
+        attrs: { class: "game-container" },
         children: [
-          createElement("p", { children: [`Your Nickname: ${state.nickname}`] }),
-          createElement("p", { children: [`Players: ${Object.keys(state.players || {}).join(', ')}`] }),
-        ]
+          createElement("div", {
+            attrs: { class: "game-board" },
+            children: gameBoardChildren,
+          }),
+          createElement("div", {
+            attrs: { class: "game-sidebar" },
+            children: [
+              createElement("h3", { children: ["Players"] }),
+              createElement("ul", { children: playerList }),
+            ],
+          }),
+        ],
       }),
+      // --- LIVE DEBUG VIEW ---
+      // This box will show you the exact content of `state.players` in real time.
       createElement("div", {
-        attrs: { class: "game-board" },
-        children: gameBoardChildren,
-      }),
+          attrs: { style: "margin-top: 20px; background: #222; padding: 10px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word;" },
+          children: [
+              createElement("h4", { children: ["Live Game State Debug"] }),
+              `state.players = ${JSON.stringify(state.players || {}, null, 2)}`
+          ]
+      })
     ],
   });
-
-  return gameDiv;
 }

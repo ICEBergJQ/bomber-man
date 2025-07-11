@@ -1,45 +1,45 @@
 let socket;
-let _gameStateInstance = null;
 
 export function connectWebSocket(gameState) {
-  _gameStateInstance = gameState;
+  // Prevent multiple connections
   if (socket && socket.readyState === WebSocket.OPEN) {
-    console.log("WebSocket already connected.");
     return;
   }
 
-  // socket = new WebSocket("ws://192.168.1.10:8080");
   socket = new WebSocket(`ws://${window.location.hostname}:8080`);
 
   socket.onopen = () => {
-    console.log("WebSocket connected.");
-    const nickname = _gameStateInstance.getState().nickname;
+    console.log("WebSocket connection established.");
+    const nickname = gameState.getState().nickname;
     if (nickname) {
       sendToServer({ type: "registerPlayer", nickname: nickname });
-    } else {
-      console.warn(
-        "No nickname set yet. Player will register after entering one."
-      );
     }
   };
 
   socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);
-    console.log("Unhandled WebSocket message:------", msg);
+
     if (msg.type === "gameState") {
-      const current = gameState.getState();
+      // --- THIS IS THE FIX ---
+      // The previous logic was not correctly updating the state object.
+      // This version ensures that the *entire* state object received
+      // from the server is merged with the client's current state.
+      const currentState = gameState.getState();
+      const serverState = msg.data;
+
       gameState.setState({
-        ...current,
-        ...msg.data,
+        ...currentState,
+        ...serverState,
       });
+
+    } else {
+      console.warn("Received unhandled message type:", msg.type);
     }
   };
 
   socket.onclose = () => {
-    console.log(
-      "WebSocket disconnected. Attempting to reconnect in 3 seconds..."
-    );
-    setTimeout(() => connectWebSocket(_gameStateInstance), 3000);
+    console.log("WebSocket disconnected. Attempting to reconnect in 3 seconds...");
+    setTimeout(() => connectWebSocket(gameState), 3000);
   };
 
   socket.onerror = (error) => {
@@ -53,21 +53,4 @@ export function sendToServer(message) {
   } else {
     console.warn("WebSocket not open. Message not sent:", message);
   }
-}
-
-export { socket };
-
-export function mazeCell(cellType, rowIndex, colIndex) {
-  let className = "maze-cell";
-  if (cellType === "W") {
-    className += " wall";
-  } else if (cellType === "B") {
-    className += " block";
-  } else {
-    className += " empty";
-  }
-  return createElement("div", {
-    attrs: { class: className, "data-row": rowIndex, "data-col": colIndex },
-    children: [],
-  });
 }

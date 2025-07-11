@@ -3,7 +3,6 @@ import { createElement } from "../src/main.js";
 export default function renderJoinScreen(gameState) {
   // Accept gameState as parameter
   const state = gameState.getState(); // Get state from passed param
-  console.log(state);
 
   return createElement("div", {
     attrs: { class: "screen join-screen" },
@@ -22,12 +21,10 @@ export default function renderJoinScreen(gameState) {
         events: {
           input: (e) => {
             gameState.setState({ ...gameState.getState(), nickname: e.target.value });
-            console.log("Input event - new nickname value in store:", gameState.getState().nickname);
           },
           keypress: (e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              console.log("Current nickname in store:", gameState.getState().nickname);
               
             }
           },

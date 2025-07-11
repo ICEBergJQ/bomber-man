@@ -1,4 +1,4 @@
-import render from './Render.js';
+import render from "./Render.js";
 
 const zip = (xs, ys) => {
   const zipped = [];
@@ -8,12 +8,25 @@ const zip = (xs, ys) => {
   return zipped;
 };
 
+const diffEvents = (oldEvents, newEvents) => {
+  return (node) => {
+    // Remove all old event listeners to prevent "ghost" listeners
+    for (const [eventName, handler] of Object.entries(oldEvents)) {
+      node.removeEventListener(eventName, handler);
+    }
+    // Add all the new event listeners
+    for (const [eventName, handler] of Object.entries(newEvents)) {
+      node.addEventListener(eventName, handler);
+    }
+  };
+};
+
 const diffAttrs = (oldAttrs, newAttrs) => {
   const patches = [];
 
   // Always remove all old events first
   if (oldAttrs.events) {
-    patches.push(node => {
+    patches.push((node) => {
       for (const [event, handler] of Object.entries(oldAttrs.events)) {
         node.removeEventListener(event, handler);
       }
@@ -23,7 +36,7 @@ const diffAttrs = (oldAttrs, newAttrs) => {
 
   // Then add new events
   if (newAttrs.events) {
-    patches.push(node => {
+    patches.push((node) => {
       for (const [event, handler] of Object.entries(newAttrs.events)) {
         node.addEventListener(event, handler);
       }
@@ -31,16 +44,16 @@ const diffAttrs = (oldAttrs, newAttrs) => {
     });
   }
 
-  if (newAttrs.type === 'checkbox' || newAttrs.type === 'radio') {
-    patches.push(node => {
+  if (newAttrs.type === "checkbox" || newAttrs.type === "radio") {
+    patches.push((node) => {
       node.checked = !!newAttrs.checked;
       return node;
     });
   }
 
   // handling for input values
-  if ('value' in newAttrs && newAttrs.value !== oldAttrs.value) {
-    patches.push(node => {
+  if ("value" in newAttrs && newAttrs.value !== oldAttrs.value) {
+    patches.push((node) => {
       node.value = newAttrs.value;
       return node;
     });
@@ -52,7 +65,7 @@ const diffAttrs = (oldAttrs, newAttrs) => {
       if (value === false || value === null || value === undefined) {
         node.removeAttribute(key);
       } else {
-        node.setAttribute(key, value === true ? '' : value);
+        node.setAttribute(key, value === true ? "" : value);
       }
       return node;
     });
@@ -84,7 +97,7 @@ const diffChildren = (oldVChildren, newVChildren) => {
 
   const additionalPatches = [];
   for (const additionalVChild of newVChildren.slice(oldVChildren.length)) {
-    additionalPatches.push(node => {
+    additionalPatches.push((node) => {
       node.appendChild(render(additionalVChild));
       return node;
     });
@@ -138,10 +151,12 @@ export default function diff(vOldNode, vNewNode) {
 
   const patchAttrs = diffAttrs(vOldNode.attrs, vNewNode.attrs);
   const patchChildren = diffChildren(vOldNode.children, vNewNode.children);
+  const patchEvents = diffEvents(vOldNode.events, vNewNode.events);
 
   return (node) => {
     patchAttrs(node);
     patchChildren(node);
+    patchEvents(node);
     return node;
   };
 }

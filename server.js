@@ -19,13 +19,13 @@ let gameState = {
   gameOver: false,
   winner: null,
   playerCount: 0,
+  lobbyCountdown: null,
 };
 
 let lobbyWaitTimer = null;
 let gameStartCountdownTimer = null;
-let gameStartCountdown = 10;
-
-const clients = {}; // playerId -> { ws, nickname }
+let connectionIdCounter = 0;
+const clients = {}; // connectionId -> { ws, nickname, playerId }
 
 function generateMaze(rows, cols) {
   const maze = [];
@@ -54,6 +54,8 @@ function generateMaze(rows, cols) {
 function initializeGame() {
   gameState = {
     ...gameState,
+    players: {},
+    playerCount: 0,
     maze: generateMaze(13, 23),
     bombs: [],
     explosions: [],
@@ -61,16 +63,8 @@ function initializeGame() {
     gameOver: false,
     winner: null,
   };
+  stopTimers();
 }
-
-// function broadcastGameState() {
-//   const msg = JSON.stringify({ type:'gameState', data: gameState });
-//   Object.values(clients).forEach(client => {
-//     if (client.ws.readyState === WebSocket.OPEN) {
-//       client.ws.send(msg);
-//     }
-//   });
-// }
 
 function broadcastGameState() {
   const msg = JSON.stringify({
@@ -83,6 +77,7 @@ function broadcastGameState() {
       gameOver: gameState.gameOver,
       winner: gameState.winner,
       mazeLayout: gameState.maze,
+      lobbyCountdown: gameState.lobbyCountdown,
     },
   });
 
@@ -95,13 +90,14 @@ function broadcastGameState() {
 
 function checkWinCondition() {
   const alive = Object.values(gameState.players).filter((p) => p.alive);
-  if (alive.length <= 1) {
+  if (alive.length <= 1 && gameState.gameStarted) {
     gameState.gameOver = true;
     gameState.winner = alive[0] || null;
+    broadcastGameState();
     setTimeout(() => {
       initializeGame();
       broadcastGameState();
-    }, 3000);
+    }, 5000);
   }
 }
 
@@ -130,12 +126,7 @@ function explodeBomb(bomb) {
   );
   checkPlayerDeaths();
   setTimeout(() => {
-    explosion.forEach(
-      (e) =>
-        (gameState.explosions = gameState.explosions.filter(
-          (ex) => ex.row !== e.row || ex.col !== e.col
-        ))
-    );
+    gameState.explosions = [];
     broadcastGameState();
   }, 500);
   broadcastGameState();
@@ -196,72 +187,75 @@ function stopTimers() {
   if (gameStartCountdownTimer) clearInterval(gameStartCountdownTimer);
   lobbyWaitTimer = null;
   gameStartCountdownTimer = null;
-  gameStartCountdown = 10;
   gameState.lobbyCountdown = null;
 }
 
-function startGameCountdown() {
-  stopTimers(); // Stop any other timers
-  gameState.gameStarted = false; // It's not *really* started until countdown ends
-
+function startLobbyCountdown() {
+  if (gameStartCountdownTimer) return;
+  stopTimers();
+  let countdown = 30;
+  gameState.lobbyCountdown = countdown;
+  broadcastGameState();
   gameStartCountdownTimer = setInterval(() => {
-    gameStartCountdown--;
-    gameState.lobbyCountdown = gameStartCountdown;
-
-    if (gameStartCountdown <= 0) {
+    countdown--;
+    gameState.lobbyCountdown = countdown;
+    if (countdown <= 0) {
       clearInterval(gameStartCountdownTimer);
-      gameState.gameStarted = true; // NOW the game starts
+      gameState.gameStarted = true;
+      gameState.lobbyCountdown = null;
     }
     broadcastGameState();
   }, 1000);
 }
 
+function forceStartGame() {
+  stopTimers();
+  gameState.gameStarted = true;
+  console.log("✅ Server: Broadcasting gameStarted = true to all clients.");
+  broadcastGameState();
+}
+
 function checkLobbyStatus() {
   const playerCount = Object.keys(gameState.players).length;
-
-  if (playerCount >= 4) {
-    // 4 players are in, start the 10s countdown immediately
-    startGameCountdown();
-  } else if (playerCount >= 2 && !lobbyWaitTimer && !gameStartCountdownTimer) {
-    // 2 or 3 players are in, start the 20s waiting timer
-    const waitTime = 20;
-    let time = 0;
-    lobbyWaitTimer = setInterval(() => {
-      time++;
-      if (time >= waitTime) {
-        // 20s are up, start the 10s countdown
-        startGameCountdown();
-      }
-    }, 1000);
+  if (playerCount >= 1) {
+    startLobbyCountdown();
+  } else {
+    stopTimers();
+    broadcastGameState();
   }
 }
 
 initializeGame();
 
 wss.on("connection", (ws) => {
-  gameState.playerCount++;
-  const playerId = gameState.playerCount;
-  const idx = playerId - 1;
-
-  if (playerId > 4) {
-    ws.send(JSON.stringify({ type: "error", data: { message: "Game full" } }));
-    ws.close();
-    return;
-  }
-
-  // Store the ws connection but DO NOT create player yet
-  clients[playerId] = { ws, nickname: null };
-
-  console.log(`Player id ${playerId} connected`);
-
-  ws.send(JSON.stringify({ type: "welcome", data: { playerId } }));
+  const connectionId = ++connectionIdCounter;
+  clients[connectionId] = { ws, nickname: null, playerId: null };
+  console.log(`Connection ${connectionId} established.`);
+  ws.send(JSON.stringify({ type: "welcome", data: { connectionId } }));
 
   ws.on("message", (msg) => {
     try {
       const data = JSON.parse(msg);
 
-      if (data.type === "registerPlayer" && data.nickname) {
-        if (!gameState.players[playerId]) {
+      // Check for the new 'startGame' message type
+      if (data.type === "startGame") {
+        forceStartGame();
+      } else if (data.type === "registerPlayer" && data.nickname) {
+        if (clients[connectionId].playerId === null) {
+          if (gameState.playerCount >= 4) {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                data: { message: "Game is full" },
+              })
+            );
+            return;
+          }
+          gameState.playerCount++;
+          const playerId = gameState.playerCount;
+          const idx = playerId - 1;
+          clients[connectionId].playerId = playerId;
+          clients[connectionId].nickname = data.nickname;
           gameState.players[playerId] = {
             playerId,
             row: startingPositions[idx].row,
@@ -269,23 +263,13 @@ wss.on("connection", (ws) => {
             alive: true,
             nickname: data.nickname,
           };
-          clients[playerId].nickname = data.nickname;
-
-          console.log(
-            `Player ${playerId} registered with nickname "${data.nickname}" at position (${startingPositions[idx].row}, ${startingPositions[idx].col})`
-          );
-
-          // Start game if 2 or more players registered
-          // if (Object.keys(gameState.players).length >= 2) {
-          //   gameState.gameStarted = true;
-          // }
           checkLobbyStatus();
           broadcastGameState();
         }
       } else if (data.type === "move") {
-        movePlayer(playerId, data.direction);
+        movePlayer(clients[connectionId]?.playerId, data.direction);
       } else if (data.type === "bomb") {
-        placeBomb(playerId);
+        placeBomb(clients[connectionId]?.playerId);
       }
     } catch (e) {
       console.error("Error parsing message:", e);
@@ -293,21 +277,19 @@ wss.on("connection", (ws) => {
   });
 
   ws.on("close", () => {
-    console.log(`Player ${playerId} disconnected`);
-    stopTimers();
-
-    // Remove player if registered
-    if (gameState.players[playerId]) {
-      delete gameState.players[playerId];
+    console.log(`Connection ${connectionId} closed.`);
+    const disconnectedPlayerId = clients[connectionId]?.playerId;
+    if (disconnectedPlayerId) {
+      console.log(`Player ${disconnectedPlayerId} disconnected`);
+      delete gameState.players[disconnectedPlayerId];
+      gameState.playerCount--;
     }
-    delete clients[playerId];
-
-    gameState.playerCount--;
-    checkLobbyStatus(); // Re-evaluate lobby state
+    delete clients[connectionId];
+    checkLobbyStatus();
     broadcastGameState();
   });
 });
 
 console.log(
-  `Server running on ws://localhost:8080 and ws://${getServerIP()}:8080`
+  `🚀 Server running on ws://localhost:8080 and ws://${getServerIP()}:8080`
 );
