@@ -1,0 +1,337 @@
+#app {
+  margin: 10px;
+}
+
+h2 {
+  text-align: center;
+}
+
+.game-container {
+  display: flex;
+  justify-content: center;
+}
+
+.game-board {
+  justify-content: center;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(23, 30px);
+  grid-template-rows: repeat(13, 30px);
+  gap: 1px;
+}
+
+.cell {
+  width: 30px;
+  height: 30px;
+  box-sizing: border-box;
+  background-size: cover;
+}
+
+.wall {
+  background-color: gray;
+  background-image: url("../img/obsidian.jpg");
+}
+
+.box {
+  background-color: orange;
+  background-image: url("../img/stone.jpg");
+}
+
+.empty {
+  background-color: white;
+  background-image: url("../img/dirt.jpg");
+}
+
+.player1 {
+  background-color: #ff4444;
+  /* Red */
+}
+
+.player2 {
+  background-color: #4444ff;
+  /* Blue */
+}
+
+.player3 {
+  background-color: #44ff44;
+  /* Green */
+}
+
+.player4 {
+  background-color: #ffff44;
+  /* Yellow */
+}
+
+.bomb {
+  background-color: #333;
+  border-radius: 50%;
+  position: relative;
+}
+
+.bomb::after {
+  content: "💣";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+.explosion {
+  background-color: #ff6600;
+  animation: explosion-flash 0.5s ease-in-out;
+  position: relative;
+}
+
+.explosion::after {
+  content: "💥";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+@keyframes explosion-flash {
+  0% {
+    background-color: #ffff00;
+  }
+
+  50% {
+    background-color: #ff6600;
+  }
+
+  100% {
+    background-color: #ff0000;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #1a1a1a;
+  color: white;
+}
+
+#status {
+  text-align: center;
+  margin: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #00ff00;
+}
+
+.game {
+  display: grid;
+  grid-template-columns: repeat(23, 25px);
+  grid-template-rows: repeat(13, 25px);
+  gap: 1px;
+  margin: 20px auto;
+  width: fit-content;
+  background-color: #333;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+
+.empty {
+  background-color: #2a2a2a;
+}
+
+.wall {
+  background-color: #666;
+}
+
+.box {
+  background-color: #8b4513;
+}
+
+.player1 {
+  background-color: #ff4444;
+  border-radius: 50%;
+}
+
+.player2 {
+  background-color: #4444ff;
+  border-radius: 50%;
+}
+
+.player3 {
+  background-color: #44ff44;
+  border-radius: 50%;
+}
+
+.player4 {
+  background-color: #ffff44;
+  border-radius: 50%;
+}
+
+.my-player {
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 1);
+  }
+
+  100% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  }
+}
+
+.bomb {
+  background-color: #333;
+  border-radius: 50%;
+  position: relative;
+}
+
+.bomb::after {
+  content: "💣";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+.explosion {
+  background-color: #ff6600;
+  animation: explosion-flash 0.5s ease-in-out;
+  position: relative;
+}
+
+.explosion::after {
+  content: "💥";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
+}
+
+@keyframes explosion-flash {
+  0% {
+    background-color: #ffff00;
+  }
+
+  50% {
+    background-color: #ff6600;
+  }
+
+  100% {
+    background-color: #ff0000;
+  }
+}
+
+.controls {
+  text-align: center;
+  margin: 20px;
+  color: #ccc;
+}
+
+.controls h3 {
+  color: #00ff00;
+}
+
+/* game-sidebar */
+.game-sidebar {}
+
+/* game-screen */
+.game-screen {
+  position: relative;
+}
+
+.game-screen .nickname {
+  position: absolute;
+  right: 35px;
+  top: 0;
+  margin: 0;
+  color: #aaa;
+}
+
+.game-screen .nickname::before {
+  content: "";
+  width: 25px;
+  height: 25px;
+  border-radius: 15px;
+  border: 1px solid #666;
+  position: absolute;
+  right: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: url("../img/user.png") center / cover no-repeat;
+
+
+}
+
+/* join-screen */
+
+.join-screen, .lobby-screen header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.join-screen button,
+.join-screen input[type=text] {
+  width: 200px;
+  box-sizing: border-box;
+}
+
+.join-screen button {
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+
+
+
+.player.invincible {
+  animation: flash 0.2s infinite;
+}
+
+@keyframes flash {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.chat-messages {
+  height: 120px;
+  overflow-y: auto;
+  background: #111;
+  border: 1px solid #444;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 3px;
+}
+.chat-messages p {
+  margin: 0 0 5px 0;
+  word-wrap: break-word;
+  font-size: 0.9em;
+}
+.chat-messages p strong {
+  font-weight: bold;
+  color: #00ff00;
+}
+#chat-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #333;
+  border: 1px solid #555;
+  color: white;
+  padding: 8px;
+  border-radius: 3px;
+}
+
+@keyframes explosion-flash {
+0% { background-color: #ffff00; }
+50% { background-color: #ff6600; }
+100% { background-color: #ff0000; }
+}

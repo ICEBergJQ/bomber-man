@@ -127,6 +127,12 @@ export default function renderGameScreen(gameState, sendToServer) {
   return createElement("div", {
     attrs: { class: "screen game-screen" },
     children: [
+      createElement("h4", {
+        attrs: {
+          class: 'nickname'
+        },
+        children: ["Moh"]
+      }),
       createElement("h2", { children: ["Bomberman"] }),
       createElement("div", {
         attrs: { class: "game-container" },
@@ -177,6 +183,11 @@ export default function renderGameScreen(gameState, sendToServer) {
                 },
               }),
             ],
+          }),
+
+          createElement("div", {
+            attrs: { class: "game-board" },
+            children: gameBoardChildren,
           }),
         ],
       }),

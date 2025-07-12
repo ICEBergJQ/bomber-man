@@ -12,6 +12,7 @@ export default function renderJoinScreen(gameState, sendToServer) {
           type: "text",
           placeholder: "Enter your nickname",
           id: "nicknameInput",
+
         },
         events: {
           input: (e) =>
