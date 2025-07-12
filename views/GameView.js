@@ -18,7 +18,7 @@ const handleKeyDown = (e, sendToServer) => {
   }
 };
 
-let onKeyDownHandler = null; // Keep a reference to remove the correct listener
+let onKeyDownHandler = null;
 
 function addPlayerControls(sendToServer) {
   if (onKeyDownHandler) {
@@ -37,7 +37,9 @@ function removePlayerControls() {
 
 export default function renderGameScreen(gameState, sendToServer) {
   const state = gameState.getState();
-  const maze = state.mazeLayout;
+  // --- THIS IS THE FIX ---
+  // The property from the server is `maze`, not `mazeLayout`.
+  const maze = state.maze;
 
   if (!maze) {
     removePlayerControls();

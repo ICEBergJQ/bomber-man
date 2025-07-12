@@ -19,11 +19,12 @@ const gameState = createStore({
 function connectWebSocket() {
   if (socket && socket.readyState === WebSocket.OPEN) return;
   socket = new WebSocket(`ws://${window.location.hostname}:8080`);
-  socket.onopen = () => console.log("WebSocket connection established.");
+  socket.onopen = () => console.log("✅ WebSocket connection established.");
   socket.onclose = () => setTimeout(connectWebSocket, 3000);
   socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);
     if (msg.type === "gameState") {
+      console.log("✅ [Client] Received gameState from server:", msg.data);
       gameState.setState({ ...gameState.getState(), ...msg.data });
     }
   };
@@ -42,32 +43,28 @@ export function renderApp(newVDomTree) {
   }
   currentVDomTree = newVDomTree;
 }
-
-// The framework's router now correctly handles URL changes and calls the functions in routes
 const routes = getRoutes(gameState);
-createRouter(routes);
+const handleRouteChange = () => {
+    const path = window.location.hash.slice(1) || "/";
+    const handler = routes[path] || routes["/404"];
+    handler();
+};
+window.addEventListener("hashchange", handleRouteChange);
+window.addEventListener("load", handleRouteChange);
 
-// A map of our screen names to their render functions
 const screens = {
-    join: renderJoinScreen,
-    lobby: renderLobbyScreen,
-    game: renderGameScreen,
-    "404": NotfoundView,
+    join: renderJoinScreen, lobby: renderLobbyScreen,
+    game: renderGameScreen, "404": NotfoundView,
 };
 
 // --- State Subscription ---
 gameState.subscribe(() => {
   const state = gameState.getState();
   const currentScreenName = state.currentScreen;
-
-  // This handles the automatic navigation when the game starts
   if (state.gameStarted && currentScreenName === "lobby") {
     window.location.hash = "#/game";
-    return; // Exit here because the hash change will trigger the router, which updates the state again.
+    return;
   }
-  
-  // This is the single source of truth for rendering.
-  // It checks the current screen in the state and calls the correct render function.
   const renderFunction = screens[currentScreenName];
   if (renderFunction) {
       renderApp(renderFunction(gameState, sendToServer));
