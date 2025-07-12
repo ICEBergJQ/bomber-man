@@ -117,6 +117,44 @@ body {
   z-index: 15;
 }
 
+.player.invincible {
+    animation: flash 0.2s infinite;
+}
+
+@keyframes flash {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.chat-messages {
+    height: 120px;
+    overflow-y: auto;
+    background: #111;
+    border: 1px solid #444;
+    padding: 8px;
+    margin-bottom: 8px;
+    border-radius: 3px;
+}
+.chat-messages p {
+    margin: 0 0 5px 0;
+    word-wrap: break-word;
+    font-size: 0.9em;
+}
+.chat-messages p strong {
+    font-weight: bold;
+    color: #00ff00;
+}
+#chat-input {
+    width: 100%;
+    box-sizing: border-box;
+    background: #333;
+    border: 1px solid #555;
+    color: white;
+    padding: 8px;
+    border-radius: 3px;
+}
+
 @keyframes explosion-flash {
   0% { background-color: #ffff00; }
   50% { background-color: #ff6600; }

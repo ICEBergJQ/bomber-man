@@ -11,28 +11,62 @@ export default function renderLobbyScreen(gameState, sendToServer) {
             children: [player.nickname || "Unnamed Player"],
           })
         )
-      : [createElement("li", { children: ["No players yet..."] })];
+      : [createElement("li", { children: ["Waiting for players..."] })];
 
-  const countdownDisplay =
-    state.lobbyCountdown !== null && state.lobbyCountdown > 0
-      ? createElement("p", {
-          children: [`Game starts in: ${state.lobbyCountdown} seconds!`],
-        })
-      : null;
+  const chatMessages = (state.chatMessages || []).map((msg) =>
+    createElement("p", {
+      children: [
+        createElement("strong", { children: [`${msg.nickname}: `] }),
+        msg.text,
+      ],
+    })
+  );
 
   let lobbyContent;
+
+  const sharedUI = [
+    createElement("h3", { children: ["Players"] }),
+    createElement("ul", { children: playersList }),
+    createElement("h3", {
+      children: ["Chat"],
+      attrs: { style: "margin-top: 20px;" },
+    }),
+    createElement("div", {
+      attrs: { class: "chat-messages" },
+      children: chatMessages,
+    }),
+    createElement("input", {
+      attrs: {
+        type: "text",
+        id: "chat-input",
+        placeholder: "Type and press Enter...",
+        autocomplete: "off",
+      },
+      events: {
+        keypress: (e) => {
+          if (e.key === "Enter") {
+            const input = e.target;
+            const text = input.value.trim();
+            if (text) {
+              sendToServer({ type: "chat", text: text });
+              input.value = "";
+            }
+          }
+        },
+      },
+    }),
+  ];
 
   if (state.isPlayer1) {
     lobbyContent = [
       createElement("h2", { children: ["Lobby: You are the Host"] }),
       createElement("p", { children: ['Click "Start Game" when ready.'] }),
-      createElement("ul", { children: playersList }),
-      countdownDisplay,
       createElement("button", {
         attrs: { class: "btn btn-success" },
         children: ["Start Game"],
         events: { click: () => sendToServer({ type: "startGame" }) },
       }),
+      ...sharedUI,
     ];
   } else {
     lobbyContent = [
@@ -40,13 +74,12 @@ export default function renderLobbyScreen(gameState, sendToServer) {
       createElement("p", {
         children: ["Please wait for the host to start the game."],
       }),
-      createElement("ul", { children: playersList }),
-      countdownDisplay,
+      ...sharedUI,
     ];
   }
 
   return createElement("div", {
     attrs: { class: "screen lobby-screen" },
-    children: lobbyContent.filter(Boolean),
+    children: lobbyContent,
   });
 }

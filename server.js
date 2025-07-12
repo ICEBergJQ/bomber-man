@@ -110,6 +110,33 @@ function generateMaze(rows, cols) {
   ].forEach((p) => (maze[p[0]][p[1]] = " "));
   return maze;
 }
+
+function checkPlayerDeaths() {
+  Object.values(gameState.players).forEach((p) => {
+    if (
+      p.alive &&
+      !p.invincible &&
+      gameState.explosions.some((e) => e.row === p.row && e.col === p.col)
+    ) {
+      p.lives--;
+      if (p.lives <= 0) {
+        p.alive = false;
+      } else {
+        const startPos = startingPositions[p.playerId - 1];
+        p.row = startPos.row;
+        p.col = startPos.col;
+        p.x = startPos.col * CELL_SIZE;
+        p.y = startPos.row * CELL_SIZE;
+        p.invincible = true;
+        setTimeout(() => {
+          if (p) p.invincible = false;
+          broadcastGameState();
+        }, 2000);
+      }
+      checkWinCondition();
+    }
+  });
+}
 function checkWinCondition() {
   const alive = Object.values(gameState.players).filter((p) => p.alive);
   if (gameState.playerCount > 0 && alive.length <= 1) {
@@ -152,17 +179,6 @@ function explodeBomb(bomb) {
   }, 500);
   broadcastGameState();
 }
-function checkPlayerDeaths() {
-  Object.values(gameState.players).forEach((p) => {
-    if (
-      p.alive &&
-      gameState.explosions.some((e) => e.row === p.row && e.col === p.col)
-    ) {
-      p.alive = false;
-      checkWinCondition();
-    }
-  });
-}
 function placeBomb(playerId) {
   const p = gameState.players[playerId];
   if (!p || !p.alive || gameState.gameOver) return;
@@ -175,7 +191,6 @@ function placeBomb(playerId) {
   }, 3000);
   broadcastGameState();
 }
-
 function movePlayer(playerId, dir) {
   const p = gameState.players[playerId];
   if (!p || !p.alive || gameState.gameOver) return;
@@ -190,7 +205,6 @@ function movePlayer(playerId, dir) {
   ) {
     p.row = nr;
     p.col = nc;
-    // Update pixel coordinates along with grid coordinates
     p.x = nc * CELL_SIZE;
     p.y = nr * CELL_SIZE;
     broadcastGameState();
@@ -228,6 +242,8 @@ wss.on("connection", (ws) => {
         x: startPos.col * CELL_SIZE,
         y: startPos.row * CELL_SIZE,
         alive: true,
+        lives: 3,
+        invincible: false,
       };
       broadcastGameState();
     } else if (data.type === "startGame") {
@@ -236,6 +252,18 @@ wss.on("connection", (ws) => {
       movePlayer(clients[connectionId]?.playerId, data.direction);
     } else if (data.type === "bomb") {
       placeBomb(clients[connectionId]?.playerId);
+    } else if (data.type === "chat") {
+      const sender = gameState.players[clients[connectionId]?.playerId];
+      if (sender) {
+        const chatMessage = {
+          type: "chatMessage",
+          data: { nickname: sender.nickname, text: data.text },
+        };
+        Object.values(clients).forEach((c) => {
+          if (c.ws.readyState === WebSocket.OPEN)
+            c.ws.send(JSON.stringify(chatMessage));
+        });
+      }
     }
   });
   ws.on("close", () => {

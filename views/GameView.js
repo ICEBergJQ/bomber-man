@@ -17,7 +17,8 @@ const handleKeyDown = (e, sendToServer) => {
       break;
     case " ":
       e.preventDefault();
-      sendToServer({ type: "bomb" });
+      if (document.activeElement.id !== "chat-input")
+        sendToServer({ type: "bomb" });
       return;
   }
   if (direction) {
@@ -55,7 +56,6 @@ export default function renderGameScreen(gameState, sendToServer) {
 
   addPlayerControls(sendToServer);
 
-  // 1. Render the static map grid
   const mapChildren = maze.flatMap((row) =>
     row.map((cellType) => {
       let className = "cell";
@@ -65,8 +65,6 @@ export default function renderGameScreen(gameState, sendToServer) {
       return createElement("div", { attrs: { class: className } });
     })
   );
-
-  // 2. Render explosions as separate elements
   const explosionChildren =
     state.explosions?.map((exp) => {
       const x = exp.col * CELL_SIZE;
@@ -78,8 +76,6 @@ export default function renderGameScreen(gameState, sendToServer) {
         },
       });
     }) || [];
-
-  // 3. Render bombs as separate elements
   const bombChildren =
     state.bombs?.map((bomb) => {
       const x = bomb.col * CELL_SIZE;
@@ -92,25 +88,39 @@ export default function renderGameScreen(gameState, sendToServer) {
       });
     }) || [];
 
-  // 4. Render players
   const playerChildren = Object.values(state.players)
     .map((p) => {
       if (!p.alive) return null;
+      let playerClass = `player player${p.playerId}`;
+      if (p.invincible) playerClass += " invincible";
       return createElement("div", {
         attrs: {
-          class: `player player${p.playerId}`,
+          class: playerClass,
           id: `player-${p.playerId}`,
+          // --- THIS IS THE FIX ---
+          // Set the initial position directly when the element is created.
+          style: `transform: translate(${p.x}px, ${p.y}px);`,
         },
       });
     })
     .filter(Boolean);
 
-  const playerList = Object.values(state.players).map((p) =>
-    createElement("li", {
-      children: [`${p.nickname}: ${p.alive ? "Alive" : "Out"}`],
+  const playerList = Object.values(state.players).map((p) => {
+    const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
+    return createElement("li", {
+      children: [`${p.nickname}: ${lifeDisplay}`],
       attrs: {
-        style: p.alive ? "" : "color: red; text-decoration: line-through;",
+        style: p.alive ? "" : "color: #888; text-decoration: line-through;",
       },
+    });
+  });
+
+  const chatMessages = (state.chatMessages || []).map((msg) =>
+    createElement("p", {
+      children: [
+        createElement("strong", { children: [`${msg.nickname}: `] }),
+        msg.text,
+      ],
     })
   );
 
@@ -128,7 +138,6 @@ export default function renderGameScreen(gameState, sendToServer) {
                 attrs: { class: "game-board" },
                 children: mapChildren,
               }),
-              // Draw dynamic entities in order: explosions -> bombs -> players
               ...explosionChildren,
               ...bombChildren,
               ...playerChildren,
@@ -139,6 +148,34 @@ export default function renderGameScreen(gameState, sendToServer) {
             children: [
               createElement("h3", { children: ["Players"] }),
               createElement("ul", { children: playerList }),
+              createElement("h3", {
+                children: ["Chat"],
+                attrs: { style: "margin-top: 20px;" },
+              }),
+              createElement("div", {
+                attrs: { class: "chat-messages" },
+                children: chatMessages,
+              }),
+              createElement("input", {
+                attrs: {
+                  type: "text",
+                  id: "chat-input",
+                  placeholder: "Type and press Enter...",
+                  autocomplete: "off",
+                },
+                events: {
+                  keypress: (e) => {
+                    if (e.key === "Enter") {
+                      const input = e.target;
+                      const text = input.value.trim();
+                      if (text) {
+                        sendToServer({ type: "chat", text: text });
+                        input.value = "";
+                      }
+                    }
+                  },
+                },
+              }),
             ],
           }),
         ],
