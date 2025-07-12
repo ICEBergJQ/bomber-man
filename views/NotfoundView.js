@@ -8,12 +8,14 @@ export default function render404Screen() {
       createElement("h1", { children: ["Oops! Page Not Found"] }),
 
       // Description
-      createElement("p", { children: ["Sorry, the page you are looking for doesn't exist."] }),
++      createElement("p", {
+        children: ["Sorry, the page you are looking for doesn't exist."],
+      }),
 
       // Image or graphic (optional)
       createElement("img", {
         attrs: {
-          src: "https://example.com/404-image.png", // Replace with your own 404 image URL
+          src: "https://example.com/404-image.png",
           alt: "404 Not Found",
           style: "width: 200px; margin-top: 20px;",
         },
@@ -25,7 +27,7 @@ export default function render404Screen() {
         children: ["Go to Home"],
         events: {
           click: () => {
-            window.location.hash = "#/"; // Redirect to the home screen
+            window.location.hash = "#/";
           },
         },
       }),

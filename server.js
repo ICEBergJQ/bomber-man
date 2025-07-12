@@ -41,6 +41,8 @@ const requestHandler = (req, res) => {
 const server = http.createServer(requestHandler);
 const wss = new WebSocket.Server({ server });
 
+// --- Game Logic ---
+const CELL_SIZE = 30;
 const startingPositions = [
   { row: 1, col: 1 },
   { row: 1, col: 21 },
@@ -52,33 +54,23 @@ let connectionIdCounter = 0;
 const clients = {};
 
 function initializeGame() {
-  console.log("[Server] Initializing a new game state.");
   gameState = {
     players: {},
     bombs: [],
     explosions: [],
-    mazeLayout: generateMaze(13, 23),
+    maze: generateMaze(13, 23),
     gameStarted: false,
     gameOver: false,
     winner: null,
     playerCount: 0,
   };
 }
-
 function broadcastGameState() {
-  console.log(
-    `[Server] Broadcasting state to ${
-      Object.keys(clients).length
-    } client(s). gameStarted: ${gameState.gameStarted}, playerCount: ${
-      gameState.playerCount
-    }`
-  );
   const msg = JSON.stringify({ type: "gameState", data: gameState });
   Object.values(clients).forEach((c) => {
     if (c.ws.readyState === WebSocket.OPEN) c.ws.send(msg);
   });
 }
-
 function generateMaze(rows, cols) {
   const maze = [];
   for (let r = 0; r < rows; r++) {
@@ -118,10 +110,36 @@ function generateMaze(rows, cols) {
   ].forEach((p) => (maze[p[0]][p[1]] = " "));
   return maze;
 }
+
+function checkPlayerDeaths() {
+  Object.values(gameState.players).forEach((p) => {
+    if (
+      p.alive &&
+      !p.invincible &&
+      gameState.explosions.some((e) => e.row === p.row && e.col === p.col)
+    ) {
+      p.lives--;
+      if (p.lives <= 0) {
+        p.alive = false;
+      } else {
+        const startPos = startingPositions[p.playerId - 1];
+        p.row = startPos.row;
+        p.col = startPos.col;
+        p.x = startPos.col * CELL_SIZE;
+        p.y = startPos.row * CELL_SIZE;
+        p.invincible = true;
+        setTimeout(() => {
+          if (p) p.invincible = false;
+          broadcastGameState();
+        }, 2000);
+      }
+      checkWinCondition();
+    }
+  });
+}
 function checkWinCondition() {
   const alive = Object.values(gameState.players).filter((p) => p.alive);
   if (gameState.playerCount > 0 && alive.length <= 1) {
-    console.log("[Server] Win condition met.");
     gameState.gameOver = true;
     gameState.winner = alive[0] || null;
     broadcastGameState();
@@ -143,10 +161,10 @@ function explodeBomb(bomb) {
     for (let i = 1; i <= 2; i++) {
       const nr = row + dr * i,
         nc = col + dc * i;
-      if (!gameState.mazeLayout[nr]?.[nc] || gameState.mazeLayout[nr][nc] === "#") break;
+      if (!gameState.maze[nr]?.[nc] || gameState.maze[nr][nc] === "#") break;
       explosion.push({ row: nr, col: nc });
-      if (gameState.mazeLayout[nr][nc] === "*") {
-        gameState.mazeLayout[nr][nc] = " ";
+      if (gameState.maze[nr][nc] === "*") {
+        gameState.maze[nr][nc] = " ";
         break;
       }
     }
@@ -160,17 +178,6 @@ function explodeBomb(bomb) {
     broadcastGameState();
   }, 500);
   broadcastGameState();
-}
-function checkPlayerDeaths() {
-  Object.values(gameState.players).forEach((p) => {
-    if (
-      p.alive &&
-      gameState.explosions.some((e) => e.row === p.row && e.col === p.col)
-    ) {
-      p.alive = false;
-      checkWinCondition();
-    }
-  });
 }
 function placeBomb(playerId) {
   const p = gameState.players[playerId];
@@ -193,17 +200,17 @@ function movePlayer(playerId, dir) {
   else if (dir === "left") nc--;
   else if (dir === "right") nc++;
   if (
-    gameState.mazeLayout[nr]?.[nc] &&
-    !["#", "*"].includes(gameState.mazeLayout[nr][nc])
+    gameState.maze[nr]?.[nc] &&
+    !["#", "*"].includes(gameState.maze[nr][nc])
   ) {
     p.row = nr;
     p.col = nc;
+    p.x = nc * CELL_SIZE;
+    p.y = nr * CELL_SIZE;
     broadcastGameState();
   }
 }
-
 function forceStartGame() {
-  console.log("[Server] forceStartGame called.");
   gameState.gameStarted = true;
   broadcastGameState();
 }
@@ -212,56 +219,54 @@ initializeGame();
 wss.on("connection", (ws) => {
   const connectionId = ++connectionIdCounter;
   clients[connectionId] = { ws, playerId: null };
-  console.log(`[Server] Connection ${connectionId} established.`);
   broadcastGameState();
-
   ws.on("message", (msg) => {
     let data;
     try {
       data = JSON.parse(msg);
-      console.log(
-        `[Server] Message received from connection ${connectionId}:`,
-        data
-      );
     } catch (e) {
-      console.error(
-        `[Server] Invalid JSON from connection ${connectionId}:`,
-        msg
-      );
       return;
     }
-
     if (data.type === "registerPlayer" && data.nickname) {
-      console.log(
-        `[Server] Processing 'registerPlayer' for connection ${connectionId}`
-      );
       if (clients[connectionId].playerId !== null || gameState.playerCount >= 4)
         return;
       gameState.playerCount++;
       const playerId = gameState.playerCount;
       clients[connectionId].playerId = playerId;
+      const startPos = startingPositions[playerId - 1];
       gameState.players[playerId] = {
         playerId,
         nickname: data.nickname,
-        row: startingPositions[playerId - 1].row,
-        col: startingPositions[playerId - 1].col,
+        row: startPos.row,
+        col: startPos.col,
+        x: startPos.col * CELL_SIZE,
+        y: startPos.row * CELL_SIZE,
         alive: true,
+        lives: 3,
+        invincible: false,
       };
       broadcastGameState();
     } else if (data.type === "startGame") {
-      console.log(
-        `[Server] Processing 'startGame' for connection ${connectionId}`
-      );
       forceStartGame();
     } else if (data.type === "move") {
       movePlayer(clients[connectionId]?.playerId, data.direction);
     } else if (data.type === "bomb") {
       placeBomb(clients[connectionId]?.playerId);
+    } else if (data.type === "chat") {
+      const sender = gameState.players[clients[connectionId]?.playerId];
+      if (sender) {
+        const chatMessage = {
+          type: "chatMessage",
+          data: { nickname: sender.nickname, text: data.text },
+        };
+        Object.values(clients).forEach((c) => {
+          if (c.ws.readyState === WebSocket.OPEN)
+            c.ws.send(JSON.stringify(chatMessage));
+        });
+      }
     }
   });
-
   ws.on("close", () => {
-    console.log(`[Server] Connection ${connectionId} closed.`);
     const { playerId } = clients[connectionId] || {};
     if (playerId) {
       delete gameState.players[playerId];
