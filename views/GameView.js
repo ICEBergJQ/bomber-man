@@ -3,10 +3,18 @@ import { createElement } from "../src/main.js";
 const handleKeyDown = (e, sendToServer) => {
   let direction = null;
   switch (e.key) {
-    case "ArrowUp": direction = "up"; break;
-    case "ArrowDown": direction = "down"; break;
-    case "ArrowLeft": direction = "left"; break;
-    case "ArrowRight": direction = "right"; break;
+    case "ArrowUp":
+      direction = "up";
+      break;
+    case "ArrowDown":
+      direction = "down";
+      break;
+    case "ArrowLeft":
+      direction = "left";
+      break;
+    case "ArrowRight":
+      direction = "right";
+      break;
     case " ":
       e.preventDefault();
       sendToServer({ type: "bomb" });
@@ -17,74 +25,94 @@ const handleKeyDown = (e, sendToServer) => {
     sendToServer({ type: "move", direction: direction });
   }
 };
-
 let onKeyDownHandler = null;
-
 function addPlayerControls(sendToServer) {
   if (onKeyDownHandler) {
-      window.removeEventListener("keydown", onKeyDownHandler);
+    window.removeEventListener("keydown", onKeyDownHandler);
   }
   onKeyDownHandler = (e) => handleKeyDown(e, sendToServer);
   window.addEventListener("keydown", onKeyDownHandler);
 }
-
 function removePlayerControls() {
   if (onKeyDownHandler) {
-      window.removeEventListener("keydown", onKeyDownHandler);
-      onKeyDownHandler = null;
+    window.removeEventListener("keydown", onKeyDownHandler);
+    onKeyDownHandler = null;
   }
 }
 
 export default function renderGameScreen(gameState, sendToServer) {
   const state = gameState.getState();
-  // --- THIS IS THE FIX ---
-  // The property from the server is `maze`, not `mazeLayout`.
   const maze = state.maze;
+  const CELL_SIZE = 30;
 
   if (!maze) {
     removePlayerControls();
-    return createElement("div", { attrs: { class: "screen loading-screen" }, children: [createElement("h2", { children: ["Loading Game..."] })] });
+    return createElement("div", {
+      attrs: { class: "screen loading-screen" },
+      children: [createElement("h2", { children: ["Loading Game..."] })],
+    });
   }
 
   addPlayerControls(sendToServer);
 
-  const displayGrid = maze.map((row) => row.slice());
-
-  state.explosions?.forEach((exp) => { displayGrid[exp.row][exp.col] = "EXP"; });
-  state.bombs?.forEach((bomb) => { displayGrid[bomb.row][bomb.col] = "BOMB"; });
-
-  if (state.players) {
-    Object.values(state.players).forEach((p) => {
-      if (p && p.alive) {
-        displayGrid[p.row][p.col] = `P${p.playerId}`;
-      }
-    });
-  }
-
-  const gameBoardChildren = displayGrid.flatMap((row) =>
+  // 1. Render the static map grid
+  const mapChildren = maze.flatMap((row) =>
     row.map((cellType) => {
       let className = "cell";
-      switch (cellType) {
-        case "#": className += " wall"; break;
-        case "*": className += " box"; break;
-        case "P1": className += " player1"; break;
-        case "P2": className += " player2"; break;
-        case "P3": className += " player3"; break;
-        case "P4": className += " player4"; break;
-        case "BOMB": className += " bomb"; break;
-        case "EXP": className += " explosion"; break;
-        default: className += " empty"; break;
-      }
+      if (cellType === "#") className += " wall";
+      else if (cellType === "*") className += " box";
+      else className += " empty";
       return createElement("div", { attrs: { class: className } });
     })
   );
 
-  const playerList = state.players ? Object.values(state.players).map(p =>
+  // 2. Render explosions as separate elements
+  const explosionChildren =
+    state.explosions?.map((exp) => {
+      const x = exp.col * CELL_SIZE;
+      const y = exp.row * CELL_SIZE;
+      return createElement("div", {
+        attrs: {
+          class: "explosion",
+          style: `transform: translate(${x}px, ${y}px);`,
+        },
+      });
+    }) || [];
+
+  // 3. Render bombs as separate elements
+  const bombChildren =
+    state.bombs?.map((bomb) => {
+      const x = bomb.col * CELL_SIZE;
+      const y = bomb.row * CELL_SIZE;
+      return createElement("div", {
+        attrs: {
+          class: "bomb",
+          style: `transform: translate(${x}px, ${y}px);`,
+        },
+      });
+    }) || [];
+
+  // 4. Render players
+  const playerChildren = Object.values(state.players)
+    .map((p) => {
+      if (!p.alive) return null;
+      return createElement("div", {
+        attrs: {
+          class: `player player${p.playerId}`,
+          id: `player-${p.playerId}`,
+        },
+      });
+    })
+    .filter(Boolean);
+
+  const playerList = Object.values(state.players).map((p) =>
     createElement("li", {
       children: [`${p.nickname}: ${p.alive ? "Alive" : "Out"}`],
-      attrs: { style: p.alive ? "color: white;" : "color: red; text-decoration: line-through;" }
+      attrs: {
+        style: p.alive ? "" : "color: red; text-decoration: line-through;",
+      },
     })
-  ) : [];
+  );
 
   return createElement("div", {
     attrs: { class: "screen game-screen" },
@@ -93,14 +121,27 @@ export default function renderGameScreen(gameState, sendToServer) {
       createElement("div", {
         attrs: { class: "game-container" },
         children: [
-          createElement("div", { attrs: { class: "game-board" }, children: gameBoardChildren }),
-          createElement("div", { attrs: { class: "game-sidebar" },
+          createElement("div", {
+            attrs: { class: "game-board-container" },
+            children: [
+              createElement("div", {
+                attrs: { class: "game-board" },
+                children: mapChildren,
+              }),
+              // Draw dynamic entities in order: explosions -> bombs -> players
+              ...explosionChildren,
+              ...bombChildren,
+              ...playerChildren,
+            ],
+          }),
+          createElement("div", {
+            attrs: { class: "game-sidebar" },
             children: [
               createElement("h3", { children: ["Players"] }),
-              createElement("ul", { children: playerList })
-            ]
-          })
-        ]
+              createElement("ul", { children: playerList }),
+            ],
+          }),
+        ],
       }),
     ],
   });

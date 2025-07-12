@@ -7,13 +7,17 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   const playersList =
     lobbyPlayers.length > 0
       ? lobbyPlayers.map((player) =>
-          createElement("li", { children: [player.nickname || "Unnamed Player"] })
+          createElement("li", {
+            children: [player.nickname || "Unnamed Player"],
+          })
         )
       : [createElement("li", { children: ["No players yet..."] })];
 
   const countdownDisplay =
     state.lobbyCountdown !== null && state.lobbyCountdown > 0
-      ? createElement("p", { children: [`Game starts in: ${state.lobbyCountdown} seconds!`] })
+      ? createElement("p", {
+          children: [`Game starts in: ${state.lobbyCountdown} seconds!`],
+        })
       : null;
 
   let lobbyContent;
@@ -33,7 +37,9 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   } else {
     lobbyContent = [
       createElement("h2", { children: ["Lobby: Waiting for Host..."] }),
-      createElement("p", { children: ["Please wait for the host to start the game."] }),
+      createElement("p", {
+        children: ["Please wait for the host to start the game."],
+      }),
       createElement("ul", { children: playersList }),
       countdownDisplay,
     ];

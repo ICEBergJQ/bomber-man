@@ -1,92 +1,4 @@
-.game-board {
-  display: grid;
-  grid-template-columns: repeat(23, 30px);
-  grid-template-rows: repeat(13, 30px);
-  gap: 1px;
-}
-
-.cell {
-  width: 30px;
-  height: 30px;
-  box-sizing: border-box;
-}
-
-.wall {
-  background-color: gray;
-  background-image: url("img/obsidian.jpg");
-  background-size: cover;
-}
-
-.box {
-  background-color: orange;
-  background-image: url("img/stone.jpg");
-  background-size: cover;
-}
-
-.empty {
-  background-color: white;
-  background-image: url("img/dirt.jpg");
-  background-size: cover;
-}
-
-.player1 {
-  background-color: #ff4444; /* Red */
-}
-
-.player2 {
-  background-color: #4444ff; /* Blue */
-}
-
-.player3 {
-  background-color: #44ff44; /* Green */
-}
-
-.player4 {
-  background-color: #ffff44; /* Yellow */
-}
-
-.bomb {
-  background-color: #333;
-  border-radius: 50%;
-  position: relative;
-}
-
-.bomb::after {
-  content: "💣";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 16px;
-}
-
-.explosion {
-  background-color: #ff6600;
-  animation: explosion-flash 0.5s ease-in-out;
-  position: relative;
-}
-
-.explosion::after {
-  content: "💥";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 16px;
-}
-
-@keyframes explosion-flash {
-  0% {
-    background-color: #ffff00;
-  }
-  50% {
-    background-color: #ff6600;
-  }
-  100% {
-    background-color: #ff0000;
-  }
-}
-
+/* --- Global Styles --- */
 body {
   margin: 0;
   padding: 20px;
@@ -95,37 +7,63 @@ body {
   color: white;
 }
 
-#status {
-  text-align: center;
-  margin: 10px;
-  font-size: 18px;
-  font-weight: bold;
-  color: #00ff00;
+/* --- Game Layout --- */
+.game-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-start;
 }
 
-.game {
-  display: grid;
-  grid-template-columns: repeat(23, 25px);
-  grid-template-rows: repeat(13, 25px);
-  gap: 1px;
-  margin: 20px auto;
-  width: fit-content;
-  background-color: #333;
-  padding: 10px;
-  border-radius: 5px;
+.game-board-container {
+    position: relative; /* This is essential for positioning players on top */
+    width: 690px;
+    height: 390px;
 }
- 
 
-.empty {
-  background-color: #2a2a2a;
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(23, 30px);
+    grid-template-rows: repeat(13, 30px);
+    background-color: #333;
+}
+
+.game-sidebar {
+    padding: 10px;
+    background: #222;
+    border-radius: 5px;
+}
+
+/* --- Map and Entity Styles --- */
+.cell {
+  width: 30px;
+  height: 30px;
+  box-sizing: border-box;
 }
 
 .wall {
-  background-color: #666;
+  background-image: url("img/obsidian.jpg");
+  background-size: cover;
 }
 
 .box {
-  background-color: #8b4513;
+  background-image: url("img/stone.jpg");
+  background-size: cover;
+}
+
+.empty {
+  background-image: url("img/dirt.jpg");
+  background-size: cover;
+}
+
+/* --- Player Styles --- */
+.player {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 30px;
+    height: 30px;
+    z-index: 10;
 }
 
 .player1 {
@@ -148,71 +86,39 @@ body {
   border-radius: 50%;
 }
 
-.my-player {
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(255, 255, 255, 1);
-  }
-  100% {
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-  }
-}
-
+/* --- Bomb and Explosion Styles --- */
 .bomb {
+  position: absolute;
+  top: 0; left: 0;
+  width: 30px;
+  height: 30px;      
   background-color: #333;
   border-radius: 50%;
-  position: relative;
+  box-sizing: border-box;
+  border: 2px solid #555;
+  z-index: 20;
 }
 
 .bomb::after {
   content: "💣";
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   font-size: 16px;
 }
 
 .explosion {
-  background-color: #ff6600;
-  animation: explosion-flash 0.5s ease-in-out;
-  position: relative;
-}
-
-.explosion::after {
-  content: "💥";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 16px;
+  top: 0; left: 0;
+  width: 30px;
+  height: 30px;
+  background-color: #ff9900;
+  animation: explosion-flash 0.4s ease-in-out;
+  z-index: 15;
 }
 
 @keyframes explosion-flash {
-  0% {
-    background-color: #ffff00;
-  }
-  50% {
-    background-color: #ff6600;
-  }
-  100% {
-    background-color: #ff0000;
-  }
-}
-
-.controls {
-  text-align: center;
-  margin: 20px;
-  color: #ccc;
-}
-
-.controls h3 {
-  color: #00ff00;
+  0% { background-color: #ffff00; }
+  50% { background-color: #ff6600; }
+  100% { background-color: #ff0000; }
 }
