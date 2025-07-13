@@ -5,6 +5,7 @@ import renderGameScreen from "./views/GameView.js";
 import NotfoundView from "./views/NotfoundView.js";
 import getRoutes from "./router/index.js";
 
+// --- WebSocket & State Management ---
 let socket;
 function sendToServer(message) {
   if (socket && socket.readyState === WebSocket.OPEN)
@@ -41,6 +42,7 @@ function connectWebSocket() {
   };
 }
 
+// --- Rendering & Routing ---
 const appRoot = document.getElementById("app");
 let currentVDomTree = null;
 export function renderApp(newVDomTree) {
@@ -74,21 +76,32 @@ gameState.subscribe(() => {
   }
 });
 
-const MOVEMENT_SPEED = 150;
+// --- NEW MOVEMENT LOGIC & STATE ---
+const MOVEMENT_SPEED = 150; // Time in milliseconds to cross one tile.
 let clientPlayerState = {};
 let lastFrameTime = performance.now();
 
+// --- NEW Input Handling ---
 window.addEventListener("keydown", (e) => {
-  if (
-    gameState.getState().currentScreen !== "game" ||
-    document.activeElement.id === "chat-input"
-  )
-    return;
+  // We only process input if we are on the game screen
+  if (gameState.getState().currentScreen !== "game") return;
+
+  // Ignore input if we are typing in chat
+  if (document.activeElement.id === "chat-input") return;
+
+  // Find our player in the local state
   const myPlayerId = Object.values(gameState.getState().players).find(
     (p) => p.nickname === gameState.getState().nickname
   )?.playerId;
   const myClientState = clientPlayerState[myPlayerId];
-  if (!myClientState || myClientState.isMoving) return;
+  if (!myClientState) return;
+
+  // ** THE CORE FIX **
+  // Only accept a new move command if the player is NOT already moving.
+  if (myClientState.isMoving) {
+    return;
+  }
+
   let direction = null;
   switch (e.key) {
     case "ArrowUp":
@@ -108,6 +121,7 @@ window.addEventListener("keydown", (e) => {
       sendToServer({ type: "bomb" });
       return;
   }
+
   if (direction) {
     e.preventDefault();
     sendToServer({ type: "move", direction });
@@ -119,16 +133,14 @@ function gameLoop(currentTime) {
   const delta = currentTime - lastFrameTime;
   lastFrameTime = currentTime;
 
+  // The game loop no longer sends messages. It only handles animation.
   if (state.currentScreen === "game" && state.players) {
-    const myPlayerId = Object.values(state.players).find(
-      (p) => p.nickname === state.nickname
-    )?.playerId;
-
     Object.values(state.players).forEach((serverPlayer) => {
       const playerElement = document.getElementById(
         `player-${serverPlayer.playerId}`
       );
       if (!playerElement) return;
+
       if (!serverPlayer.alive) {
         playerElement.style.display = "none";
         return;
@@ -144,7 +156,7 @@ function gameLoop(currentTime) {
           targetX: serverPlayer.x,
           targetY: serverPlayer.y,
           isMoving: false,
-          moveProgress: 1,
+          moveProgress: 0,
         };
       }
       const localPlayer = clientPlayerState[serverPlayer.playerId];
@@ -153,10 +165,6 @@ function gameLoop(currentTime) {
         localPlayer.targetX !== serverPlayer.x ||
         localPlayer.targetY !== serverPlayer.y
       ) {
-        if (localPlayer.isMoving) {
-          localPlayer.x = localPlayer.targetX;
-          localPlayer.y = localPlayer.targetY;
-        }
         localPlayer.isMoving = true;
         localPlayer.moveProgress = 0;
         localPlayer.startX = localPlayer.x;
@@ -173,30 +181,21 @@ function gameLoop(currentTime) {
         localPlayer.y =
           localPlayer.startY +
           (localPlayer.targetY - localPlayer.startY) * localPlayer.moveProgress;
+
         if (localPlayer.moveProgress >= 1) {
           localPlayer.isMoving = false;
+          localPlayer.moveProgress = 0;
           localPlayer.x = localPlayer.targetX;
           localPlayer.y = localPlayer.targetY;
         }
       }
       playerElement.style.transform = `translate(${localPlayer.x}px, ${localPlayer.y}px)`;
-
-      // --- THIS IS THE NEW DEBUG LOGIC ---
-      if (serverPlayer.playerId === myPlayerId) {
-        const debugOutput = document.getElementById("live-debug-output");
-        if (debugOutput) {
-          debugOutput.textContent = `
-isMoving: ${localPlayer.isMoving}
-Progress: ${localPlayer.moveProgress.toFixed(2)}
-Position: ${localPlayer.x.toFixed(1)}, ${localPlayer.y.toFixed(1)}
-Target:   ${localPlayer.targetX}, ${localPlayer.targetY}`;
-        }
-      }
     });
   }
 
   requestAnimationFrame(gameLoop);
 }
 
+// --- Start Application ---
 connectWebSocket();
 requestAnimationFrame(gameLoop);

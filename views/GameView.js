@@ -1,46 +1,6 @@
 import { createElement } from "../src/main.js";
 
-// The keyboard handling functions at the top of the file do not need to change.
-const handleKeyDown = (e, sendToServer) => {
-  let direction = null;
-  switch (e.key) {
-    case "ArrowUp":
-      direction = "up";
-      break;
-    case "ArrowDown":
-      direction = "down";
-      break;
-    case "ArrowLeft":
-      direction = "left";
-      break;
-    case "ArrowRight":
-      direction = "right";
-      break;
-    case " ":
-      e.preventDefault();
-      if (document.activeElement.id !== "chat-input")
-        sendToServer({ type: "bomb" });
-      return;
-  }
-  if (direction) {
-    e.preventDefault();
-    sendToServer({ type: "move", direction: direction });
-  }
-};
-let onKeyDownHandler = null;
-function addPlayerControls(sendToServer) {
-  if (onKeyDownHandler) {
-    window.removeEventListener("keydown", onKeyDownHandler);
-  }
-  onKeyDownHandler = (e) => handleKeyDown(e, sendToServer);
-  window.addEventListener("keydown", onKeyDownHandler);
-}
-function removePlayerControls() {
-  if (onKeyDownHandler) {
-    window.removeEventListener("keydown", onKeyDownHandler);
-    onKeyDownHandler = null;
-  }
-}
+// All keyboard handling functions have been removed from this file.
 
 export default function renderGameScreen(gameState, sendToServer) {
   const state = gameState.getState();
@@ -48,16 +8,15 @@ export default function renderGameScreen(gameState, sendToServer) {
   const CELL_SIZE = 30;
 
   if (!maze) {
-    removePlayerControls();
+    // No need to call removePlayerControls() anymore
     return createElement("div", {
       attrs: { class: "screen loading-screen" },
       children: [createElement("h2", { children: ["Loading Game..."] })],
     });
   }
 
-  addPlayerControls(sendToServer);
+  // No need to call addPlayerControls() anymore
 
-  // The rendering logic for map, bombs, explosions, players is all correct.
   const mapChildren = maze.flatMap((row) =>
     row.map((cellType) => {
       let className = "cell";
@@ -67,6 +26,7 @@ export default function renderGameScreen(gameState, sendToServer) {
       return createElement("div", { attrs: { class: className } });
     })
   );
+
   const explosionChildren =
     state.explosions?.map((exp) => {
       const x = exp.col * CELL_SIZE;
@@ -89,6 +49,7 @@ export default function renderGameScreen(gameState, sendToServer) {
         },
       });
     }) || [];
+
   const playerChildren = Object.values(state.players)
     .map((p) => {
       if (!p.alive) return null;
@@ -103,6 +64,7 @@ export default function renderGameScreen(gameState, sendToServer) {
       });
     })
     .filter(Boolean);
+
   const playerList = Object.values(state.players).map((p) => {
     const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
     return createElement("li", {
@@ -112,6 +74,7 @@ export default function renderGameScreen(gameState, sendToServer) {
       },
     });
   });
+
   const chatMessages = (state.chatMessages || []).map((msg) =>
     createElement("p", {
       children: [
@@ -177,7 +140,6 @@ export default function renderGameScreen(gameState, sendToServer) {
           }),
         ],
       }),
-      // --- ADD THIS DEBUG VIEW ---
       createElement("div", {
         attrs: {
           style:
