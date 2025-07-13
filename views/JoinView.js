@@ -1,45 +1,45 @@
 import { createElement } from "../src/main.js";
 
+let nickname = ''
+function handleInput(gameState, sendToServer) {
+  nickname = nickname.trim()
+  if (nickname) {
+    gameState.setState({ ...gameState.getState(), nickname })
+    console.log('[JoinView.js] "Join Game" button clicked.', nickname)
+    sendToServer({ type: "registerPlayer", nickname })
+    location.hash = "#/lobby"
+  } else {
+    alert("Please enter a nickname!")
+  }
+}
+
 export default function renderJoinScreen(gameState, sendToServer) {
   console.log("[JoinView.js] Rendering view.");
   return createElement("div", {
-    attrs: { class: "screen join-screen" },
+    attrs: { class: "screen join-screen container" },
     children: [
-      createElement("h1", { children: ["Welcome to Bomberman!"] }),
+      // TODO
+      //createElement("h1", { children: ["Welcome to Bomberman!"] }),
       createElement("p", { children: ["Enter your nickname to join:"] }),
       createElement("input", {
         attrs: {
           type: "text",
           placeholder: "Enter your nickname",
           id: "nicknameInput",
-
+          required: 'true'
         },
         events: {
-          input: (e) =>
-            gameState.setState({
-              ...gameState.getState(),
-              nickname: e.target.value,
-            }),
+          change: (e) => nickname = e.target.value,
         },
       }),
       createElement("button", {
         attrs: { class: "btn btn-primary" },
         children: ["Join Game"],
         events: {
-          click: () => {
-            const nickname = gameState.getState().nickname.trim();
-            console.log('[JoinView.js] "Join Game" button clicked.');
-            if (nickname) {
-              sendToServer({ type: "registerPlayer", nickname: nickname });
-              window.location.hash = "#/lobby";
-            } else {
-              alert("Please enter a nickname!");
-            }
-          },
+          click: () => handleInput(gameState, sendToServer),
         },
       }),
-      createElement("div", {
-        attrs: { style: "margin-top: 20px;" },
+      createElement("div", { 
         children: [
           createElement("label", {
             children: [

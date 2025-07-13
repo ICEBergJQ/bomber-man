@@ -18,16 +18,3 @@ export {
   off,
   emit
 };
-
-// Create a global framework object for easier access
-window.MiniFramework = {
-  createElement,
-  render,
-  mount,
-  diff,
-  createStore,
-  createRouter,
-  on,
-  off,
-  emit
-};

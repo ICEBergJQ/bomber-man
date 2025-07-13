@@ -1,10 +1,6 @@
 function renderElement({ tagName, attrs, children, events }) {
   const element = document.createElement(tagName);
 
-  if (tagName === 'button' && attrs.class === 'destroy') {
-    element.setAttribute('data-debug', 'delete-button');
-  }
-
   if (tagName === 'input') {
     if (attrs.type === 'checkbox' || attrs.type === 'radio') {
       element.checked = !!attrs.checked;

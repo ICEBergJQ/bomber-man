@@ -1,0 +1,15 @@
+
+/* join-screen */
+
+ 
+
+.join-screen button,
+.join-screen input[type=text] {
+  width: 200px;
+  box-sizing: border-box;
+}
+
+.join-screen button {
+  cursor: pointer;
+  margin-top: 5px;
+}

@@ -3,6 +3,7 @@ import { createElement } from "../src/main.js";
 export default function renderLobbyScreen(gameState, sendToServer) {
   const state = gameState.getState();
   const lobbyPlayers = state.players ? Object.values(state.players) : [];
+  console.log(state);
 
   const playersList =
     lobbyPlayers.length > 0
@@ -60,6 +61,7 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   if (state.isPlayer1) {
     lobbyContent = [
       createElement("header", {
+        attrs: { class: 'container' },
         children: [
           createElement("h2", { children: ["Lobby: You are the Host"] }),
           createElement("p", { children: ['Click "Start Game" when ready.'] }),
@@ -76,7 +78,8 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   } else {
     lobbyContent = [
       createElement('header', {
-        children:[
+        attrs: { class: 'container' },
+        children: [
           createElement("h2", { children: ["Lobby: Waiting for Host..."] }),
           createElement("p", {
             children: ["Please wait for the host to start the game."],

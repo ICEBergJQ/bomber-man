@@ -1,3 +1,9 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #1a1a1a;
+  color: white;
+}
 a {
     color: #eee;
     text-decoration: none;
@@ -11,47 +17,4 @@ button, input {
 
 label {
     cursor: pointer;
-}
-
-/* 404 */
-.x404-screen {
-    text-align: center;
-    padding: 40px;
-    background-color: #f4f4f4;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.x404-screen h1 {
-    font-size: 3em;
-    color: #ff6347;
-    /* Tomato color */
-}
-
-.x404-screen p {
-    font-size: 1.2em;
-    color: #666;
-}
-
-.x404-screen img {
-    max-width: 200px;
-    margin-top: 20px;
-}
-
-.x404-screen button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 1em;
-    cursor: pointer;
-    margin-top: 20px;
-    border-radius: 5px;
-}
-
-.x404-screen button:hover {
-    background-color: #0056b3;
 }
