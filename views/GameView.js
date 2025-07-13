@@ -87,8 +87,18 @@ export default function renderGameScreen(gameState, sendToServer) {
   return createElement("div", {
     attrs: { class: "screen game-screen" },
     children: [
-      createElement("a", { attrs: { href: "#/", id: "quit-btn" },
-      children: ["Quit"] }),
+      createElement("a", {
+        attrs: { id: "quit-btn" },
+        children: ["Quit"],
+        events: {
+          click: () => {
+            if (socket) {
+              socket.close();
+            }
+            window.location.hash = "#/";
+          },
+        },
+      }),
       createElement("h2", { children: ["Bomberman"] }),
       createElement("div", {
         attrs: { class: "game-container" },

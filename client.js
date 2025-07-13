@@ -7,7 +7,7 @@ import getRoutes from "./router/index.js"
 import renderGameErr from "./views/gameFullView.js";
 
 // --- WebSocket & State Management ---
-let socket;
+export let socket;
 function sendToServer(message) {
   if (socket && socket.readyState === WebSocket.OPEN)
     socket.send(JSON.stringify(message));

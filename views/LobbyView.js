@@ -1,4 +1,5 @@
 import { createElement } from "../src/main.js";
+import { socket } from "../client.js";
 
 export default function renderLobbyScreen(gameState, sendToServer) {
   const state = gameState.getState();
@@ -25,8 +26,18 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   let lobbyContent;
 
   const sharedUI = [
-    createElement("a", { attrs: { href: "#/", id: "quit-btn" },
-      children: ["Quit"] }),
+    createElement("a", {
+      attrs: { id: "quit-btn" },
+      children: ["Quit"],
+      events: {
+        click: () => {
+          if (socket) {
+            socket.close();
+          }
+          window.location.hash = "#/";
+        },
+      },
+    }),
     createElement("h3", { children: ["Players"] }),
     createElement("ul", { children: playersList }),
     createElement("h3", {
