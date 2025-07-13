@@ -1,5 +1,5 @@
 import { createElement } from "../src/main.js";
-
+import { socket } from "../client.js";
 // All keyboard handling functions have been removed from this file.
 
 export default function renderGameScreen(gameState, sendToServer) {
@@ -87,11 +87,13 @@ export default function renderGameScreen(gameState, sendToServer) {
   return createElement("div", {
     attrs: { class: "screen game-screen" },
     children: [
-      createElement("a", {
+      createElement("button", {
         attrs: { id: "quit-btn" },
         children: ["Quit"],
         events: {
           click: () => {
+            console.log(123);
+            
             if (socket) {
               socket.close();
             }
