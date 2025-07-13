@@ -11,11 +11,6 @@ const requestHandler = (req, res) => {
     ".html": "text/html",
     ".js": "application/javascript",
     ".css": "text/css",
-    ".json": "application/json",
-    ".png": "image/png",
-    ".jpg": "image/jpg",
-    ".gif": "image/gif",
-    ".svg": "image/svg+xml",
   };
   const contentType = mimeTypes[extname] || "application/octet-stream";
   fs.readFile(filePath, (err, content) => {
@@ -27,9 +22,7 @@ const requestHandler = (req, res) => {
         });
       } else {
         res.writeHead(500);
-        res.end(
-          "Sorry, check with the site admin for error: " + err.code + " ..\n"
-        );
+        res.end("Server Error: " + err.code);
       }
     } else {
       res.writeHead(200, { "Content-Type": contentType });
@@ -37,11 +30,9 @@ const requestHandler = (req, res) => {
     }
   });
 };
-
 const server = http.createServer(requestHandler);
 const wss = new WebSocket.Server({ server });
 
-// --- Game Logic ---
 const CELL_SIZE = 30;
 const startingPositions = [
   { row: 1, col: 1 },
@@ -110,33 +101,6 @@ function generateMaze(rows, cols) {
   ].forEach((p) => (maze[p[0]][p[1]] = " "));
   return maze;
 }
-
-function checkPlayerDeaths() {
-  Object.values(gameState.players).forEach((p) => {
-    if (
-      p.alive &&
-      !p.invincible &&
-      gameState.explosions.some((e) => e.row === p.row && e.col === p.col)
-    ) {
-      p.lives--;
-      if (p.lives <= 0) {
-        p.alive = false;
-      } else {
-        const startPos = startingPositions[p.playerId - 1];
-        p.row = startPos.row;
-        p.col = startPos.col;
-        p.x = startPos.col * CELL_SIZE;
-        p.y = startPos.row * CELL_SIZE;
-        p.invincible = true;
-        setTimeout(() => {
-          if (p) p.invincible = false;
-          broadcastGameState();
-        }, 2000);
-      }
-      checkWinCondition();
-    }
-  });
-}
 function checkWinCondition() {
   const alive = Object.values(gameState.players).filter((p) => p.alive);
   if (gameState.playerCount > 0 && alive.length <= 1) {
@@ -169,27 +133,56 @@ function explodeBomb(bomb) {
       }
     }
   });
-  explosion.forEach((e) =>
-    gameState.explosions.push({ ...e, createdAt: Date.now() })
-  );
+  gameState.explosions.push(...explosion);
   checkPlayerDeaths();
+  broadcastGameState();
   setTimeout(() => {
     gameState.explosions = [];
     broadcastGameState();
   }, 500);
-  broadcastGameState();
+}
+function checkPlayerDeaths() {
+  Object.values(gameState.players).forEach((p) => {
+    if (
+      p.alive &&
+      !p.invincible &&
+      gameState.explosions.some((e) => e.row === p.row && e.col === p.col)
+    ) {
+      p.lives--;
+      if (p.lives <= 0) {
+        p.alive = false;
+      } else {
+        const startPos = startingPositions[p.playerId - 1];
+        p.row = startPos.row;
+        p.col = startPos.col;
+        p.x = startPos.col * CELL_SIZE;
+        p.y = startPos.row * CELL_SIZE;
+        p.invincible = true;
+        setTimeout(() => {
+          if (p) p.invincible = false;
+          broadcastGameState();
+        }, 2000);
+      }
+      checkWinCondition();
+    }
+  });
 }
 function placeBomb(playerId) {
   const p = gameState.players[playerId];
-  if (!p || !p.alive || gameState.gameOver) return;
-  if (gameState.bombs.some((b) => b.row === p.row && b.col === p.col)) return;
-  const bomb = { row: p.row, col: p.col, playerId, placedAt: Date.now() };
+  if (
+    !p ||
+    !p.alive ||
+    gameState.gameOver ||
+    gameState.bombs.some((b) => b.row === p.row && b.col === p.col)
+  )
+    return;
+  const bomb = { row: p.row, col: p.col, playerId };
   gameState.bombs.push(bomb);
+  broadcastGameState();
   setTimeout(() => {
     gameState.bombs = gameState.bombs.filter((b) => b !== bomb);
     explodeBomb(bomb);
   }, 3000);
-  broadcastGameState();
 }
 function movePlayer(playerId, dir) {
   const p = gameState.players[playerId];
@@ -214,7 +207,6 @@ function forceStartGame() {
   gameState.gameStarted = true;
   broadcastGameState();
 }
-
 initializeGame();
 wss.on("connection", (ws) => {
   const connectionId = ++connectionIdCounter;
@@ -276,7 +268,6 @@ wss.on("connection", (ws) => {
     broadcastGameState();
   });
 });
-
 const PORT = 8080;
 server.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);

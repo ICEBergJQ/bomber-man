@@ -1,21 +1,16 @@
 import { createElement } from "../src/main.js";
 
-// All keyboard handling functions have been removed from this file.
-
 export default function renderGameScreen(gameState, sendToServer) {
   const state = gameState.getState();
   const maze = state.maze;
   const CELL_SIZE = 30;
 
   if (!maze) {
-    // No need to call removePlayerControls() anymore
     return createElement("div", {
       attrs: { class: "screen loading-screen" },
       children: [createElement("h2", { children: ["Loading Game..."] })],
     });
   }
-
-  // No need to call addPlayerControls() anymore
 
   const mapChildren = maze.flatMap((row) =>
     row.map((cellType) => {
@@ -59,6 +54,8 @@ export default function renderGameScreen(gameState, sendToServer) {
         attrs: {
           class: playerClass,
           id: `player-${p.playerId}`,
+          // The position is set directly from the main game state.
+          // The CSS transition will animate any change to this style.
           style: `transform: translate(${p.x}px, ${p.y}px);`,
         },
       });
@@ -138,16 +135,6 @@ export default function renderGameScreen(gameState, sendToServer) {
               }),
             ],
           }),
-        ],
-      }),
-      createElement("div", {
-        attrs: {
-          style:
-            "margin-top: 20px; background: #222; padding: 10px; font-family: monospace; white-space: pre;",
-        },
-        children: [
-          createElement("h4", { children: ["Live Animation State"] }),
-          createElement("div", { attrs: { id: "live-debug-output" } }),
         ],
       }),
     ],

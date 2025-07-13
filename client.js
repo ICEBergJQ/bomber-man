@@ -63,6 +63,8 @@ const screens = {
   game: renderGameScreen,
   404: NotfoundView,
 };
+
+// The subscribe function is now responsible for ALL re-renders.
 gameState.subscribe(() => {
   const state = gameState.getState();
   const currentScreenName = state.currentScreen;
@@ -76,31 +78,15 @@ gameState.subscribe(() => {
   }
 });
 
-// --- NEW MOVEMENT LOGIC & STATE ---
-const MOVEMENT_SPEED = 150; // Time in milliseconds to cross one tile.
-let clientPlayerState = {};
-let lastFrameTime = performance.now();
-
-// --- NEW Input Handling ---
+// --- "ONE PRESS, ONE MOVE" INPUT HANDLING ---
+const pressedKeys = new Set();
 window.addEventListener("keydown", (e) => {
-  // We only process input if we are on the game screen
-  if (gameState.getState().currentScreen !== "game") return;
-
-  // Ignore input if we are typing in chat
-  if (document.activeElement.id === "chat-input") return;
-
-  // Find our player in the local state
-  const myPlayerId = Object.values(gameState.getState().players).find(
-    (p) => p.nickname === gameState.getState().nickname
-  )?.playerId;
-  const myClientState = clientPlayerState[myPlayerId];
-  if (!myClientState) return;
-
-  // ** THE CORE FIX **
-  // Only accept a new move command if the player is NOT already moving.
-  if (myClientState.isMoving) {
+  if (
+    gameState.getState().currentScreen !== "game" ||
+    document.activeElement.id === "chat-input"
+  )
     return;
-  }
+  if (pressedKeys.has(e.key)) return; // Ignore browser key repeats
 
   let direction = null;
   switch (e.key) {
@@ -121,81 +107,17 @@ window.addEventListener("keydown", (e) => {
       sendToServer({ type: "bomb" });
       return;
   }
-
   if (direction) {
     e.preventDefault();
+    pressedKeys.add(e.key);
     sendToServer({ type: "move", direction });
   }
 });
 
-function gameLoop(currentTime) {
-  const state = gameState.getState();
-  const delta = currentTime - lastFrameTime;
-  lastFrameTime = currentTime;
-
-  // The game loop no longer sends messages. It only handles animation.
-  if (state.currentScreen === "game" && state.players) {
-    Object.values(state.players).forEach((serverPlayer) => {
-      const playerElement = document.getElementById(
-        `player-${serverPlayer.playerId}`
-      );
-      if (!playerElement) return;
-
-      if (!serverPlayer.alive) {
-        playerElement.style.display = "none";
-        return;
-      }
-      playerElement.style.display = "";
-
-      if (!clientPlayerState[serverPlayer.playerId]) {
-        clientPlayerState[serverPlayer.playerId] = {
-          x: serverPlayer.x,
-          y: serverPlayer.y,
-          startX: serverPlayer.x,
-          startY: serverPlayer.y,
-          targetX: serverPlayer.x,
-          targetY: serverPlayer.y,
-          isMoving: false,
-          moveProgress: 0,
-        };
-      }
-      const localPlayer = clientPlayerState[serverPlayer.playerId];
-
-      if (
-        localPlayer.targetX !== serverPlayer.x ||
-        localPlayer.targetY !== serverPlayer.y
-      ) {
-        localPlayer.isMoving = true;
-        localPlayer.moveProgress = 0;
-        localPlayer.startX = localPlayer.x;
-        localPlayer.startY = localPlayer.y;
-        localPlayer.targetX = serverPlayer.x;
-        localPlayer.targetY = serverPlayer.y;
-      }
-
-      if (localPlayer.isMoving) {
-        localPlayer.moveProgress += delta / MOVEMENT_SPEED;
-        localPlayer.x =
-          localPlayer.startX +
-          (localPlayer.targetX - localPlayer.startX) * localPlayer.moveProgress;
-        localPlayer.y =
-          localPlayer.startY +
-          (localPlayer.targetY - localPlayer.startY) * localPlayer.moveProgress;
-
-        if (localPlayer.moveProgress >= 1) {
-          localPlayer.isMoving = false;
-          localPlayer.moveProgress = 0;
-          localPlayer.x = localPlayer.targetX;
-          localPlayer.y = localPlayer.targetY;
-        }
-      }
-      playerElement.style.transform = `translate(${localPlayer.x}px, ${localPlayer.y}px)`;
-    });
-  }
-
-  requestAnimationFrame(gameLoop);
-}
+window.addEventListener("keyup", (e) => {
+  // When a key is released, remove it from the set so it can be pressed again.
+  pressedKeys.delete(e.key);
+});
 
 // --- Start Application ---
 connectWebSocket();
-requestAnimationFrame(gameLoop);
