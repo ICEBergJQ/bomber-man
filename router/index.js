@@ -24,5 +24,9 @@ export default function routes(gameState) {
       // This handler's only job is to update the state
       gameState.setState({ ...gameState.getState(), currentScreen: "404" });
     },
+    "/gameFull": () => {
+      // This handler's only job is to update the state
+      gameState.setState({ ...gameState.getState(), currentScreen: "gameFull" });
+    },
   };
 }
