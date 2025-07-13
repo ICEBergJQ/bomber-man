@@ -15,7 +15,7 @@ function handleInput(gameState, sendToServer) {
 }
 
 export default function renderJoinScreen(gameState, sendToServer) {
-  if (!socket || socket.readyState !== WebSocket.OPEN) {
+  if (!socket) {
     connectWebSocket();
     console.log("[JoinView.js] WebSocket connection established.");
   }
@@ -43,28 +43,28 @@ export default function renderJoinScreen(gameState, sendToServer) {
           click: () => handleInput(gameState, sendToServer),
         },
       }),
-      createElement("div", { 
-        children: [
-          createElement("label", {
-            children: [
-              "Simulate Host: ",
-              createElement("input", {
-                attrs: {
-                  type: "checkbox",
-                  checked: gameState.getState().isPlayer1,
-                },
-                events: {
-                  change: (e) =>
-                    gameState.setState({
-                      ...gameState.getState(),
-                      isPlayer1: e.target.checked,
-                    }),
-                },
-              }),
-            ],
-          }),
-        ],
-      }),
+      // createElement("div", { 
+      //   children: [
+      //     createElement("label", {
+      //       children: [
+      //         "Simulate Host: ",
+      //         createElement("input", {
+      //           attrs: {
+      //             type: "checkbox",
+      //             checked: gameState.getState().isPlayer1,
+      //           },
+      //           events: {
+      //             change: (e) =>
+      //               gameState.setState({
+      //                 ...gameState.getState(),
+      //                 isPlayer1: e.target.checked,
+      //               }),
+      //           },
+      //         }),
+      //       ],
+      //     }),
+      //   ],
+      // }),
     ],
   });
 }

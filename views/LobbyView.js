@@ -37,6 +37,7 @@ export default function renderLobbyScreen(gameState, sendToServer) {
             if (socket) {
               socket.close();
             }
+            sendToServer({ type: "quitGame" });
             gameState.setState({
               players: {},
               bombs: [],
@@ -86,7 +87,7 @@ export default function renderLobbyScreen(gameState, sendToServer) {
     }),
   ];
 
-  if (state.isPlayer1) {
+  // if (state.isPlayer1) {
     lobbyContent = [
       createElement("header", {
         attrs: { class: 'container' },
@@ -102,20 +103,20 @@ export default function renderLobbyScreen(gameState, sendToServer) {
       }),
       ...sharedUI,
     ];
-  } else {
-    lobbyContent = [
-      createElement('header', {
-        attrs: { class: 'container' },
-        children: [
-          createElement("h2", { children: ["Lobby: Waiting for Host..."] }),
-          createElement("p", {
-            children: ["Please wait for the host to start the game."],
-          })
-        ]
-      }),
-      ...sharedUI,
-    ];
-  }
+  // } else {
+  //   lobbyContent = [
+  //     createElement('header', {
+  //       attrs: { class: 'container' },
+  //       children: [
+  //         createElement("h2", { children: ["Lobby: Waiting for Host..."] }),
+  //         createElement("p", {
+  //           children: ["Please wait for the host to start the game."],
+  //         })
+  //       ]
+  //     }),
+  //     ...sharedUI,
+  //   ];
+  // }
 
   return createElement("div", {
     attrs: { class: "screen lobby-screen" },

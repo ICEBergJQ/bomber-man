@@ -21,7 +21,6 @@ const gameState = createStore({
   gameStarted: false,
   maze: null,
   currentScreen: "join",
-  isPlayer1: false,
   nickname: "",
   chatMessages: [],
 });

@@ -118,6 +118,7 @@ export default function renderGameScreen(gameState, sendToServer) {
             if (socket) {
               socket.close();
             }
+            sendToServer({ type: "quitGame" });
             gameState.setState({
               players: {},
               bombs: [],
