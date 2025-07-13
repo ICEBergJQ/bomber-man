@@ -3,14 +3,15 @@ import renderJoinScreen from "./views/JoinView.js";
 import renderLobbyScreen from "./views/LobbyView.js";
 import renderGameScreen from "./views/GameView.js";
 import NotfoundView from "./views/NotfoundView.js";
-import getRoutes from "./router/index.js";
+import getRoutes from "./router/index.js"
+import renderGameErr from "./views/gameFullView.js";
 
-let socket;
+// --- WebSocket & State Management ---
+export let socket;
 function sendToServer(message) {
   if (socket && socket.readyState === WebSocket.OPEN)
     socket.send(JSON.stringify(message));
 }
-
 const gameState = createStore({
   players: {},
   bombs: [],
@@ -22,14 +23,21 @@ const gameState = createStore({
   currentScreen: "join",
   isPlayer1: false,
   nickname: "",
-  chatMessages: [], // Add chatMessages to the initial state
+  chatMessages: [],
 });
-
-function connectWebSocket() {
+export function connectWebSocket() {
   if (socket && socket.readyState === WebSocket.OPEN) return;
   socket = new WebSocket(`ws://${window.location.hostname}:8080`);
   socket.onopen = () => console.log("WebSocket connection established.");
-  socket.onclose = () => setTimeout(connectWebSocket, 3000);
+  socket.onclose = (e) => {
+    console.log("WebSocket connection closed"+ e.reason);
+    if (e.reason === "Game is full or has already started") {
+      gameState.setState({
+        currentScreen: "gameFull",
+      });
+      window.location.hash = "#/gameFull";
+    }
+  }
   socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);
     if (msg.type === "gameState") {
@@ -37,12 +45,13 @@ function connectWebSocket() {
     } else if (msg.type === "chatMessage") {
       const currentState = gameState.getState();
       const newMessages = [...currentState.chatMessages, msg.data];
-      if (newMessages.length > 20) newMessages.shift(); // Keep chat history from getting too long
+      if (newMessages.length > 20) newMessages.shift();
       gameState.setState({ ...currentState, chatMessages: newMessages });
     }
   };
 }
 
+// --- Rendering & Routing ---
 const appRoot = document.getElementById("app");
 let currentVDomTree = null;
 export function renderApp(newVDomTree) {
@@ -62,8 +71,8 @@ const screens = {
   lobby: renderLobbyScreen,
   game: renderGameScreen,
   404: NotfoundView,
+  gameFull : renderGameErr,
 };
-
 gameState.subscribe(() => {
   const state = gameState.getState();
   const currentScreenName = state.currentScreen;
@@ -77,40 +86,126 @@ gameState.subscribe(() => {
   }
 });
 
-// --- Game Loop for Smooth Movement ---
-let clientPlayerState = {}; // Stores the client's current visual-only state
+// --- NEW MOVEMENT LOGIC & STATE ---
+const MOVEMENT_SPEED = 150; // Time in milliseconds to cross one tile.
+let clientPlayerState = {};
+let lastFrameTime = performance.now();
 
-function gameLoop() {
-    const state = gameState.getState(); // Get the latest state from the server
+// --- NEW Input Handling ---
+window.addEventListener("keydown", (e) => {
+  // We only process input if we are on the game screen
+  if (gameState.getState().currentScreen !== "game") return;
 
-    // Only run the expensive part of the loop if we are on the game screen
-    if (state.currentScreen === 'game' && state.players) {
-        Object.values(state.players).forEach(serverPlayer => {
-            if (!serverPlayer.alive) return;
+  // Ignore input if we are typing in chat
+  if (document.activeElement.id === "chat-input") return;
 
-            const playerElement = document.getElementById(`player-${serverPlayer.playerId}`);
-            if (!playerElement) return;
+  // Find our player in the local state
+  const myPlayerId = Object.values(gameState.getState().players).find(
+    (p) => p.nickname === gameState.getState().nickname
+  )?.playerId;
+  const myClientState = clientPlayerState[myPlayerId];
+  if (!myClientState) return;
 
-            // Initialize client-side state if it doesn't exist
-            if (!clientPlayerState[serverPlayer.playerId]) {
-                clientPlayerState[serverPlayer.playerId] = { x: serverPlayer.x, y: serverPlayer.y };
-            }
-            const clientPlayer = clientPlayerState[serverPlayer.playerId];
+  // ** THE CORE FIX **
+  // Only accept a new move command if the player is NOT already moving.
+  if (myClientState.isMoving) {
+    return;
+  }
 
-            // Interpolate towards the target server position
-            const targetX = serverPlayer.x;
-            const targetY = serverPlayer.y;
-            
-            // Move 20% of the remaining distance each frame
-            clientPlayer.x += (targetX - clientPlayer.x) * 0.2;
-            clientPlayer.y += (targetY - clientPlayer.y) * 0.2;
+  let direction = null;
+  switch (e.key) {
+    case "ArrowUp":
+      direction = "up";
+      break;
+    case "ArrowDown":
+      direction = "down";
+      break;
+    case "ArrowLeft":
+      direction = "left";
+      break;
+    case "ArrowRight":
+      direction = "right";
+      break;
+    case " ":
+      e.preventDefault();
+      sendToServer({ type: "bomb" });
+      return;
+  }
 
-            // Update the actual DOM element's style using transform for performance
-            playerElement.style.transform = `translate(${clientPlayer.x}px, ${clientPlayer.y}px)`;
-        });
-    }
+  if (direction) {
+    e.preventDefault();
+    sendToServer({ type: "move", direction });
+  }
+});
 
-    // Request the next animation frame
-    requestAnimationFrame(gameLoop);
+function gameLoop(currentTime) {
+  const state = gameState.getState();
+  const delta = currentTime - lastFrameTime;
+  lastFrameTime = currentTime;
+
+  // The game loop no longer sends messages. It only handles animation.
+  if (state.currentScreen === "game" && state.players) {
+    Object.values(state.players).forEach((serverPlayer) => {
+      const playerElement = document.getElementById(
+        `player-${serverPlayer.playerId}`
+      );
+      if (!playerElement) return;
+
+      if (!serverPlayer.alive) {
+        playerElement.style.display = "none";
+        return;
+      }
+      playerElement.style.display = "";
+
+      if (!clientPlayerState[serverPlayer.playerId]) {
+        clientPlayerState[serverPlayer.playerId] = {
+          x: serverPlayer.x,
+          y: serverPlayer.y,
+          startX: serverPlayer.x,
+          startY: serverPlayer.y,
+          targetX: serverPlayer.x,
+          targetY: serverPlayer.y,
+          isMoving: false,
+          moveProgress: 0,
+        };
+      }
+      const localPlayer = clientPlayerState[serverPlayer.playerId];
+
+      if (
+        localPlayer.targetX !== serverPlayer.x ||
+        localPlayer.targetY !== serverPlayer.y
+      ) {
+        localPlayer.isMoving = true;
+        localPlayer.moveProgress = 0;
+        localPlayer.startX = localPlayer.x;
+        localPlayer.startY = localPlayer.y;
+        localPlayer.targetX = serverPlayer.x;
+        localPlayer.targetY = serverPlayer.y;
+      }
+
+      if (localPlayer.isMoving) {
+        localPlayer.moveProgress += delta / MOVEMENT_SPEED;
+        localPlayer.x =
+          localPlayer.startX +
+          (localPlayer.targetX - localPlayer.startX) * localPlayer.moveProgress;
+        localPlayer.y =
+          localPlayer.startY +
+          (localPlayer.targetY - localPlayer.startY) * localPlayer.moveProgress;
+
+        if (localPlayer.moveProgress >= 1) {
+          localPlayer.isMoving = false;
+          localPlayer.moveProgress = 0;
+          localPlayer.x = localPlayer.targetX;
+          localPlayer.y = localPlayer.targetY;
+        }
+      }
+      playerElement.style.transform = `translate(${localPlayer.x}px, ${localPlayer.y}px)`;
+    });
+  }
+
+  requestAnimationFrame(gameLoop);
 }
+
+// --- Start Application ---
 connectWebSocket();
+requestAnimationFrame(gameLoop);

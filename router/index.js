@@ -20,5 +20,9 @@ export default function routes(gameState) {
     "/404": () => { 
       gameState.setState({ ...gameState.getState(), currentScreen: "404" });
     },
+    "/gameFull": () => {
+      // This handler's only job is to update the state
+      gameState.setState({ ...gameState.getState(), currentScreen: "gameFull" });
+    },
   };
 }

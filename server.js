@@ -42,6 +42,9 @@ const server = http.createServer(requestHandler);
 const wss = new WebSocket.Server({ server });
 
 // --- Game Logic ---
+const MAX_PLAYERS = 4;
+const HEARTBEAT_INTERVAL = 30000;
+
 const CELL_SIZE = 30;
 const startingPositions = [
   { row: 1, col: 1 },
@@ -216,64 +219,118 @@ function forceStartGame() {
 }
 
 initializeGame();
+
+function heartbeat() {
+  this.isAlive = true;
+}
+
 wss.on("connection", (ws) => {
-  const connectionId = ++connectionIdCounter;
-  clients[connectionId] = { ws, playerId: null };
+  // Reject if game is already full or started
+  const activePlayers = Object.values(clients).filter(c => c.playerId).length;
+  if (activePlayers >= MAX_PLAYERS || gameState.gameStarted) {
+    ws.close(1000, "Game is full or has already started");
+    console.log(`Connection rejected: Game is full (${activePlayers}/${MAX_PLAYERS}) or has already started`);
+    return;
+  }
+
+  ws.isAlive = true;
+  ws.on("pong", heartbeat);
+
+  const id = ++connectionIdCounter;
+  clients[id] = { ws, playerId: null };
   broadcastGameState();
+
+  const hbInterval = setInterval(() => {
+    if (!ws.isAlive) {
+      ws.terminate();
+      return;
+    }
+    ws.isAlive = false;
+    ws.ping();
+  }, HEARTBEAT_INTERVAL);
+
   ws.on("message", (msg) => {
     let data;
     try {
       data = JSON.parse(msg);
-    } catch (e) {
+    } catch {
       return;
     }
-    if (data.type === "registerPlayer" && data.nickname) {
-      if (clients[connectionId].playerId !== null || gameState.playerCount >= 4)
-        return;
-      gameState.playerCount++;
-      const playerId = gameState.playerCount;
-      clients[connectionId].playerId = playerId;
-      const startPos = startingPositions[playerId - 1];
-      gameState.players[playerId] = {
-        playerId,
-        nickname: data.nickname,
-        row: startPos.row,
-        col: startPos.col,
-        x: startPos.col * CELL_SIZE,
-        y: startPos.row * CELL_SIZE,
-        alive: true,
-        lives: 3,
-        invincible: false,
-      };
-      broadcastGameState();
-    } else if (data.type === "startGame") {
-      forceStartGame();
-    } else if (data.type === "move") {
-      movePlayer(clients[connectionId]?.playerId, data.direction);
-    } else if (data.type === "bomb") {
-      placeBomb(clients[connectionId]?.playerId);
-    } else if (data.type === "chat") {
-      const sender = gameState.players[clients[connectionId]?.playerId];
-      if (sender) {
-        const chatMessage = {
-          type: "chatMessage",
-          data: { nickname: sender.nickname, text: data.text },
+    switch (data.type) {
+      case "registerPlayer":
+        if (!data.nickname) return;
+        if (clients[id].playerId != null || gameState.playerCount >= MAX_PLAYERS) return;
+        gameState.playerCount++;
+        const playerId = gameState.playerCount;
+        clients[id].playerId = playerId;
+        const pos = startingPositions[playerId - 1];
+        gameState.players[playerId] = {
+          playerId,
+          nickname: data.nickname,
+          row: pos.row,
+          col: pos.col,
+          x: pos.col * CELL_SIZE,
+          y: pos.row * CELL_SIZE,
+          alive: true,
+          lives: 3,
+          invincible: false,
         };
-        Object.values(clients).forEach((c) => {
-          if (c.ws.readyState === WebSocket.OPEN)
-            c.ws.send(JSON.stringify(chatMessage));
-        });
-      }
+        broadcastGameState();
+        break;
+
+      case "startGame":
+        forceStartGame();
+        break;
+
+      case "move":
+        movePlayer(clients[id]?.playerId, data.direction);
+        break;
+
+      case "bomb":
+        placeBomb(clients[id]?.playerId);
+        break;
+
+      case "chat":
+        const sender = gameState.players[clients[id]?.playerId];
+        if (sender) {
+          const chatMsg = {
+            type: "chatMessage",
+            data: { nickname: sender.nickname, text: data.text }
+          };
+          Object.values(clients).forEach(c => {
+            if (c.ws.readyState === WebSocket.OPEN) {
+              c.ws.send(JSON.stringify(chatMsg));
+            }
+          });
+        }
+        break;
+
+      default:
+        break;
     }
   });
+
   ws.on("close", () => {
-    const { playerId } = clients[connectionId] || {};
+    clearInterval(hbInterval);
+    const { playerId } = clients[id] || {};
     if (playerId) {
       delete gameState.players[playerId];
       gameState.playerCount--;
     }
-    delete clients[connectionId];
+    delete clients[id];
+    console.log(`Connection closed: ${id}, Player ID: ${playerId}`);
+    console.log(`Active players: ${Object.keys(gameState.players).length}`);
+    if (gameState.playerCount === 0) {
+    initializeGame();
+    console.log("All players left: game fully reset");
+  }
     broadcastGameState();
+  });
+
+  ws.on("error", (err) => {
+    clearInterval(hbInterval);
+    console.error(`WS error on conn ${id}:`, err);
+    ws.close(1011, "Internal error");
   });
 });
 

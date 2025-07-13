@@ -1,4 +1,5 @@
 import { createElement } from "../src/main.js";
+import { socket } from "../client.js";
 
 export default function renderLobbyScreen(gameState, sendToServer) {
   const state = gameState.getState();
@@ -8,10 +9,10 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   const playersList =
     lobbyPlayers.length > 0
       ? lobbyPlayers.map((player) =>
-        createElement("li", {
-          children: [player.nickname || "Unnamed Player"],
-        })
-      )
+          createElement("li", {
+            children: [player.nickname || "Unnamed Player"],
+          })
+        )
       : [createElement("li", { children: ["Waiting for players..."] })];
 
   const chatMessages = (state.chatMessages || []).map((msg) =>
@@ -26,6 +27,18 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   let lobbyContent;
 
   const sharedUI = [
+    createElement("a", {
+      attrs: { id: "quit-btn" },
+      children: ["Quit"],
+      events: {
+        click: () => {
+          if (socket) {
+            socket.close();
+          }
+          window.location.hash = "#/";
+        },
+      },
+    }),
     createElement("h3", { children: ["Players"] }),
     createElement("ul", { children: playersList }),
     createElement("h3", {
@@ -72,7 +85,6 @@ export default function renderLobbyScreen(gameState, sendToServer) {
           })
         ]
       }),
-      ,
       ...sharedUI,
     ];
   } else {
