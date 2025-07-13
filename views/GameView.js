@@ -1,5 +1,6 @@
 import { createElement } from "../src/main.js";
 
+// The keyboard handling functions at the top of the file do not need to change.
 const handleKeyDown = (e, sendToServer) => {
   let direction = null;
   switch (e.key) {
@@ -56,6 +57,7 @@ export default function renderGameScreen(gameState, sendToServer) {
 
   addPlayerControls(sendToServer);
 
+  // The rendering logic for map, bombs, explosions, players is all correct.
   const mapChildren = maze.flatMap((row) =>
     row.map((cellType) => {
       let className = "cell";
@@ -87,7 +89,6 @@ export default function renderGameScreen(gameState, sendToServer) {
         },
       });
     }) || [];
-
   const playerChildren = Object.values(state.players)
     .map((p) => {
       if (!p.alive) return null;
@@ -97,14 +98,11 @@ export default function renderGameScreen(gameState, sendToServer) {
         attrs: {
           class: playerClass,
           id: `player-${p.playerId}`,
-          // --- THIS IS THE FIX ---
-          // Set the initial position directly when the element is created.
           style: `transform: translate(${p.x}px, ${p.y}px);`,
         },
       });
     })
     .filter(Boolean);
-
   const playerList = Object.values(state.players).map((p) => {
     const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
     return createElement("li", {
@@ -114,7 +112,6 @@ export default function renderGameScreen(gameState, sendToServer) {
       },
     });
   });
-
   const chatMessages = (state.chatMessages || []).map((msg) =>
     createElement("p", {
       children: [
@@ -178,6 +175,17 @@ export default function renderGameScreen(gameState, sendToServer) {
               }),
             ],
           }),
+        ],
+      }),
+      // --- ADD THIS DEBUG VIEW ---
+      createElement("div", {
+        attrs: {
+          style:
+            "margin-top: 20px; background: #222; padding: 10px; font-family: monospace; white-space: pre;",
+        },
+        children: [
+          createElement("h4", { children: ["Live Animation State"] }),
+          createElement("div", { attrs: { id: "live-debug-output" } }),
         ],
       }),
     ],
