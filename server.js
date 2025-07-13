@@ -146,10 +146,10 @@ function checkWinCondition() {
     gameState.gameOver = true;
     gameState.winner = alive[0] || null;
     broadcastGameState();
-    setTimeout(() => {
-      initializeGame();
-      broadcastGameState();
-    }, 5000);
+    // setTimeout(() => {
+    //   initializeGame();
+    //   broadcastGameState();
+    // }, 5000);
   }
 }
 function explodeBomb(bomb) {

@@ -1,4 +1,5 @@
 import { createElement } from "../src/main.js";
+import {connectWebSocket, socket} from "../client.js";
 
 let nickname = ''
 function handleInput(gameState, sendToServer) {
@@ -14,6 +15,10 @@ function handleInput(gameState, sendToServer) {
 }
 
 export default function renderJoinScreen(gameState, sendToServer) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    connectWebSocket();
+    console.log("[JoinView.js] WebSocket connection established.");
+  }
   console.log("[JoinView.js] Rendering view.");
   return createElement("div", {
     attrs: { class: "screen join-screen container" },

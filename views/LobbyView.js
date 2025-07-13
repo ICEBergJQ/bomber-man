@@ -27,18 +27,33 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   let lobbyContent;
 
   const sharedUI = [
-    createElement("a", {
-      attrs: { id: "quit-btn" },
-      children: ["Quit"],
-      events: {
-        click: () => {
-          if (socket) {
-            socket.close();
-          }
-          window.location.hash = "#/";
+     createElement("button", {
+        attrs: { id: "quit-btn" },
+        children: ["Quit"],
+        events: {
+          click: () => {
+            console.log(123);
+
+            if (socket) {
+              socket.close();
+            }
+            gameState.setState({
+              players: {},
+              bombs: [],
+              explosions: [],
+              gameOver: false,
+              winner: null,
+              gameStarted: false,
+              maze: null,
+              currentScreen: "join",
+              isPlayer1: false,
+              nickname: "",
+              chatMessages: [],
+            });
+            window.location.hash = "#/";
+          },
         },
-      },
-    }),
+      }),
     createElement("h3", { children: ["Players"] }),
     createElement("ul", { children: playersList }),
     createElement("h3", {

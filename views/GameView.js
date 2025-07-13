@@ -93,10 +93,23 @@ export default function renderGameScreen(gameState, sendToServer) {
         events: {
           click: () => {
             console.log(123);
-            
+
             if (socket) {
               socket.close();
             }
+            gameState.setState({
+              players: {},
+              bombs: [],
+              explosions: [],
+              gameOver: false,
+              winner: null,
+              gameStarted: false,
+              maze: null,
+              currentScreen: "join",
+              isPlayer1: false,
+              nickname: "",
+              chatMessages: [],
+            });
             window.location.hash = "#/";
           },
         },
