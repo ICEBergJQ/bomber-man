@@ -61,6 +61,7 @@ function initializeGame() {
     players: {},
     bombs: [],
     explosions: [],
+    powerups: [],
     maze: generateMaze(13, 23),
     gameStarted: false,
     gameOver: false,
@@ -69,6 +70,7 @@ function initializeGame() {
   };
 }
 function broadcastGameState() {
+  checkPowerupCollection()
   const msg = JSON.stringify({ type: "gameState", data: gameState });
   Object.values(clients).forEach((c) => {
     if (c.ws.readyState === WebSocket.OPEN) c.ws.send(msg);
@@ -165,9 +167,21 @@ function explodeBomb(bomb) {
       const nr = row + dr * i,
         nc = col + dc * i;
       if (!gameState.maze[nr]?.[nc] || gameState.maze[nr][nc] === "#") break;
+
       explosion.push({ row: nr, col: nc });
+//poweruppp
       if (gameState.maze[nr][nc] === "*") {
         gameState.maze[nr][nc] = " ";
+
+        if (Math.random() < 0.25) {
+          gameState.powerups.push({
+            row: nr,
+            col: nc,
+            type: "extraLife",
+            x: nc * CELL_SIZE,  
+            y: nr * CELL_SIZE   
+          });
+        }
         break;
       }
     }
@@ -182,6 +196,31 @@ function explodeBomb(bomb) {
   }, 500);
   broadcastGameState();
 }
+
+function checkPowerupCollection() {
+  Object.values(gameState.players).forEach((p) => {
+    if (!p.alive) return;
+
+    // Check if player is on a powerup
+    const powerupIndex = gameState.powerups.findIndex(
+      (pu) => pu.row === p.row && pu.col === p.col
+    );
+
+    if (powerupIndex !== -1) {
+      const powerup = gameState.powerups[powerupIndex];
+
+      if (powerup.type === "extraLife") {
+        p.lives++; // Give the player an extra life
+        console.log(`${p.nickname} collected an extra life!`);
+      }
+
+      // Remove the collected powerup
+      gameState.powerups.splice(powerupIndex, 1);
+      broadcastGameState();
+    }
+  });
+}
+
 function placeBomb(playerId) {
   const p = gameState.players[playerId];
   if (!p || !p.alive || gameState.gameOver) return;
@@ -321,9 +360,9 @@ wss.on("connection", (ws) => {
     console.log(`Connection closed: ${id}, Player ID: ${playerId}`);
     console.log(`Active players: ${Object.keys(gameState.players).length}`);
     if (gameState.playerCount === 0) {
-    initializeGame();
-    console.log("All players left: game fully reset");
-  }
+      initializeGame();
+      console.log("All players left: game fully reset");
+    }
     broadcastGameState();
   });
 
