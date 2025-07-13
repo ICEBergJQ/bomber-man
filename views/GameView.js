@@ -16,7 +16,28 @@ export default function renderGameScreen(gameState, sendToServer) {
   }
 
   // No need to call addPlayerControls() anymore
+  const powerupChildren = (state.powerups || []).map((powerup) => {
+    const x = powerup.col * CELL_SIZE;
+    const y = powerup.row * CELL_SIZE;
 
+    return createElement("div", {
+      attrs: {
+        class: "powerup",
+        style: `
+        position: absolute;
+        left: ${x}px;
+        top: ${y}px;
+        width: ${CELL_SIZE}px;
+        height: ${CELL_SIZE}px;
+        background-image: url('/assets/img/life.png');
+        background-size: 80%;
+        background-repeat: no-repeat;
+        background-position: center;
+        z-index: 2;
+      `
+      }
+    });
+  });
   const mapChildren = maze.flatMap((row) =>
     row.map((cellType) => {
       let className = "cell";
@@ -127,6 +148,7 @@ export default function renderGameScreen(gameState, sendToServer) {
               }),
               ...explosionChildren,
               ...bombChildren,
+              ...powerupChildren,
               ...playerChildren,
             ],
           }),
