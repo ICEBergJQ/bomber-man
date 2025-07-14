@@ -46,7 +46,7 @@ export function connectWebSocket() {
         chatMessages: [],
         currentScreen: "gameFull",
       });
-      window.location.reload();
+      // window.location.reload();
     }
   };
   socket.onmessage = (event) => {

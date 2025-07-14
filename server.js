@@ -46,11 +46,17 @@ const MAX_PLAYERS = 4;
 const HEARTBEAT_INTERVAL = 30000;
 
 const CELL_SIZE = 30;
+const IDs = [
+  { id: 1, taken: false },
+  { id: 2, taken: false },
+  { id: 3, taken: false },
+  { id: 4, taken: false },
+];
 const startingPositions = [
-  { row: 1, col: 1, taken: false },
-  { row: 1, col: 21, taken: false },
-  { row: 11, col: 1, taken: false },
-  { row: 11, col: 21, taken: false },
+  { row: 1, col: 1 },
+  { row: 1, col: 21 },
+  { row: 11, col: 1 },
+  { row: 11, col: 21 },
 ];
 let gameState = {};
 let connectionIdCounter = 0;
@@ -70,7 +76,7 @@ function initializeGame() {
   };
 }
 function broadcastGameState() {
-  checkPowerupCollection()
+  checkPowerupCollection();
   const msg = JSON.stringify({ type: "gameState", data: gameState });
   Object.values(clients).forEach((c) => {
     if (c.ws.readyState === WebSocket.OPEN) c.ws.send(msg);
@@ -169,7 +175,7 @@ function explodeBomb(bomb) {
       if (!gameState.maze[nr]?.[nc] || gameState.maze[nr][nc] === "#") break;
 
       explosion.push({ row: nr, col: nc });
-//poweruppp
+      //poweruppp
       if (gameState.maze[nr][nc] === "*") {
         gameState.maze[nr][nc] = " ";
 
@@ -178,8 +184,8 @@ function explodeBomb(bomb) {
             row: nr,
             col: nc,
             type: "extraLife",
-            x: nc * CELL_SIZE,  
-            y: nr * CELL_SIZE   
+            x: nc * CELL_SIZE,
+            y: nr * CELL_SIZE,
           });
         }
         break;
@@ -257,26 +263,19 @@ function forceStartGame() {
   broadcastGameState();
 }
 
-function assignStartingPosition(playerId) {
-  // Find first available position
-  const availablePos = startingPositions.find(pos => !pos.taken);
-  
-  if (!availablePos) {
-    return null; // No positions available
+function assignID() {
+  const available = IDs.find((id) => !id.taken);
+  if (!available) {
+    return null; // No IDs left
   }
-  
-  // Mark as taken
-  availablePos.taken = true;
-  availablePos.playerId = playerId;
-  
-  return { row: availablePos.row, col: availablePos.col };
+  available.taken = true;
+  return available.id;
 }
 
-function freePosition(playerId) {
-  const pos = startingPositions.find(pos => pos.playerId === playerId);
-  if (pos) {
-    pos.taken = false;
-    pos.playerId = null;
+function freeID(playerId) {
+  const found = IDs.find((id) => id.id === playerId);
+  if (found) {
+    found.taken = false;
   }
 }
 
@@ -288,10 +287,12 @@ function heartbeat() {
 
 wss.on("connection", (ws) => {
   // Reject if game is already full or started
-  const activePlayers = Object.values(clients).filter(c => c.playerId).length;
+  const activePlayers = Object.values(clients).filter((c) => c.playerId).length;
   if (activePlayers >= MAX_PLAYERS || gameState.gameStarted) {
     ws.close(1000, "Game is full or has already started");
-    console.log(`Connection rejected: Game is full (${activePlayers}/${MAX_PLAYERS}) or has already started`);
+    console.log(
+      `Connection rejected: Game is full (${activePlayers}/${MAX_PLAYERS}) or has already started`
+    );
     return;
   }
 
@@ -301,7 +302,7 @@ wss.on("connection", (ws) => {
   const id = ++connectionIdCounter;
   clients[id] = { ws, playerId: null };
   broadcastGameState();
-  
+
   const hbInterval = setInterval(() => {
     if (!ws.isAlive) {
       ws.terminate();
@@ -310,7 +311,7 @@ wss.on("connection", (ws) => {
     ws.isAlive = false;
     ws.ping();
   }, HEARTBEAT_INTERVAL);
-  
+
   ws.on("message", (msg) => {
     let data;
     try {
@@ -321,16 +322,22 @@ wss.on("connection", (ws) => {
     switch (data.type) {
       case "registerPlayer":
         if (!data.nickname) return;
-        if (clients[id].playerId != null || gameState.playerCount >= MAX_PLAYERS) return;
+        if (
+          clients[id].playerId != null ||
+          gameState.playerCount >= MAX_PLAYERS
+        )
+          return;
         gameState.playerCount++;
-        const playerId = id;
-        clients[id].playerId = id;
-        const pos = assignStartingPosition(clients[id].playerId);
-        if (!pos) {
+        const playerId = assignID();
+        if (!playerId) {
           ws.close(1000, "No starting positions available");
-          console.log(`Connection rejected: No starting positions available for Player ID: ${clients[id].playerId}`);
+          console.log(
+            `Connection rejected: No IDS available`
+          );
           return;
         }
+        clients[id].playerId = playerId;
+        const pos = startingPositions[playerId - 1];
         gameState.players[playerId] = {
           playerId,
           nickname: data.nickname,
@@ -362,9 +369,9 @@ wss.on("connection", (ws) => {
         if (sender) {
           const chatMsg = {
             type: "chatMessage",
-            data: { nickname: sender.nickname, text: data.text }
+            data: { nickname: sender.nickname, text: data.text },
           };
-          Object.values(clients).forEach(c => {
+          Object.values(clients).forEach((c) => {
             if (c.ws.readyState === WebSocket.OPEN) {
               c.ws.send(JSON.stringify(chatMsg));
             }
@@ -381,7 +388,7 @@ wss.on("connection", (ws) => {
     clearInterval(hbInterval);
     const { playerId } = clients[id] || {};
     if (playerId) {
-      freePosition(playerId);
+      freeID(playerId);
       delete gameState.players[playerId];
       gameState.playerCount--;
     }
