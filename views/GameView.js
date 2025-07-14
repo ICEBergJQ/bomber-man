@@ -34,8 +34,8 @@ export default function renderGameScreen(gameState, sendToServer) {
         background-repeat: no-repeat;
         background-position: center;
         z-index: 2;
-      `
-      }
+      `,
+      },
     });
   });
   const mapChildren = maze.flatMap((row) =>
@@ -147,10 +147,23 @@ export default function renderGameScreen(gameState, sendToServer) {
                 attrs: { class: "game-board" },
                 children: mapChildren,
               }),
-              ...explosionChildren,
-              ...bombChildren,
-              ...powerupChildren,
-              ...playerChildren,
+              // FIX: Wrap dynamic elements in their own stable containers
+              createElement("div", {
+                attrs: { class: "explosions-container" },
+                children: explosionChildren,
+              }),
+              createElement("div", {
+                attrs: { class: "bombs-container" },
+                children: bombChildren,
+              }),
+              createElement("div", {
+                attrs: { class: "powerups-container" },
+                children: powerupChildren,
+              }),
+              createElement("div", {
+                attrs: { class: "players-container" },
+                children: playerChildren,
+              }),
             ],
           }),
           createElement("div", {
