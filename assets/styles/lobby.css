@@ -1,37 +1,155 @@
+.lobby-screen {
+  position: relative;
+  min-height: 94vh;
+
+}
+
+.lobby-screen .container h2 {
+  padding: 0 20px;
+  border-radius: 20px;
+  background-color: var(--col1);
+  position: relative;
+}
+
+.lobby-screen .container h2::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  bottom: -5px;
+  left: 0;
+  background-color: var(--col1);
+  margin-top: 2px;
+}
+
+
 .lobby-screen header {
   display: flex;
   flex-direction: column;
-  align-items: center; 
+  align-items: center;
 }
 
+.player-card {
+  height: 105px;
+  width: 75px;
+  text-align: center;
+  border: 2px solid #fff;
+  outline: 2px solid var(--col1);
+  position: absolute;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px var(--col2);
+  background-color: var(--col1);
+  overflow: hidden;
+}
+
+.player-card::after {
+  content: "";
+  width: 40px;
+  height: 40px;
+  background: url("../img/player/front-frame1.png") center / cover no-repeat;
+  border-radius: 50%;
+  left: 50%;
+  top: 10px;
+  position: absolute;
+  border: 2px solid #fff;
+  transform: translateX(-50%);
+}
+
+.player-card:nth-of-type(2) {
+  left: 20px;
+  top: 20px;
+}
+
+.player-card:nth-of-type(3) {
+  right: 20px;
+  top: 20px;
+}
+
+.player-card:nth-of-type(4) {
+  left: 20px;
+  bottom: 20px;
+}
+
+.player-card:nth-of-type(5) {
+  right: 20px;
+  bottom: 20px;
+}
+.player-card span {
+  display: block;
+  text-transform: capitalize;
+  margin-top: 60px;
+}
+
+.chat-container {
+  display: flex;
+  justify-content: center;
+}
+
+.chat-wrapper {
+  padding: 5px;
+  border-radius: 15px 15px 0 0;
+  border: 10px solid #fff;
+}
 
 .chat-messages {
-  height: 120px;
-  overflow-y: auto;
-  background: #111;
-  border: 1px solid #444;
-  padding: 8px;
-  margin-bottom: 8px;
-  border-radius: 3px;
+  width: 250px;
+  height: 60vh;
+  border-radius: 15px 15px 0 0;
+  overflow-y: scroll;
+  padding: 10px 5px;
+  background-color: var(--col111);
 }
 
-.chat-messages p {
-  margin: 0 0 5px 0;
-  word-wrap: break-word;
-  font-size: 0.9em;
+.chat-messages span {
+  display: block;
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 0 10px 10px;
+  word-wrap: anywhere;
+  margin: 8px 0;
+  box-shadow: 0 0 5px var(--col11);
+  color: var(--col1);
+  background-color: #fff;
+    font-size: 14px;
+
 }
 
-.chat-messages p strong {
-  font-weight: bold;
-  color: #00ff00;
+.chat-messages strong {
+    font-size: 16px;
+
+  display: block;
+  text-transform: capitalize;
+  color: var(--col11);
 }
+
+
 
 #chat-input {
   width: 100%;
-  box-sizing: border-box;
-  background: #333;
-  border: 1px solid #555;
+  font-size: 1rem;
+  width: calc(100% - 8px);
+  padding: 0;
+  outline: none;
+  text-align: center;
+  padding: 8px 4px;
+  margin: 0;
+
+  border: none;
   color: white;
-  padding: 8px;
-  border-radius: 3px;
+  border-radius: 0 0 15px 15px;
+  background-color: var(--col11);
+}
+
+@media screen and (max-width:600px) {
+  .player-card:nth-of-type(2) {
+    top: auto;
+    left: 125px !important;
+    bottom: 20px;
+  }
+
+  .player-card:nth-of-type(3) {
+    top: auto;
+    right: 125px !important;
+    bottom: 20px;
+  }
 }
