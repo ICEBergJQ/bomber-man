@@ -1,6 +1,7 @@
 /* join-screen */
 body {
-  background-image: url("../img/bg_pattern.jpg");
+  /* background-image: url("../img/bg_pattern.jpg"); */
+  background:#102020 ;
 }
 
 h1 {
