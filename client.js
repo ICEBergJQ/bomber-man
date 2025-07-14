@@ -78,6 +78,7 @@ export function renderApp(newVDomTree) {
 const routes = getRoutes(gameState);
 createRouter(routes);
 const screens = {
+  //join: renderLobbyScreen,
   join: renderJoinScreen,
   lobby: renderLobbyScreen,
   game: renderGameScreen,
@@ -194,8 +195,10 @@ function gameLoop(currentTime) {
         localPlayer.targetY = serverPlayer.y;
       }
 
+      const playerState = state.players[serverPlayer.playerId];
       if (localPlayer.isMoving) {
-        localPlayer.moveProgress += delta / MOVEMENT_SPEED;
+        const speedMultiplier = playerState?.speed || 1;
+        localPlayer.moveProgress += (delta / MOVEMENT_SPEED) * speedMultiplier;
         localPlayer.x =
           localPlayer.startX +
           (localPlayer.targetX - localPlayer.startX) * localPlayer.moveProgress;
@@ -210,7 +213,10 @@ function gameLoop(currentTime) {
           localPlayer.y = localPlayer.targetY;
         }
       }
+      const hasSpeedBoost = playerState?.speed > 1;
+      playerElement.classList.toggle('speed-boosted', hasSpeedBoost);
       playerElement.style.transform = `translate(${localPlayer.x}px, ${localPlayer.y}px)`;
+
     });
   }
 
