@@ -43,7 +43,7 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   const chatMessages = (state.chatMessages || []).map((msg) =>
     createElement("span", {
       children: [
-        createElement("strong", { children: [`${msg.nickname}: `] }),
+        createElement("strong", { children: [`${msg.nickname}`] }),
         msg.text,
       ],
     })

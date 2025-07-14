@@ -78,6 +78,7 @@
   display: block;
   text-transform: capitalize;
   margin-top: 60px;
+  font-size: 13px;
 }
 
 .chat-container {
@@ -86,9 +87,8 @@
 }
 
 .chat-wrapper {
-  padding: 5px;
-  border-radius: 15px 15px 0 0;
-  border: 10px solid #fff;
+  border-radius: 15px ;
+  box-shadow: 0 0 5px 2px var(--col1);
 }
 
 .chat-messages {
