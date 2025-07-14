@@ -21,9 +21,11 @@ export default function renderGameScreen(gameState, sendToServer) {
     const y = powerup.row * CELL_SIZE;
 
     // Determine which image to use based on powerup type
-    const imageSrc = powerup.type === 'speedBoost'
-      ? '/assets/img/extraSpeed.png'
-      : '/assets/img/life.png';
+  const imageSrc = {
+    'speedBoost': '/assets/img/extraSpeed.png',
+    'extraLife': '/assets/img/life.png',
+    'shield': '/assets/img/sheld.jpg'  // Add this line for the shield
+  }[powerup.type];
 
     return createElement("div", {
       attrs: {
@@ -80,7 +82,7 @@ export default function renderGameScreen(gameState, sendToServer) {
   const playerChildren = Object.values(state.players)
     .map((p) => {
       if (!p.alive) return null;
-      let playerClass = `player player${p.playerId}`;
+      let playerClass = `player player${p.playerId} ${p.invincible ? 'invincible' : ''}`;
       if (p.invincible) playerClass += " invincible";
       return createElement("div", {
         attrs: {

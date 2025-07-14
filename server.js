@@ -120,7 +120,7 @@ function checkPlayerDeaths() {
   Object.values(gameState.players).forEach((p) => {
     if (
       p.alive &&
-      !p.invincible &&
+      !p.invincible && !p.hasShield &&
       gameState.explosions.some((e) => e.row === p.row && e.col === p.col)
     ) {
       p.lives--;
@@ -155,30 +155,36 @@ function checkWinCondition() {
   }
 }
 function explodeBomb(bomb) {
-  const powerupType = Math.random() < 0.5 ? 'extraLife' : 'speedBoost';
   const { row, col } = bomb;
   const explosion = [{ row, col }];
+
+  // Directions: up, down, left, right
   [
-    [-1, 0], [1, 0], [0, -1], [0, 1] // Directions
+    [-1, 0], [1, 0], [0, -1], [0, 1]
   ].forEach(([dr, dc]) => {
-    for (let i = 1; i < 2; i++) {
-      const nr = row + dr * i,
-        nc = col + dc * i;
+    for (let i = 1; i <= 2; i++) {
+      const nr = row + dr * i;
+      const nc = col + dc * i;
+
+      // Stop if we hit a wall or maze boundary
       if (!gameState.maze[nr]?.[nc] || gameState.maze[nr][nc] === "#") break;
 
       explosion.push({ row: nr, col: nc });
 
+      // If we hit a destructible block
       if (gameState.maze[nr][nc] === "*") {
-        gameState.maze[nr][nc] = " ";
+        gameState.maze[nr][nc] = " "; // Destroy the block
 
+        // 25% chance to spawn a power-up
         if (Math.random() < 0.25) {
-          // Randomly choose between extraLife and speedBoost
-          const type = Math.random() < 0.5 ? 'extraLife' : 'speedBoost';
-          
+          // Randomly choose between all three power-up types
+          const powerups = ['extraLife', 'speedBoost', 'shield'];
+          const type = powerups[Math.floor(Math.random() * powerups.length)];
+
           gameState.powerups.push({
             row: nr,
             col: nc,
-            type: powerupType,
+            type: type,
             x: nc * CELL_SIZE,
             y: nr * CELL_SIZE
           });
@@ -187,14 +193,20 @@ function explodeBomb(bomb) {
       }
     }
   });
-  explosion.forEach((e) =>
-    gameState.explosions.push({ ...e, createdAt: Date.now() })
-  );
+
+  // Create explosions
+  explosion.forEach((e) => {
+    gameState.explosions.push({ ...e, createdAt: Date.now() });
+  });
+
   checkPlayerDeaths();
+
+  // Clear explosions after 500ms
   setTimeout(() => {
     gameState.explosions = [];
     broadcastGameState();
   }, 500);
+
   broadcastGameState();
 }
 
@@ -209,21 +221,31 @@ function checkPowerupCollection() {
     if (powerupIndex === -1) return;
 
     const powerup = gameState.powerups[powerupIndex];
-    
+
     if (powerup.type === 'extraLife') {
       p.lives++;
-    } 
-    else if (powerup.type === 'speedBoost') {
+    } else if (powerup.type === 'speedBoost') {
       // Initialize speed if not set
       p.speed = p.speed || 1;
-      
+
 
       p.speed *= 2;
-      
+
       setTimeout(() => {
         if (gameState.players[p.playerId]) {
           gameState.players[p.playerId].speed /= 2;
           console.log(` boost TSALAAA`);
+          broadcastGameState();
+        }
+      }, 20000);
+    } else if (powerup.type === 'shield') {
+      p.invincible = true;
+      console.log(`${p.nickname} shieldEEEEEEEEEEEEEEEEEEED!`);
+
+      setTimeout(() => {
+        if (gameState.players[p.playerId]) {
+          p.invincible = false;
+          console.log(`${p.nickname}'s shield expired`);
           broadcastGameState();
         }
       }, 20000);
@@ -328,7 +350,8 @@ wss.on("connection", (ws) => {
           y: pos.row * CELL_SIZE,
           alive: true,
           lives: 3,
-          speed: 1, 
+          hasShield: false,
+          speed: 1,
           invincible: false,
         };
         broadcastGameState();
