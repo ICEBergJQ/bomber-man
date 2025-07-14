@@ -161,8 +161,9 @@ function explodeBomb(bomb) {
   [
     [-1, 0], [1, 0], [0, -1], [0, 1] // Directions
   ].forEach(([dr, dc]) => {
-    for (let i = 1; i <= 2; i++) {
-      const nr = row + dr * i, nc = col + dc * i;
+    for (let i = 1; i < 2; i++) {
+      const nr = row + dr * i,
+        nc = col + dc * i;
       if (!gameState.maze[nr]?.[nc] || gameState.maze[nr][nc] === "#") break;
 
       explosion.push({ row: nr, col: nc });
@@ -236,6 +237,9 @@ function checkPowerupCollection() {
 function placeBomb(playerId) {
   const p = gameState.players[playerId];
   if (!p || !p.alive || gameState.gameOver) return;
+  if (gameState.bombs.some((bomb) => bomb.playerId === playerId)) {
+    return;
+  }
   if (gameState.bombs.some((b) => b.row === p.row && b.col === p.col)) return;
   const bomb = { row: p.row, col: p.col, playerId, placedAt: Date.now() };
   gameState.bombs.push(bomb);
