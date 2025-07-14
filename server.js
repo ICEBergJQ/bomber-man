@@ -47,10 +47,10 @@ const HEARTBEAT_INTERVAL = 30000;
 
 const CELL_SIZE = 30;
 const startingPositions = [
-  { row: 1, col: 1 },
-  { row: 1, col: 21 },
-  { row: 11, col: 1 },
-  { row: 11, col: 21 },
+  { row: 1, col: 1, taken: false },
+  { row: 1, col: 21, taken: false },
+  { row: 11, col: 1, taken: false },
+  { row: 11, col: 21, taken: false },
 ];
 let gameState = {};
 let connectionIdCounter = 0;
@@ -257,6 +257,29 @@ function forceStartGame() {
   broadcastGameState();
 }
 
+function assignStartingPosition(playerId) {
+  // Find first available position
+  const availablePos = startingPositions.find(pos => !pos.taken);
+  
+  if (!availablePos) {
+    return null; // No positions available
+  }
+  
+  // Mark as taken
+  availablePos.taken = true;
+  availablePos.playerId = playerId;
+  
+  return { row: availablePos.row, col: availablePos.col };
+}
+
+function freePosition(playerId) {
+  const pos = startingPositions.find(pos => pos.playerId === playerId);
+  if (pos) {
+    pos.taken = false;
+    pos.playerId = null;
+  }
+}
+
 initializeGame();
 
 function heartbeat() {
@@ -278,7 +301,7 @@ wss.on("connection", (ws) => {
   const id = ++connectionIdCounter;
   clients[id] = { ws, playerId: null };
   broadcastGameState();
-
+  
   const hbInterval = setInterval(() => {
     if (!ws.isAlive) {
       ws.terminate();
@@ -287,7 +310,7 @@ wss.on("connection", (ws) => {
     ws.isAlive = false;
     ws.ping();
   }, HEARTBEAT_INTERVAL);
-
+  
   ws.on("message", (msg) => {
     let data;
     try {
@@ -300,9 +323,14 @@ wss.on("connection", (ws) => {
         if (!data.nickname) return;
         if (clients[id].playerId != null || gameState.playerCount >= MAX_PLAYERS) return;
         gameState.playerCount++;
-        const playerId = gameState.playerCount;
-        clients[id].playerId = playerId;
-        const pos = startingPositions[playerId - 1];
+        const playerId = id;
+        clients[id].playerId = id;
+        const pos = assignStartingPosition(clients[id].playerId);
+        if (!pos) {
+          ws.close(1000, "No starting positions available");
+          console.log(`Connection rejected: No starting positions available for Player ID: ${clients[id].playerId}`);
+          return;
+        }
         gameState.players[playerId] = {
           playerId,
           nickname: data.nickname,
@@ -353,6 +381,7 @@ wss.on("connection", (ws) => {
     clearInterval(hbInterval);
     const { playerId } = clients[id] || {};
     if (playerId) {
+      freePosition(playerId);
       delete gameState.players[playerId];
       gameState.playerCount--;
     }

@@ -3,7 +3,7 @@ import renderJoinScreen from "./views/JoinView.js";
 import renderLobbyScreen from "./views/LobbyView.js";
 import renderGameScreen from "./views/GameView.js";
 import NotfoundView from "./views/NotfoundView.js";
-import getRoutes from "./router/index.js"
+import getRoutes from "./router/index.js";
 import renderGameErr from "./views/gameFullView.js";
 
 // --- WebSocket & State Management ---
@@ -29,14 +29,26 @@ export function connectWebSocket() {
   socket = new WebSocket(`ws://${window.location.hostname}:8080`);
   socket.onopen = () => console.log("WebSocket connection established.");
   socket.onclose = (e) => {
-    console.log("WebSocket connection closed"+ e.reason);
-    if (e.reason === "Game is full or has already started") {
+    console.log("WebSocket connection closed" + e.reason);
+    if (
+      e.reason === "Game is full or has already started"
+    ) {
       gameState.setState({
+        players: {},
+        bombs: [],
+        explosions: [],
+        gameOver: false,
+        winner: null,
+        gameStarted: false,
+        maze: null,
+        isPlayer1: false,
+        nickname: "",
+        chatMessages: [],
         currentScreen: "gameFull",
       });
-      window.location.hash = "#/gameFull";
+      window.location.reload();
     }
-  }
+  };
   socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);
     if (msg.type === "gameState") {
@@ -70,7 +82,7 @@ const screens = {
   lobby: renderLobbyScreen,
   game: renderGameScreen,
   404: NotfoundView,
-  gameFull : renderGameErr,
+  gameFull: renderGameErr,
 };
 gameState.subscribe(() => {
   const state = gameState.getState();

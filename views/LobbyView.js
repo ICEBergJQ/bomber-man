@@ -4,7 +4,10 @@ import { socket } from "../client.js";
 export default function renderLobbyScreen(gameState, sendToServer) {
   const state = gameState.getState();
   const lobbyPlayers = state.players ? Object.values(state.players) : [];
-  console.log(state);
+  // console.log(state);
+  if (!socket || state.currentScreen !== "lobby") {
+     window.location.hash = "#/gameFull";
+  }
 
   const playersList =
     lobbyPlayers.length > 0
@@ -32,8 +35,6 @@ export default function renderLobbyScreen(gameState, sendToServer) {
         children: ["Quit"],
         events: {
           click: () => {
-            console.log(123);
-
             if (socket) {
               socket.close();
             }
@@ -51,7 +52,8 @@ export default function renderLobbyScreen(gameState, sendToServer) {
               nickname: "",
               chatMessages: [],
             });
-            window.location.hash = "#/";
+            // window.location.href = "#/";
+            location.reload()
           },
         },
       }),

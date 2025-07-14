@@ -7,6 +7,11 @@ export default function renderGameScreen(gameState, sendToServer) {
   const maze = state.maze;
   const CELL_SIZE = 30;
 
+  if (!state.gameStarted || !socket) {
+     window.location.hash = "#/gameFull";
+     return
+  }
+
   if (!maze) {
     // No need to call removePlayerControls() anymore
     return createElement("div", {
@@ -132,7 +137,8 @@ export default function renderGameScreen(gameState, sendToServer) {
               nickname: "",
               chatMessages: [],
             });
-            window.location.hash = "#/";
+            location.reload()
+            // window.location.href = "#/";
           },
         },
       }),
