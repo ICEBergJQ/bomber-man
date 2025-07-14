@@ -129,7 +129,7 @@ const playerList = Object.values(state.players).map((p) => {
     attrs: { class: "screen game-screen" },
     children: [
       createElement("button", {
-        attrs: { id: "quit-btn" },
+        attrs: { id: "quit-btn", class:'btn' },
         children: ["Quit"],
         events: {
           click: () => {
@@ -156,7 +156,7 @@ const playerList = Object.values(state.players).map((p) => {
           },
         },
       }),
-      createElement("h2", { children: ["Bomberman"] }),
+
       createElement("div", {
         attrs: { class: "game-container" },
         children: [

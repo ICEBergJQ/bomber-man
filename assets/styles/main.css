@@ -1,15 +1,15 @@
 @import url("https://fonts.googleapis.com/css2?family=DynaPuff:wght@400..700&display=swap");
 
 :root {
-  /* --col1: #ee4f71;
+  --col1: #ee4f71;
     --col11: #ce3657;
     --col111: #ce3657ad;
-    --col2: #f67f00; */
+    --col2: #f67f00;
 
-  --col1: #8b2336; /* darker version of #ee4f71 */
-  --col11: #701b2c; /* darker version of #ce3657 */
-  --col111: #701b2c99; /* same dark but with opacity */
-  --col2: #a35700; /* darker version of #f67f00 */
+   /* --col1: #8b2336;
+  --col11: #701b2c;
+  --col111: #701b2c99;
+  --col2: #a35700; */
 }
 
 body {
@@ -29,6 +29,7 @@ button,
 input {
   padding: 5px 10px;
   cursor: pointer;
+  border: none;
 }
 
 label {

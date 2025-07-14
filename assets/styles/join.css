@@ -65,22 +65,4 @@ h1 {
   color: var(--col1);
   font-size: 12px;
   text-transform: capitalize;
-}
-
-.join-screen button {
-  cursor: pointer;
-  margin-top: 15px;
-  font-family: "DynaPuff", system-ui;
-  display: block; 
-  position: relative;
-  font-size: 1.2rem;
-  font-weight: 600;
-  background: linear-gradient(to bottom, #fff, #ffde6a);
-  background-size: 100% 150%;
-  background-position: top;
-  transition: background-position 0.3s;
-}
-
-.join-screen button:hover {
-  background-position: bottom;
-}
+} 

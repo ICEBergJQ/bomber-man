@@ -3,10 +3,7 @@ function renderElement({ tagName, attrs, children, events }) {
 
   if (tagName === 'input') {
     if (attrs.type === 'checkbox' || attrs.type === 'radio') {
-      element.checked = !!attrs.checked;
-    }
-    if ('value' in attrs) {
-      element.value = attrs.value;
+      element.checked = attrs.checked;
     }
   }
 
@@ -20,7 +17,7 @@ function renderElement({ tagName, attrs, children, events }) {
       }
     }
   }
-
+  
   // Bind events
   if (events) {
     for (const [eventName, handler] of Object.entries(events)) {

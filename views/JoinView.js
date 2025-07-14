@@ -4,7 +4,7 @@ import { connectWebSocket, socket } from "../client.js";
 let nickname = ''
 
 function handleInput(gameState, sendToServer) {
-  
+
 
   nickname = nickname.trim()
 
@@ -37,14 +37,15 @@ export default function renderJoinScreen(gameState, sendToServer) {
             attrs: {
               type: "text",
               placeholder: "Enter your nickname",
-              id: "nicknameInput", 
+              id: "nicknameInput",
+              autofocus: true
             },
             events: {
               change: (e) => nickname = e.target.value,
             },
           }),
           createElement("button", {
-            attrs: { class: "btn btn-primary" },
+            attrs: { class: "btn" },
             children: ["Join Game"],
             events: {
               click: () => handleInput(gameState, sendToServer),
