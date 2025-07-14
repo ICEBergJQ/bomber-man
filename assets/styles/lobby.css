@@ -74,10 +74,12 @@
   right: 20px;
   bottom: 20px;
 }
+
 .player-card span {
   display: block;
   text-transform: capitalize;
   margin-top: 60px;
+  font-size: 13px;
 }
 
 .chat-container {
@@ -86,9 +88,8 @@
 }
 
 .chat-wrapper {
-  padding: 5px;
-  border-radius: 15px 15px 0 0;
-  border: 10px solid #fff;
+  border-radius: 15px;
+  box-shadow: 0 0 5px 2px var(--col1);
 }
 
 .chat-messages {
@@ -110,18 +111,34 @@
   box-shadow: 0 0 5px var(--col11);
   color: var(--col1);
   background-color: #fff;
-    font-size: 14px;
-
+  font-size: 14px;
+  animation: msg 0.6s ease-out 1;
 }
 
 .chat-messages strong {
-    font-size: 16px;
-
+  font-size: 16px;
   display: block;
   text-transform: capitalize;
   color: var(--col11);
 }
 
+@keyframes msg {
+  0% {
+    transform: scale(0.90) translate(10px, -5px);
+  }
+
+  25% {
+    transform: scale(1.05);
+  }
+
+  50% {
+    transform: scale(0.95)  translateX(-5px);
+  }
+ 
+  100% {
+    transform: scale(1) translate(0px);
+  }
+}
 
 
 #chat-input {

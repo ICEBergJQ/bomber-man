@@ -43,7 +43,7 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   const chatMessages = (state.chatMessages || []).map((msg) =>
     createElement("span", {
       children: [
-        createElement("strong", { children: [`${msg.nickname}: `] }),
+        createElement("strong", { children: [`${msg.nickname}`] }),
         msg.text,
       ],
     })
@@ -68,7 +68,8 @@ export default function renderLobbyScreen(gameState, sendToServer) {
               attrs: {
                 type: "text",
                 id: "chat-input",
-                placeholder: "Type and press Enter..."
+                placeholder: "Type and press Enter...",
+                autofocus: true
 
               },
               events: {
@@ -89,7 +90,7 @@ export default function renderLobbyScreen(gameState, sendToServer) {
       children: [
         createElement("h2", { children: ["welcome to waiting area"] }),
         createElement("button", {
-          attrs: { class: "btn btn-success" },
+          attrs: { class: "btn-success" },
           children: ["Start Game"],
           events: { click: () => sendToServer({ type: "startGame" }) },
         }),
