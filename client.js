@@ -66,7 +66,8 @@ export function renderApp(newVDomTree) {
 const routes = getRoutes(gameState);
 createRouter(routes);
 const screens = {
-  join: renderJoinScreen,
+  //join: renderLobbyScreen,
+   join: renderJoinScreen,
   lobby: renderLobbyScreen,
   game: renderGameScreen,
   404: NotfoundView,

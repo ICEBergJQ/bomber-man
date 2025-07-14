@@ -1,16 +1,20 @@
 import { createElement } from "../src/main.js";
-import {connectWebSocket, socket} from "../client.js";
+import { connectWebSocket, socket } from "../client.js";
 
 let nickname = ''
+
 function handleInput(gameState, sendToServer) {
+  
+
   nickname = nickname.trim()
-  if (nickname) {
+
+  if (nickname == '' || nickname.length > 10 || nickname.length < 2) {
+    alert("Please enter a nickname between 2 and 10 chars!")
+  } else {
     gameState.setState({ ...gameState.getState(), nickname })
     console.log('[JoinView.js] "Join Game" button clicked.', nickname)
     sendToServer({ type: "registerPlayer", nickname })
     location.hash = "#/lobby"
-  } else {
-    alert("Please enter a nickname!")
   }
 }
 
@@ -23,48 +27,53 @@ export default function renderJoinScreen(gameState, sendToServer) {
   return createElement("div", {
     attrs: { class: "screen join-screen container" },
     children: [
-      // TODO
-      //createElement("h1", { children: ["Welcome to Bomberman!"] }),
-      createElement("p", { children: ["Enter your nickname to join:"] }),
-      createElement("input", {
-        attrs: {
-          type: "text",
-          placeholder: "Enter your nickname",
-          id: "nicknameInput",
-        },
-        events: {
-          change: (e) => nickname = e.target.value,
-        },
+      createElement("h1", { children: ["Welcome to Bomberman!"] }),
+      //createElement("h1", { children: ["-------------!"] }),
+      createElement("div", {
+        attrs: { class: 'wrapper' },
+        children: [
+
+          createElement("input", {
+            attrs: {
+              type: "text",
+              placeholder: "Enter your nickname",
+              id: "nicknameInput", 
+            },
+            events: {
+              change: (e) => nickname = e.target.value,
+            },
+          }),
+          createElement("button", {
+            attrs: { class: "btn btn-primary" },
+            children: ["Join Game"],
+            events: {
+              click: () => handleInput(gameState, sendToServer),
+            },
+          }),
+          // createElement("div", { 
+          //   children: [
+          //     createElement("label", {
+          //       children: [
+          //         "Simulate Host: ",
+          //         createElement("input", {
+          //           attrs: {
+          //             type: "checkbox",
+          //             checked: gameState.getState().isPlayer1,
+          //           },
+          //           events: {
+          //             change: (e) =>
+          //               gameState.setState({
+          //                 ...gameState.getState(),
+          //                 isPlayer1: e.target.checked,
+          //               }),
+          //           },
+          //         }),
+          //       ],
+          //     }),
+          //   ],
+          // }),
+        ]
       }),
-      createElement("button", {
-        attrs: { class: "btn btn-primary" },
-        children: ["Join Game"],
-        events: {
-          click: () => handleInput(gameState, sendToServer),
-        },
-      }),
-      // createElement("div", { 
-      //   children: [
-      //     createElement("label", {
-      //       children: [
-      //         "Simulate Host: ",
-      //         createElement("input", {
-      //           attrs: {
-      //             type: "checkbox",
-      //             checked: gameState.getState().isPlayer1,
-      //           },
-      //           events: {
-      //             change: (e) =>
-      //               gameState.setState({
-      //                 ...gameState.getState(),
-      //                 isPlayer1: e.target.checked,
-      //               }),
-      //           },
-      //         }),
-      //       ],
-      //     }),
-      //   ],
-      // }),
     ],
   });
 }

@@ -1,20 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=DynaPuff:wght@400..700&display=swap');
+
+:root {
+    --col1: #ee4f71;
+    --col11: #ce3657;
+    --col111: #ce3657ad;
+    --col2: #f67f00;
+}
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
     background-color: #1a1a1a;
     color: white;
-  }
-  a {
-      color: #eee;
-      text-decoration: none;
-      margin: 5px;
-  }
-  
-  button, input {
-      padding: 5px 10px;
-      cursor: pointer;
-  }
-  
-  label {
-      cursor: pointer;
-  }
+}
+
+a {
+    color: #eee;
+    text-decoration: none;
+    margin: 5px;
+}
+
+button,
+input {
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+label {
+    cursor: pointer;
+    display: block;
+}
