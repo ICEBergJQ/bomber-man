@@ -155,31 +155,31 @@ function checkWinCondition() {
   }
 }
 function explodeBomb(bomb) {
+  const powerupType = Math.random() < 0.5 ? 'extraLife' : 'speedBoost';
   const { row, col } = bomb;
   const explosion = [{ row, col }];
   [
-    [-1, 0],
-    [1, 0],
-    [0, -1],
-    [0, 1],
+    [-1, 0], [1, 0], [0, -1], [0, 1] // Directions
   ].forEach(([dr, dc]) => {
     for (let i = 1; i <= 2; i++) {
-      const nr = row + dr * i,
-        nc = col + dc * i;
+      const nr = row + dr * i, nc = col + dc * i;
       if (!gameState.maze[nr]?.[nc] || gameState.maze[nr][nc] === "#") break;
 
       explosion.push({ row: nr, col: nc });
-//poweruppp
+
       if (gameState.maze[nr][nc] === "*") {
         gameState.maze[nr][nc] = " ";
 
         if (Math.random() < 0.25) {
+          // Randomly choose between extraLife and speedBoost
+          const type = Math.random() < 0.5 ? 'extraLife' : 'speedBoost';
+          
           gameState.powerups.push({
             row: nr,
             col: nc,
-            type: "extraLife",
-            x: nc * CELL_SIZE,  
-            y: nr * CELL_SIZE   
+            type: powerupType,
+            x: nc * CELL_SIZE,
+            y: nr * CELL_SIZE
           });
         }
         break;
@@ -201,23 +201,35 @@ function checkPowerupCollection() {
   Object.values(gameState.players).forEach((p) => {
     if (!p.alive) return;
 
-    // Check if player is on a powerup
     const powerupIndex = gameState.powerups.findIndex(
-      (pu) => pu.row === p.row && pu.col === p.col
+      pu => pu.row === p.row && pu.col === p.col
     );
 
-    if (powerupIndex !== -1) {
-      const powerup = gameState.powerups[powerupIndex];
+    if (powerupIndex === -1) return;
 
-      if (powerup.type === "extraLife") {
-        p.lives++; // Give the player an extra life
-        console.log(`${p.nickname} collected an extra life!`);
-      }
+    const powerup = gameState.powerups[powerupIndex];
+    
+    if (powerup.type === 'extraLife') {
+      p.lives++;
+    } 
+    else if (powerup.type === 'speedBoost') {
+      // Initialize speed if not set
+      p.speed = p.speed || 1;
+      
 
-      // Remove the collected powerup
-      gameState.powerups.splice(powerupIndex, 1);
-      broadcastGameState();
+      p.speed *= 2;
+      
+      setTimeout(() => {
+        if (gameState.players[p.playerId]) {
+          gameState.players[p.playerId].speed /= 2;
+          console.log(` boost TSALAAA`);
+          broadcastGameState();
+        }
+      }, 20000);
     }
+
+    gameState.powerups.splice(powerupIndex, 1);
+    broadcastGameState();
   });
 }
 
@@ -312,6 +324,7 @@ wss.on("connection", (ws) => {
           y: pos.row * CELL_SIZE,
           alive: true,
           lives: 3,
+          speed: 1, 
           invincible: false,
         };
         broadcastGameState();
