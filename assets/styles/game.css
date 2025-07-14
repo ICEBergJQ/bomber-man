@@ -327,3 +327,23 @@
     transition: transform 0.15s linear;
   }
   
+
+
+  /* SHEEELD */
+  /* Shield Power-up */
+.powerup[data-type="shield"] {
+  filter: drop-shadow(0 0 5px rgba(0, 200, 255, 0.7));
+  animation: 
+    float 2s ease-in-out infinite,
+    pulse 0.8s infinite alternate;
+}
+
+/* Player invincibility (now used for both shield and respawn) */
+.player.invincible {
+  animation: flash 0.2s infinite;
+}
+
+@keyframes flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
