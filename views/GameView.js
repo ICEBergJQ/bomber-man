@@ -20,22 +20,28 @@ export default function renderGameScreen(gameState, sendToServer) {
     const x = powerup.col * CELL_SIZE;
     const y = powerup.row * CELL_SIZE;
 
+    // Determine which image to use based on powerup type
+    const imageSrc = powerup.type === 'speedBoost'
+      ? '/assets/img/extraSpeed.png'
+      : '/assets/img/life.png';
+
     return createElement("div", {
       attrs: {
-        class: "powerup",
+        class: `powerup powerup-${powerup.type}`,
         style: `
         position: absolute;
         left: ${x}px;
         top: ${y}px;
         width: ${CELL_SIZE}px;
         height: ${CELL_SIZE}px;
-        background-image: url('/assets/img/life.png');
+        background-image: url('${imageSrc}');
         background-size: 80%;
         background-repeat: no-repeat;
         background-position: center;
         z-index: 2;
       `,
-      },
+        'data-type': powerup.type
+      }
     });
   });
   const mapChildren = maze.flatMap((row) =>
@@ -86,15 +92,27 @@ export default function renderGameScreen(gameState, sendToServer) {
     })
     .filter(Boolean);
 
-  const playerList = Object.values(state.players).map((p) => {
-    const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
-    return createElement("li", {
-      children: [`${p.nickname}: ${lifeDisplay}`],
-      attrs: {
-        style: p.alive ? "" : "color: #888; text-decoration: line-through;",
-      },
-    });
+  // const playerList = Object.values(state.players).map((p) => {
+  //   const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
+  //   return createElement("li", {
+  //     children: [`${p.nickname}: ${lifeDisplay}`],
+  //     attrs: {
+  //       style: p.alive ? "" : "color: #888; text-decoration: line-through;",
+  //     },
+  //   });
+  // });
+
+const playerList = Object.values(state.players).map((p) => {
+  const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
+  const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
+  
+  return createElement("li", {
+    children: [`${p.nickname}: ${lifeDisplay} ${speedDisplay}`],
+    attrs: {
+      style: p.alive ? "" : "color: #888; text-decoration: line-through;"
+    }
   });
+});
 
   const chatMessages = (state.chatMessages || []).map((msg) =>
     createElement("p", {
