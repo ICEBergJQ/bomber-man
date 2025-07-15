@@ -1,235 +1,236 @@
-
 .game-sidebar {
-    padding: 10px;
-    background: #222;
-    border-radius: 5px;
-    width: 200px;
-  }
-   
-.game-screen {
-    position: relative;
+  margin-bottom: 10px;
 }
+.game-sidebar li{
+  border-radius: 5px;
+  width: 200px;
+  padding: 10px;
+  background-color: #222;
+}
+
 
 .game {
-    display: grid;
-    grid-template-columns: repeat(23, 25px);
-    grid-template-rows: repeat(13, 25px);
-    gap: 1px;
-    margin: 20px auto;
-    width: fit-content;
-    background-color: #333;
-    padding: 10px;
-    border-radius: 5px;
+  display: grid;
+  grid-template-columns: repeat(23, 25px);
+  grid-template-rows: repeat(13, 25px);
+  gap: 1px;
+  margin: 20px auto;
+  width: fit-content;
+  background-color: #333;
+  padding: 10px;
+  border-radius: 5px;
 }
- 
+
 .game-container {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    align-items: flex-start;
-  }
-  
-  .game-board-container {
-    position: relative;
-    width: 690px;
-    height: 390px;
-  } 
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  margin-top: 10px;
+}
+
+.game-board-container {
+  position: relative;
+  width: 690px;
+  height: 390px;
+  visibility: hidden;
+}
 
 .game-board {
-    justify-content: center;
-    flex: 1;
-    display: grid;
-    grid-template-columns: repeat(23, 30px);
-    grid-template-rows: repeat(13, 30px);
-    gap: 1px;
+  justify-content: center;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(23, 30px);
+  grid-template-rows: repeat(13, 30px);
+  gap: 1px;
 }
 
 .game-screen .nickname {
-    position: absolute;
-    right: 35px;
-    top: 0;
-    margin: 0;
-    color: #aaa;
+  position: absolute;
+  right: 35px;
+  top: 0;
+  margin: 0;
+  color: #aaa;
 }
 
 .game-screen .nickname::before {
-    content: "";
-    width: 25px;
-    height: 25px;
-    border-radius: 15px;
-    border: 1px solid #666;
-    position: absolute;
-    right: -30px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: url("../img/user.png") center / cover no-repeat;
+  content: "";
+  width: 25px;
+  height: 25px;
+  border-radius: 15px;
+  border: 1px solid #666;
+  position: absolute;
+  right: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: url("../img/user.png") center / cover no-repeat;
 
 
 }
 
 .cell {
-    width: 30px;
-    height: 30px;
-    box-sizing: border-box;
-    background-size: cover;
+  width: 30px;
+  height: 30px;
+  box-sizing: border-box;
+  background-size: cover;
 }
 
 .wall {
-    background-color: #666;
-    background-image: url("../img/obsidian.jpg");
+  background-color: #666;
+  background-image: url("../img/obsidian.jpg");
 }
 
 .box {
-    background-color: #8b4513;
-    background-image: url("../img/stone.jpg");
+  background-color: #8b4513;
+  background-image: url("../img/stone.jpg");
 }
 
 .empty {
-    background-color: #2a2a2a;
-    background-image: url("../img/dirt.jpg");
+  background-color: #2a2a2a;
+  background-image: url("../img/dirt.jpg");
 }
 
 
 .bomb {
-    background-color: #333;
-    border-radius: 50%;
-    position: relative;
+  background-color: #333;
+  border-radius: 50%;
+  position: relative;
 }
 
 /* --- Bomb and Explosion Styles --- */
 .bomb {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 30px;
-    height: 30px;
-    background-color: #333;
-    border-radius: 50%;
-    box-sizing: border-box;
-    border: 2px solid #555;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-  }
-  
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  background-color: #333;
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: 2px solid #555;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
 .bomb::after {
-    content: "💣";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 16px;
+  content: "💣";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
 }
 
 @keyframes explosion-flash {
-    0% {
-        background-color: #ffff00;
-    }
+  0% {
+    background-color: #ffff00;
+  }
 
-    50% {
-        background-color: #ff6600;
-    }
+  50% {
+    background-color: #ff6600;
+  }
 
-    100% {
-        background-color: #ff0000;
-    }
+  100% {
+    background-color: #ff0000;
+  }
 }
 
 .explosion {
-    background-color: #ff6600;
-    animation: explosion-flash 0.5s ease-in-out;
-    position: relative;
+  background-color: #ff6600;
+  animation: explosion-flash 0.5s ease-in-out;
+  position: relative;
 }
 
 .explosion::after {
-    content: "💥";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 16px;
+  content: "💥";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 16px;
 }
 
 .explosion {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 30px;
-    height: 30px;
-    background-color: #ff9900;
-    animation: explosion-flash 0.4s ease-in-out;
-    z-index: 15;
-  }
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  background-color: #ff9900;
+  animation: explosion-flash 0.4s ease-in-out;
+  z-index: 15;
+}
+
 .player1 {
-    background-color: #ff4444;
-    border-radius: 50%;
+  background-color: #ff4444;
+  border-radius: 50%;
 }
 
 .player2 {
-    background-color: #4444ff;
-    border-radius: 50%;
+  background-color: #4444ff;
+  border-radius: 50%;
 }
 
 .player3 {
-    background-color: #44ff44;
-    border-radius: 50%;
+  background-color: #44ff44;
+  border-radius: 50%;
 }
 
 .player4 {
-    background-color: #ffff44;
-    border-radius: 50%;
+  background-color: #ffff44;
+  border-radius: 50%;
 }
 
 
 @keyframes pulse {
-    0% {
-        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-    }
+  0% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  }
 
-    50% {
-        box-shadow: 0 0 20px rgba(255, 255, 255, 1);
-    }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 1);
+  }
 
-    100% {
-        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-    }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  }
 }
 
 .my-player {
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
-    animation: pulse 1s infinite;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  animation: pulse 1s infinite;
 }
 
 
 .controls {
-    text-align: center;
-    margin: 20px;
-    color: #ccc;
+  text-align: center;
+  margin: 20px;
+  color: #ccc;
 }
 
 .controls h3 {
-    color: #00ff00;
+  color: #00ff00;
 }
 
 
 .player.invincible {
-    animation: flash 0.2s infinite;
+  animation: flash 0.2s infinite;
 }
 
 @keyframes flash {
-    0% {
-        opacity: 1;
-    }
+  0% {
+    opacity: 1;
+  }
 
-    50% {
-        opacity: 0.5;
-    }
+  50% {
+    opacity: 0.5;
+  }
 
-    100% {
-        opacity: 1;
-    }
+  100% {
+    opacity: 1;
+  }
 }
 
 
@@ -242,7 +243,8 @@
   background-position: center;
   z-index: 3;
   animation: float 2s infinite ease-in-out;
-  margin: 3px; /* Centers in 30px cell */
+  margin: 3px;
+  /* Centers in 30px cell */
 }
 
 .powerup[data-type="extraLife"] {
@@ -256,13 +258,25 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.2); }
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1.2);
+  }
 }
 
 .speed-boosted {
@@ -271,9 +285,15 @@
 }
 
 @keyframes pulse-glow {
-  0% { opacity: 0.8; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
+
 .player-list li::after {
   content: " ⚡";
   color: gold;
@@ -299,41 +319,41 @@
 
 
 #status {
-    text-align: center;
-    margin: 10px;
-    font-size: 18px;
-    font-weight: bold;
-    color: #00ff00;
-  }
-  
-  .controls {
-    text-align: center;
-    margin: 20px;
-    color: #ccc;
-  }
-  
-  .controls h3 {
-    color: #00ff00;
-  }
-  
-  
-  .player {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 30px;
-    height: 30px;
-    z-index: 10;
-    transition: transform 0.15s linear;
-  }
-  
+  text-align: center;
+  margin: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #00ff00;
+}
+
+.controls {
+  text-align: center;
+  margin: 20px;
+  color: #ccc;
+}
+
+.controls h3 {
+  color: #00ff00;
+}
 
 
-  /* SHEEELD */
-  /* Shield Power-up */
+.player {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  z-index: 10;
+  transition: transform 0.15s linear;
+}
+
+
+
+/* SHEEELD */
+/* Shield Power-up */
 .powerup[data-type="shield"] {
   filter: drop-shadow(0 0 5px rgba(0, 200, 255, 0.7));
-  animation: 
+  animation:
     float 2s ease-in-out infinite,
     pulse 0.8s infinite alternate;
 }
@@ -344,6 +364,40 @@
 }
 
 @keyframes flash {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
 }
+
+/* chat */
+
+.game-chat {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  right: -270px;
+  transition: right 0.5s;
+}
+
+.game-chat .opener {
+  width: 20px;
+  height: 60px;
+  position: absolute;
+  left: -20px;
+  top: 20px;
+  cursor: pointer;
+  border-radius: 15px 0 0 15px;
+  background-color: var(--col11);
+}
+
+.show {
+  right: -5px;
+
+} 

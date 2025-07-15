@@ -25,7 +25,7 @@ export default function renderJoinScreen(gameState, sendToServer) {
   }
   console.log("[JoinView.js] Rendering view.");
   return createElement("div", {
-    attrs: { class: "screen join-screen container" },
+    attrs: { class: "  join-screen container" },
     children: [
       createElement("h1", { children: ["Welcome to Bomberman!"] }),
       //createElement("h1", { children: ["-------------!"] }),
@@ -38,6 +38,8 @@ export default function renderJoinScreen(gameState, sendToServer) {
               type: "text",
               placeholder: "Enter your nickname",
               id: "nicknameInput",
+              minlength:'2',
+              maxlength:'10',
               autofocus: true
             },
             events: {
