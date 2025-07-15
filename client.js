@@ -26,7 +26,11 @@ function sendToServer(message) {
     socket.send(JSON.stringify(message));
 }
 const gameState = createStore({
-  players: {},
+  players: {
+    alive:true,
+    lives:3,
+    speed:1.5
+  },
   bombs: [],
   explosions: [],
   gameOver: false,
@@ -34,7 +38,7 @@ const gameState = createStore({
   gameStarted: false,
   maze: null,
   currentScreen: "join",
-  nickname: "",
+  nickname: "qsd11",
   chatMessages: [],
   winner: '',
 });

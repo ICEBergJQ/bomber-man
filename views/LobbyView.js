@@ -1,24 +1,10 @@
 import { createElement } from "../src/main.js";
 import {  getSocket } from "../client.js";
-
+import chatMsgs from "../components/ChatCmp.js";
 
 // https://excalidraw.com/#json=RJHu_-G6zzsMdhMu2waTM,Z0zJ3AAK6CPd9QM1WjLqew
 let defaultplayers = new Array(4).fill(null)
 
-
-function handleInput(e, sendToServer) {
-  if (e.key === "Enter") {
-    const input = e.target;
-    const text = input.value.trim();
-    if (text == '' || text.length > 100) {
-      alert('enter a msg between 1 and 100 char!!')
-    } else {
-      sendToServer({ type: "chat", text: text });
-      input.value = "";
-
-    }
-  }
-}
 
 export default function renderLobbyScreen(gameState, sendToServer) {
   const state = gameState.getState();
@@ -47,48 +33,9 @@ export default function renderLobbyScreen(gameState, sendToServer) {
     })
   )
 
-  const chatMessages = (state.chatMessages || []).map((msg) =>
-    createElement("span", {
-      children: [
-        createElement("strong", { children: [`${msg.nickname}`] }),
-        msg.text,
-      ],
-    })
-  );
 
   let lobbyContent;
-
-  const sharedUI = [
-    createElement("div", {
-      attrs: { class: "chat-container" },
-
-      children: [
-        createElement('div', {
-          attrs: { class: 'chat-wrapper' },
-          children: [
-            createElement('div', {
-              attrs: { class: 'chat-messages' },
-              children: chatMessages
-            }),
-
-            createElement("input", {
-              attrs: {
-                type: "text",
-                id: "chat-input",
-                placeholder: "Type and press Enter...",
-                autofocus: true
-
-              },
-              events: {
-                keypress: (e) => handleInput(e, sendToServer),
-              },
-            }),
-          ]
-        })
-
-      ],
-    }),
-  ];
+ 
 
   // if (state.isPlayer1) {
   lobbyContent = [
@@ -105,9 +52,7 @@ export default function renderLobbyScreen(gameState, sendToServer) {
           attrs: { id: "quit-btn" },
           children: ["Quit"],
           events: {
-            click: () => {
-              console.log(123);
-
+            click: () => {  
               if (socket) {
                 socket.close();
                 socket = null;
@@ -132,9 +77,11 @@ export default function renderLobbyScreen(gameState, sendToServer) {
         })
       ]
     }),
-    ...sharedUI,
+    chatMsgs(state, sendToServer),
     ...playersList
-  ];
+  ]
+ 
+
   return createElement("div", {
     attrs: { class: "screen lobby-screen" },
     children: lobbyContent,

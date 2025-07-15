@@ -11,7 +11,11 @@ h2 {
   text-align: center;
 }
 
+.screen {
+  position: relative;
+  min-height: 94vh;
 
+}
 .container {
   display: flex;
   flex-direction: column;
@@ -19,18 +23,25 @@ h2 {
   justify-content: center;
 }
 
-.btn{
+.btn {
   cursor: pointer;
   margin-top: 15px;
   font-family: "DynaPuff", system-ui;
-  display: block; 
+  display: block;
+  height: 46px;
+  width: 250px;
   position: relative;
   font-size: 1.2rem;
   font-weight: 600;
-  background: linear-gradient(to bottom, #fff, #ffde6a);
+  background-image: linear-gradient(to bottom, #fff, #ffde6a);
   background-size: 100% 150%;
   background-position: top;
-  transition: background-position 0.3s; 
+  transition: background-position 0.3s;
+  color: var(--col1);
+  border-radius: 10px;
+
+  border: 2px #fff solid;
+  outline: 2px solid var(--col2);
 }
 
 .btn:hover {
