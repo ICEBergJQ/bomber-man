@@ -1,5 +1,5 @@
 import { createElement } from "../src/main.js";
-import { socket } from "../client.js";
+import { getSocket, closeSocket  } from "../client.js";
 // All keyboard handling functions have been removed from this file.
 
 export default function renderGameScreen(gameState, sendToServer) {
@@ -96,17 +96,7 @@ export default function renderGameScreen(gameState, sendToServer) {
       });
     })
     .filter(Boolean);
-
-  // const playerList = Object.values(state.players).map((p) => {
-  //   const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
-  //   return createElement("li", {
-  //     children: [`${p.nickname}: ${lifeDisplay}`],
-  //     attrs: {
-  //       style: p.alive ? "" : "color: #888; text-decoration: line-through;",
-  //     },
-  //   });
-  // });
-
+    
 const playerList = Object.values(state.players).map((p) => {
   const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
   const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
@@ -136,12 +126,7 @@ const playerList = Object.values(state.players).map((p) => {
         children: ["Quit"],
         events: {
           click: () => {
-            console.log(123);
-
-            if (socket) {
-              socket.close();
-            }
-            sendToServer({ type: "quitGame" });
+            closeSocket()
             gameState.setState({
               players: {},
               bombs: [],
@@ -151,7 +136,6 @@ const playerList = Object.values(state.players).map((p) => {
               gameStarted: false,
               maze: null,
               currentScreen: "join",
-              isPlayer1: false,
               nickname: "",
               chatMessages: [],
             });

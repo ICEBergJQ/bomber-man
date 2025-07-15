@@ -44,6 +44,7 @@ const wss = new WebSocket.Server({ server });
 // --- Game Logic ---
 const MAX_PLAYERS = 4;
 const HEARTBEAT_INTERVAL = 30000;
+let ReInter;
 
 const CELL_SIZE = 30;
 const IDs = [
@@ -154,10 +155,10 @@ function checkWinCondition() {
     gameState.gameOver = true;
     gameState.winner = alive[0] || null;
     broadcastGameState();
-    // setTimeout(() => {
-    //   initializeGame();
-    //   broadcastGameState();
-    // }, 5000);
+    ReInter = setTimeout(() => {
+      initializeGame();
+      broadcastGameState();
+    }, 5000);
   }
 }
 function explodeBomb(bomb) {
@@ -336,6 +337,12 @@ wss.on("connection", (ws) => {
       return;
     }
     switch (data.type) {
+      // case "canAccessGS":
+      //   if (gameState.gameStarted) {
+      //     ws.send("allowed");
+      //   } else {
+      //     ws.send("notAllowed");
+      //   }
       case "registerPlayer":
         if (!data.nickname) return;
         if (

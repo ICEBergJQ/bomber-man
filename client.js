@@ -7,7 +7,20 @@ import getRoutes from "./router/index.js";
 import renderGameErr from "./views/gameFullView.js";
 
 // --- WebSocket & State Management ---
-export let socket;
+let socket;
+
+export function getSocket() {
+  return socket;
+}
+
+
+export function closeSocket() {
+  if (socket) {
+    socket.close();
+    socket = null;
+  }
+}
+
 function sendToServer(message) {
   if (socket && socket.readyState === WebSocket.OPEN)
     socket.send(JSON.stringify(message));
@@ -23,6 +36,7 @@ const gameState = createStore({
   currentScreen: "join",
   nickname: "",
   chatMessages: [],
+  winner: '',
 });
 export function connectWebSocket() {
   if (socket && socket.readyState === WebSocket.OPEN) return;
@@ -30,9 +44,7 @@ export function connectWebSocket() {
   socket.onopen = () => console.log("WebSocket connection established.");
   socket.onclose = (e) => {
     console.log("WebSocket connection closed" + e.reason);
-    if (
-      e.reason === "Game is full or has already started"
-    ) {
+    if (e.reason === "Game is full or has already started") {
       gameState.setState({
         players: {},
         bombs: [],
@@ -41,17 +53,20 @@ export function connectWebSocket() {
         winner: null,
         gameStarted: false,
         maze: null,
-        isPlayer1: false,
         nickname: "",
         chatMessages: [],
         currentScreen: "gameFull",
       });
-      // window.location.reload();
+      if (window.location.hash !== "#/") {
+        window.location.reload();
+      }
     }
   };
   socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);
     if (msg.type === "gameState") {
+      console.log(msg);
+      
       gameState.setState({ ...gameState.getState(), ...msg.data });
     } else if (msg.type === "chatMessage") {
       const currentState = gameState.getState();
@@ -78,7 +93,6 @@ export function renderApp(newVDomTree) {
 const routes = getRoutes(gameState);
 createRouter(routes);
 const screens = {
-  //join: renderLobbyScreen,
   join: renderJoinScreen,
   lobby: renderLobbyScreen,
   game: renderGameScreen,
@@ -214,9 +228,8 @@ function gameLoop(currentTime) {
         }
       }
       const hasSpeedBoost = playerState?.speed > 1;
-      playerElement.classList.toggle('speed-boosted', hasSpeedBoost);
+      playerElement.classList.toggle("speed-boosted", hasSpeedBoost);
       playerElement.style.transform = `translate(${localPlayer.x}px, ${localPlayer.y}px)`;
-
     });
   }
 

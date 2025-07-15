@@ -1,4 +1,5 @@
 import { createElement } from "../src/main.js";
+import {  closeSocket } from "../client.js";
 
 export default function renderGameErr() {
   return createElement("div", {
@@ -13,6 +14,7 @@ export default function renderGameErr() {
         children: ["Go to Home"],
         events: {
           click: () => {
+            closeSocket();
             window.location.hash = "#/";
           },
         },

@@ -1,5 +1,5 @@
 import { createElement } from "../src/main.js";
-import { socket } from "../client.js";
+import {  getSocket } from "../client.js";
 
 
 // https://excalidraw.com/#json=RJHu_-G6zzsMdhMu2waTM,Z0zJ3AAK6CPd9QM1WjLqew
@@ -19,6 +19,7 @@ function handleInput(e, sendToServer) {
     }
   }
 }
+
 export default function renderLobbyScreen(gameState, sendToServer) {
   const state = gameState.getState();
   const lobbyPlayers = Object.values(state.players || {})
@@ -28,8 +29,11 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   }))
 
   // console.log(defaultplayers, defaultplayers.length);
-  if (!socket || state.currentScreen !== "lobby") {
+  let socket = getSocket()
+  if (!socket) {
      window.location.hash = "#/gameFull";
+  } else if (!state.nickname || state.currentScreen !== "lobby") {
+      window.location.reload();
   }
 
   const playersList = defaultplayers.map((player) =>
@@ -105,8 +109,8 @@ export default function renderLobbyScreen(gameState, sendToServer) {
 
               if (socket) {
                 socket.close();
+                socket = null;
               }
-              sendToServer({ type: "quitGame" });
               gameState.setState({
                 players: {},
                 bombs: [],
@@ -130,21 +134,6 @@ export default function renderLobbyScreen(gameState, sendToServer) {
     ...sharedUI,
     ...playersList
   ];
-  // } else {
-  //   lobbyContent = [
-  //     createElement('header', {
-  //       attrs: { class: 'container' },
-  //       children: [
-  //         createElement("h2", { children: ["Lobby: Waiting for Host..."] }),
-  //         createElement("p", {
-  //           children: ["Please wait for the host to start the game."],
-  //         })
-  //       ]
-  //     }),
-  //     ...sharedUI,
-  //   ];
-  // }
-
   return createElement("div", {
     attrs: { class: "screen lobby-screen" },
     children: lobbyContent,
