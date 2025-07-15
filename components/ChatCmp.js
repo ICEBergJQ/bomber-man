@@ -33,7 +33,8 @@ export default function ChatUI(state, sendToServer, className = '') {
     );
 
     return createElement("div", {
-        attrs: { class: `chat-container ${className} show` },
+       //    attrs: { class: `chat-container ${className} show` },
+      attrs: { class: `chat-container ${className} ` },
         children: [
             className && createElement('span', {
                 attrs: { class: 'opener' },
@@ -55,7 +56,6 @@ export default function ChatUI(state, sendToServer, className = '') {
                             id: "chat-input",
                             placeholder: "Type and press Enter...",
                             autofocus: true
-
                         },
                         events: {
                             keypress: (e) => handleInput(e, sendToServer),

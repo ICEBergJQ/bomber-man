@@ -1,11 +1,11 @@
 import { createElement } from "../src/main.js";
-import { getSocket, closeSocket  } from "../client.js";
+import { getSocket, closeSocket } from "../client.js";
 import chatMsgs from "../components/ChatCmp.js";
 
 // All keyboard handling functions have been removed from this file.
 function quiteGame(gameState, sendToServer) {
- 
-            closeSocket()
+
+  closeSocket()
 
   sendToServer({ type: "quitGame" });
   gameState.setState({
@@ -30,11 +30,12 @@ export default function renderGameScreen(gameState, sendToServer) {
   const CELL_SIZE = 30;
   let socket = getSocket()
   if (!state.gameStarted || !socket) {
-     window.location.hash = "#/gameFull";
-     return
+    window.location.hash = "#/gameFull";
+    return
   }
 
   if (!maze) {
+
     // No need to call removePlayerControls() anymore
     return createElement("div", {
       attrs: { class: "screen loading-screen" },
@@ -73,7 +74,7 @@ export default function renderGameScreen(gameState, sendToServer) {
       }
     });
   });
-  const mapChildren = maze.flatMap((row) =>
+  const mapChildren = maze?.flatMap((row) =>
     row.map((cellType) => {
       let className = "cell";
       if (cellType === "#") className += " wall";
@@ -135,13 +136,32 @@ export default function renderGameScreen(gameState, sendToServer) {
     const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
     const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
 
-    return createElement("li", {
-      children: [`${p.nickname}: ${lifeDisplay} ${speedDisplay}`],
+    return createElement("div", {
       attrs: {
+        class: 'game-player',
         style: p.alive ? "" : "color: #888; text-decoration: line-through;"
-      }
+      },
+      children: [
+        createElement('span', {
+          children: [p.nickname]
+        }),
+        createElement('img', {
+          attrs: { src: '../assets/img/player/front-frame1.png' }
+        }),
+        createElement('div', {
+          children: [
+            createElement('div', {
+              children: [lifeDisplay]
+            }),
+            createElement('div', {
+              children: [lifeDisplay]//speedDisplay
+            })
+          ]
+        })
+      ],
+
     });
-  }); 
+  });
 
   return createElement("div", {
     attrs: { class: "screen game-screen" },
@@ -158,11 +178,11 @@ export default function renderGameScreen(gameState, sendToServer) {
 
       createElement("div", {
         attrs: { class: "game-container" },
-        children: [ 
+        children: [
           createElement("div", {
             attrs: { class: "game-sidebar" },
-            children: [ 
-              createElement("ul", { children: playerList }),
+            children: [
+              createElement("div", { children: playerList }),
             ],
           }),
           createElement("div", {

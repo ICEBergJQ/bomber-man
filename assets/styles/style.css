@@ -5,6 +5,7 @@
 
 #app {
   margin: 10px;
+  font-family: "DynaPuff", system-ui;
 }
 
 h2 {
@@ -26,8 +27,8 @@ h2 {
 .btn {
   cursor: pointer;
   margin-top: 15px;
-  font-family: "DynaPuff", system-ui;
   display: block;
+  font-family: "DynaPuff", system-ui;
   height: 46px;
   width: 250px;
   position: relative;
