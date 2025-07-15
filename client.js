@@ -87,7 +87,7 @@ gameState.subscribe(() => {
 });
 
 // --- NEW MOVEMENT LOGIC & STATE ---
-const MOVEMENT_SPEED = 150; // Time in milliseconds to cross one tile.
+const MOVEMENT_SPEED = 50; // Time in milliseconds to cross one tile.
 let clientPlayerState = {};
 let lastFrameTime = performance.now();
 
@@ -106,7 +106,6 @@ window.addEventListener("keydown", (e) => {
   const myClientState = clientPlayerState[myPlayerId];
   if (!myClientState) return;
 
-  // ** THE CORE FIX **
   // Only accept a new move command if the player is NOT already moving.
   if (myClientState.isMoving) {
     return;
