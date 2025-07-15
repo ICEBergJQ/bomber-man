@@ -44,11 +44,19 @@ const wss = new WebSocket.Server({ server });
 // --- Game Logic ---
 const MAX_PLAYERS = 4;
 const HEARTBEAT_INTERVAL = 30000;
+let ReInter;
+
 const CELL_SIZE = 30;
 
 // Define how many pixels a player moves with each request, 7.5 means it takes 4 steps to cross a 30px cell.
 const MOVE_INCREMENT = 7.5;
 
+const IDs = [
+  { id: 1, taken: false },
+  { id: 2, taken: false },
+  { id: 3, taken: false },
+  { id: 4, taken: false },
+];
 const startingPositions = [
   { row: 1, col: 1 },
   { row: 1, col: 21 },
@@ -155,6 +163,10 @@ function checkWinCondition() {
     gameState.gameOver = true;
     gameState.winner = alive[0] || null;
     broadcastGameState();
+    ReInter = setTimeout(() => {
+      initializeGame();
+      broadcastGameState();
+    }, 5000);
   }
 }
 function explodeBomb(bomb) {
@@ -174,7 +186,7 @@ function explodeBomb(bomb) {
       if (!gameState.maze[nr]?.[nc] || gameState.maze[nr][nc] === "#") break;
 
       explosion.push({ row: nr, col: nc });
-
+      //poweruppp
       if (gameState.maze[nr][nc] === "*") {
         gameState.maze[nr][nc] = " ";
 
@@ -310,6 +322,22 @@ function forceStartGame() {
   broadcastGameState();
 }
 
+function assignID() {
+  const available = IDs.find((id) => !id.taken);
+  if (!available) {
+    return null; // No IDs left
+  }
+  available.taken = true;
+  return available.id;
+}
+
+function freeID(playerId) {
+  const found = IDs.find((id) => id.id === playerId);
+  if (found) {
+    found.taken = false;
+  }
+}
+
 initializeGame();
 
 function heartbeat() {
@@ -358,22 +386,15 @@ wss.on("connection", (ws) => {
           gameState.playerCount >= MAX_PLAYERS
         )
           return;
-
-        // Use robust player ID assignment
-        let playerId = null;
-        const existingPlayerIds = Object.keys(gameState.players).map((id) =>
-          parseInt(id, 10)
-        );
-        for (let i = 1; i <= MAX_PLAYERS; i++) {
-          if (!existingPlayerIds.includes(i)) {
-            playerId = i;
-            break;
-          }
-        }
-
-        if (playerId === null) return;
-
         gameState.playerCount++;
+        const playerId = assignID();
+        if (!playerId) {
+          ws.close(1000, "No starting positions available");
+          console.log(
+            `Connection rejected: No IDS available`
+          );
+          return;
+        }
         clients[id].playerId = playerId;
         const pos = startingPositions[playerId - 1];
         gameState.players[playerId] = {
@@ -427,6 +448,7 @@ wss.on("connection", (ws) => {
     clearInterval(hbInterval);
     const { playerId } = clients[id] || {};
     if (playerId) {
+      freeID(playerId);
       delete gameState.players[playerId];
       gameState.playerCount--;
     }
