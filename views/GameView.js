@@ -6,7 +6,7 @@ export default function renderGameScreen(gameState, sendToServer) {
   const state = gameState.getState();
   const maze = state.maze;
   const CELL_SIZE = 30;
-
+  let socket = getSocket()
   if (!state.gameStarted || !socket) {
      window.location.hash = "#/gameFull";
      return

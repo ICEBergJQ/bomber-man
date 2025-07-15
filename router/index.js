@@ -27,6 +27,7 @@ export default function routes(gameState) {
       gameState.setState({ ...gameState.getState(), currentScreen: "lobby" });
     },
     "/game": () => {
+      const nickname = gameState.getState().nickname;
       if (!nickname || nickname.length < 2 || nickname.length > 10) {
         window.location.hash = "#/";
         return;
