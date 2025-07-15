@@ -21,11 +21,11 @@ export default function renderGameScreen(gameState, sendToServer) {
     const y = powerup.row * CELL_SIZE;
 
     // Determine which image to use based on powerup type
-  const imageSrc = {
-    'speedBoost': '/assets/img/extraSpeed.png',
-    'extraLife': '/assets/img/life.png',
-    'shield': '/assets/img/sheld.jpg'  // Add this line for the shield
-  }[powerup.type];
+    const imageSrc = {
+      speedBoost: "/assets/img/extraSpeed.png",
+      extraLife: "/assets/img/life.png",
+      shield: "/assets/img/sheld.jpg",
+    }[powerup.type];
 
     return createElement("div", {
       attrs: {
@@ -42,8 +42,8 @@ export default function renderGameScreen(gameState, sendToServer) {
         background-position: center;
         z-index: 2;
       `,
-        'data-type': powerup.type
-      }
+        "data-type": powerup.type,
+      },
     });
   });
   const mapChildren = maze.flatMap((row) =>
@@ -82,39 +82,31 @@ export default function renderGameScreen(gameState, sendToServer) {
   const playerChildren = Object.values(state.players)
     .map((p) => {
       if (!p.alive) return null;
-      let playerClass = `player player${p.playerId} ${p.invincible ? 'invincible' : ''}`;
-      if (p.invincible) playerClass += " invincible";
+      // Cleaned up class assignment for clarity
+      const playerClasses = ["player", `player${p.playerId}`];
+      if (p.invincible) {
+        playerClasses.push("invincible");
+      }
       return createElement("div", {
         attrs: {
-          class: playerClass,
+          class: playerClasses.join(" "),
           id: `player-${p.playerId}`,
-          style: `transform: translate(${p.x}px, ${p.y}px);`,
         },
       });
     })
     .filter(Boolean);
 
-  // const playerList = Object.values(state.players).map((p) => {
-  //   const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
-  //   return createElement("li", {
-  //     children: [`${p.nickname}: ${lifeDisplay}`],
-  //     attrs: {
-  //       style: p.alive ? "" : "color: #888; text-decoration: line-through;",
-  //     },
-  //   });
-  // });
+  const playerList = Object.values(state.players).map((p) => {
+    const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
+    const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
 
-const playerList = Object.values(state.players).map((p) => {
-  const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
-  const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
-  
-  return createElement("li", {
-    children: [`${p.nickname}: ${lifeDisplay} ${speedDisplay}`],
-    attrs: {
-      style: p.alive ? "" : "color: #888; text-decoration: line-through;"
-    }
+    return createElement("li", {
+      children: [`${p.nickname}: ${lifeDisplay} ${speedDisplay}`],
+      attrs: {
+        style: p.alive ? "" : "color: #888; text-decoration: line-through;",
+      },
+    });
   });
-});
 
   const chatMessages = (state.chatMessages || []).map((msg) =>
     createElement("p", {
@@ -129,16 +121,13 @@ const playerList = Object.values(state.players).map((p) => {
     attrs: { class: "screen game-screen" },
     children: [
       createElement("button", {
-        attrs: { id: "quit-btn", class:'btn' },
+        attrs: { id: "quit-btn", class: "btn" },
         children: ["Quit"],
         events: {
           click: () => {
-            console.log(123);
-
             if (socket) {
               socket.close();
             }
-            sendToServer({ type: "quitGame" });
             gameState.setState({
               players: {},
               bombs: [],
@@ -148,7 +137,6 @@ const playerList = Object.values(state.players).map((p) => {
               gameStarted: false,
               maze: null,
               currentScreen: "join",
-              isPlayer1: false,
               nickname: "",
               chatMessages: [],
             });
@@ -167,7 +155,6 @@ const playerList = Object.values(state.players).map((p) => {
                 attrs: { class: "game-board" },
                 children: mapChildren,
               }),
-              // FIX: Wrap dynamic elements in their own stable containers
               createElement("div", {
                 attrs: { class: "explosions-container" },
                 children: explosionChildren,
@@ -221,16 +208,6 @@ const playerList = Object.values(state.players).map((p) => {
               }),
             ],
           }),
-        ],
-      }),
-      createElement("div", {
-        attrs: {
-          style:
-            "margin-top: 20px; background: #222; padding: 10px; font-family: monospace; white-space: pre;",
-        },
-        children: [
-          createElement("h4", { children: ["Live Animation State"] }),
-          createElement("div", { attrs: { id: "live-debug-output" } }),
         ],
       }),
     ],
