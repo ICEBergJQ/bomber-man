@@ -3,11 +3,24 @@ import renderJoinScreen from "./views/JoinView.js";
 import renderLobbyScreen from "./views/LobbyView.js";
 import renderGameScreen from "./views/GameView.js";
 import NotfoundView from "./views/NotfoundView.js";
-import getRoutes from "./router/index.js"
+import getRoutes from "./router/index.js";
 import renderGameErr from "./views/gameFullView.js";
 
 // --- WebSocket & State Management ---
-export let socket;
+let socket;
+
+export function getSocket() {
+  return socket;
+}
+
+
+export function closeSocket() {
+  if (socket) {
+    socket.close();
+    socket = null;
+  }
+}
+
 function sendToServer(message) {
   if (socket && socket.readyState === WebSocket.OPEN)
     socket.send(JSON.stringify(message));
@@ -27,6 +40,7 @@ const gameState = createStore({
   currentScreen: "join",
   nickname: "qsd11",
   chatMessages: [],
+  winner: '',
 });
 export function connectWebSocket() {
   if (socket && socket.readyState === WebSocket.OPEN) return;
@@ -36,14 +50,27 @@ export function connectWebSocket() {
     console.log("WebSocket connection closed" + e.reason);
     if (e.reason === "Game is full or has already started") {
       gameState.setState({
+        players: {},
+        bombs: [],
+        explosions: [],
+        gameOver: false,
+        winner: null,
+        gameStarted: false,
+        maze: null,
+        nickname: "",
+        chatMessages: [],
         currentScreen: "gameFull",
       });
-      window.location.hash = "#/gameFull";
+      if (window.location.hash !== "#/") {
+        window.location.reload();
+      }
     }
-  }
+  };
   socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);
     if (msg.type === "gameState") {
+      console.log(msg);
+      
       gameState.setState({ ...gameState.getState(), ...msg.data });
     } else if (msg.type === "chatMessage") {
       const currentState = gameState.getState();
@@ -70,7 +97,6 @@ export function renderApp(newVDomTree) {
 const routes = getRoutes(gameState);
 createRouter(routes);
 const screens = {
-  join: renderGameScreen,
   join: renderJoinScreen,
   lobby: renderLobbyScreen,
   game: renderGameScreen,
@@ -91,7 +117,7 @@ gameState.subscribe(() => {
 });
 
 // --- NEW MOVEMENT LOGIC & STATE ---
-const MOVEMENT_SPEED = 150; // Time in milliseconds to cross one tile.
+const MOVEMENT_SPEED = 50; // Time in milliseconds to cross one tile.
 let clientPlayerState = {};
 let lastFrameTime = performance.now();
 
@@ -110,7 +136,6 @@ window.addEventListener("keydown", (e) => {
   const myClientState = clientPlayerState[myPlayerId];
   if (!myClientState) return;
 
-  // ** THE CORE FIX **
   // Only accept a new move command if the player is NOT already moving.
   if (myClientState.isMoving) {
     return;
@@ -206,9 +231,8 @@ function gameLoop(currentTime) {
         }
       }
       const hasSpeedBoost = playerState?.speed > 1;
-      playerElement.classList.toggle('speed-boosted', hasSpeedBoost);
+      playerElement.classList.toggle("speed-boosted", hasSpeedBoost);
       playerElement.style.transform = `translate(${localPlayer.x}px, ${localPlayer.y}px)`;
-
     });
   }
 

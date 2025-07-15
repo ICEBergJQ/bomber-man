@@ -1,5 +1,5 @@
 import { createElement } from "../src/main.js";
-import { socket } from "../client.js";
+import {  getSocket } from "../client.js";
 import chatMsgs from "../components/ChatCmp.js";
 
 // https://excalidraw.com/#json=RJHu_-G6zzsMdhMu2waTM,Z0zJ3AAK6CPd9QM1WjLqew
@@ -14,7 +14,13 @@ export default function renderLobbyScreen(gameState, sendToServer) {
     nickname: lobbyPlayers[i]?.nickname || 'Waiting...'
   }))
 
-  console.log(defaultplayers, defaultplayers.length);
+  // console.log(defaultplayers, defaultplayers.length);
+  let socket = getSocket()
+  if (!socket) {
+     window.location.hash = "#/gameFull";
+  } else if (!state.nickname || state.currentScreen !== "lobby") {
+      window.location.reload();
+  }
 
   const playersList = defaultplayers.map((player) =>
     createElement("div", {
@@ -49,8 +55,8 @@ export default function renderLobbyScreen(gameState, sendToServer) {
             click: () => {  
               if (socket) {
                 socket.close();
+                socket = null;
               }
-              sendToServer({ type: "quitGame" });
               gameState.setState({
                 players: {},
                 bombs: [],
@@ -64,7 +70,8 @@ export default function renderLobbyScreen(gameState, sendToServer) {
                 nickname: "",
                 chatMessages: [],
               });
-              location.hash = "#/";
+              // location.hash = "#/";
+              location.reload()
             },
           },
         })

@@ -44,8 +44,19 @@ const wss = new WebSocket.Server({ server });
 // --- Game Logic ---
 const MAX_PLAYERS = 4;
 const HEARTBEAT_INTERVAL = 30000;
+let ReInter;
 
 const CELL_SIZE = 30;
+
+// Define how many pixels a player moves with each request, 7.5 means it takes 4 steps to cross a 30px cell.
+const MOVE_INCREMENT = 7.5;
+
+const IDs = [
+  { id: 1, taken: false },
+  { id: 2, taken: false },
+  { id: 3, taken: false },
+  { id: 4, taken: false },
+];
 const startingPositions = [
   { row: 1, col: 1 },
   { row: 1, col: 21 },
@@ -70,7 +81,7 @@ function initializeGame() {
   };
 }
 function broadcastGameState() {
-  checkPowerupCollection()
+  checkPowerupCollection();
   const msg = JSON.stringify({ type: "gameState", data: gameState });
   Object.values(clients).forEach((c) => {
     if (c.ws.readyState === WebSocket.OPEN) c.ws.send(msg);
@@ -118,9 +129,13 @@ function generateMaze(rows, cols) {
 
 function checkPlayerDeaths() {
   Object.values(gameState.players).forEach((p) => {
+    // Update player's logical row/col before checking for death
+    p.col = Math.floor((p.x + CELL_SIZE / 2) / CELL_SIZE);
+    p.row = Math.floor((p.y + CELL_SIZE / 2) / CELL_SIZE);
+
     if (
       p.alive &&
-      !p.invincible && !p.hasShield &&
+      !p.invincible &&
       gameState.explosions.some((e) => e.row === p.row && e.col === p.col)
     ) {
       p.lives--;
@@ -148,45 +163,40 @@ function checkWinCondition() {
     gameState.gameOver = true;
     gameState.winner = alive[0] || null;
     broadcastGameState();
-    // setTimeout(() => {
-    //   initializeGame();
-    //   broadcastGameState();
-    // }, 5000);
+    ReInter = setTimeout(() => {
+      initializeGame();
+      broadcastGameState();
+    }, 5000);
   }
 }
 function explodeBomb(bomb) {
   const { row, col } = bomb;
   const explosion = [{ row, col }];
 
-  // Directions: up, down, left, right
   [
-    [-1, 0], [1, 0], [0, -1], [0, 1]
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
   ].forEach(([dr, dc]) => {
     for (let i = 1; i <= 2; i++) {
       const nr = row + dr * i;
       const nc = col + dc * i;
 
-      // Stop if we hit a wall or maze boundary
       if (!gameState.maze[nr]?.[nc] || gameState.maze[nr][nc] === "#") break;
 
       explosion.push({ row: nr, col: nc });
-
-      // If we hit a destructible block
+      //poweruppp
       if (gameState.maze[nr][nc] === "*") {
-        gameState.maze[nr][nc] = " "; // Destroy the block
+        gameState.maze[nr][nc] = " ";
 
-        // 25% chance to spawn a power-up
         if (Math.random() < 0.25) {
-          // Randomly choose between all three power-up types
-          const powerups = ['extraLife', 'speedBoost', 'shield'];
-          const type = powerups[Math.floor(Math.random() * powerups.length)];
-
           gameState.powerups.push({
             row: nr,
             col: nc,
-            type: type,
+            type: "extraLife",
             x: nc * CELL_SIZE,
-            y: nr * CELL_SIZE
+            y: nr * CELL_SIZE,
           });
         }
         break;
@@ -194,14 +204,12 @@ function explodeBomb(bomb) {
     }
   });
 
-  // Create explosions
   explosion.forEach((e) => {
     gameState.explosions.push({ ...e, createdAt: Date.now() });
   });
 
   checkPlayerDeaths();
 
-  // Clear explosions after 500ms
   setTimeout(() => {
     gameState.explosions = [];
     broadcastGameState();
@@ -214,56 +222,41 @@ function checkPowerupCollection() {
   Object.values(gameState.players).forEach((p) => {
     if (!p.alive) return;
 
+    // Update player's logical row/col for checking power-up collection
+    const p_col = Math.floor((p.x + CELL_SIZE / 2) / CELL_SIZE);
+    const p_row = Math.floor((p.y + CELL_SIZE / 2) / CELL_SIZE);
+
     const powerupIndex = gameState.powerups.findIndex(
-      pu => pu.row === p.row && pu.col === p.col
+      (pu) => pu.row === p_row && pu.col === p_col
     );
 
-    if (powerupIndex === -1) return;
-
-    const powerup = gameState.powerups[powerupIndex];
-
-    if (powerup.type === 'extraLife') {
-      p.lives++;
-    } else if (powerup.type === 'speedBoost') {
-      // Initialize speed if not set
-      p.speed = p.speed || 1;
-
-
-      p.speed *= 2;
-
-      setTimeout(() => {
-        if (gameState.players[p.playerId]) {
-          gameState.players[p.playerId].speed /= 2;
-          console.log(` boost TSALAAA`);
-          broadcastGameState();
-        }
-      }, 20000);
-    } else if (powerup.type === 'shield') {
-      p.invincible = true;
-      console.log(`${p.nickname} shieldEEEEEEEEEEEEEEEEEEED!`);
-
-      setTimeout(() => {
-        if (gameState.players[p.playerId]) {
-          p.invincible = false;
-          console.log(`${p.nickname}'s shield expired`);
-          broadcastGameState();
-        }
-      }, 20000);
+    if (powerupIndex !== -1) {
+      const powerup = gameState.powerups[powerupIndex];
+      if (powerup.type === "extraLife") {
+        p.lives++;
+      }
+      gameState.powerups.splice(powerupIndex, 1);
+      broadcastGameState();
     }
-
-    gameState.powerups.splice(powerupIndex, 1);
-    broadcastGameState();
   });
 }
 
 function placeBomb(playerId) {
   const p = gameState.players[playerId];
   if (!p || !p.alive || gameState.gameOver) return;
+
   if (gameState.bombs.some((bomb) => bomb.playerId === playerId)) {
     return;
   }
-  if (gameState.bombs.some((b) => b.row === p.row && b.col === p.col)) return;
-  const bomb = { row: p.row, col: p.col, playerId, placedAt: Date.now() };
+
+  // Ensure bombs are placed on the grid correctly
+  const bombCol = Math.floor((p.x + CELL_SIZE / 2) / CELL_SIZE);
+  const bombRow = Math.floor((p.y + CELL_SIZE / 2) / CELL_SIZE);
+
+  if (gameState.bombs.some((b) => b.row === bombRow && b.col === bombCol))
+    return;
+
+  const bomb = { row: bombRow, col: bombCol, playerId, placedAt: Date.now() };
   gameState.bombs.push(bomb);
   setTimeout(() => {
     gameState.bombs = gameState.bombs.filter((b) => b !== bomb);
@@ -271,28 +264,78 @@ function placeBomb(playerId) {
   }, 3000);
   broadcastGameState();
 }
+
+// Re-written movePlayer function for pixel-based movement and collision
+function isValidPosition(x, y) {
+  // Check the player's future bounding box against the grid
+  // A slightly smaller bounding box makes movement smoother
+  const playerSize = CELL_SIZE * 0.9;
+  const corners = [
+    { x: x, y: y }, // Top-left
+    { x: x + playerSize, y: y }, // Top-right
+    { x: x, y: y + playerSize }, // Bottom-left
+    { x: x + playerSize, y: y + playerSize }, // Bottom-right
+  ];
+
+  for (const corner of corners) {
+    const col = Math.floor(corner.x / CELL_SIZE);
+    const row = Math.floor(corner.y / CELL_SIZE);
+
+    const tile = gameState.maze[row]?.[col];
+    // If a corner is outside the map or on a blocking tile, the position is invalid
+    if (tile === undefined || ["#", "*"].includes(tile)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function movePlayer(playerId, dir) {
   const p = gameState.players[playerId];
   if (!p || !p.alive || gameState.gameOver) return;
-  let [nr, nc] = [p.row, p.col];
-  if (dir === "up") nr--;
-  else if (dir === "down") nr++;
-  else if (dir === "left") nc--;
-  else if (dir === "right") nc++;
-  if (
-    gameState.maze[nr]?.[nc] &&
-    !["#", "*"].includes(gameState.maze[nr][nc])
-  ) {
-    p.row = nr;
-    p.col = nc;
-    p.x = nc * CELL_SIZE;
-    p.y = nr * CELL_SIZE;
+
+  let nextX = p.x;
+  let nextY = p.y;
+  const speed = p.speed || 1;
+  const moveAmount = MOVE_INCREMENT * speed;
+
+  if (dir === "up") nextY -= moveAmount;
+  else if (dir === "down") nextY += moveAmount;
+  else if (dir === "left") nextX -= moveAmount;
+  else if (dir === "right") nextX += moveAmount;
+
+  // Use the new collision detection function
+  if (isValidPosition(nextX, nextY)) {
+    p.x = nextX;
+    p.y = nextY;
+
+    // We still update row/col for interactions like placing bombs
+    p.col = Math.floor((p.x + CELL_SIZE / 2) / CELL_SIZE);
+    p.row = Math.floor((p.y + CELL_SIZE / 2) / CELL_SIZE);
+
     broadcastGameState();
   }
 }
+
 function forceStartGame() {
   gameState.gameStarted = true;
   broadcastGameState();
+}
+
+function assignID() {
+  const available = IDs.find((id) => !id.taken);
+  if (!available) {
+    return null; // No IDs left
+  }
+  available.taken = true;
+  return available.id;
+}
+
+function freeID(playerId) {
+  const found = IDs.find((id) => id.id === playerId);
+  if (found) {
+    found.taken = false;
+  }
 }
 
 initializeGame();
@@ -303,10 +346,12 @@ function heartbeat() {
 
 wss.on("connection", (ws) => {
   // Reject if game is already full or started
-  const activePlayers = Object.values(clients).filter(c => c.playerId).length;
+  const activePlayers = Object.values(clients).filter((c) => c.playerId).length;
   if (activePlayers >= MAX_PLAYERS || gameState.gameStarted) {
     ws.close(1000, "Game is full or has already started");
-    console.log(`Connection rejected: Game is full (${activePlayers}/${MAX_PLAYERS}) or has already started`);
+    console.log(
+      `Connection rejected: Game is full (${activePlayers}/${MAX_PLAYERS}) or has already started`
+    );
     return;
   }
 
@@ -336,9 +381,20 @@ wss.on("connection", (ws) => {
     switch (data.type) {
       case "registerPlayer":
         if (!data.nickname) return;
-        if (clients[id].playerId != null || gameState.playerCount >= MAX_PLAYERS) return;
+        if (
+          clients[id].playerId != null ||
+          gameState.playerCount >= MAX_PLAYERS
+        )
+          return;
         gameState.playerCount++;
-        const playerId = gameState.playerCount;
+        const playerId = assignID();
+        if (!playerId) {
+          ws.close(1000, "No starting positions available");
+          console.log(
+            `Connection rejected: No IDS available`
+          );
+          return;
+        }
         clients[id].playerId = playerId;
         const pos = startingPositions[playerId - 1];
         gameState.players[playerId] = {
@@ -350,8 +406,7 @@ wss.on("connection", (ws) => {
           y: pos.row * CELL_SIZE,
           alive: true,
           lives: 3,
-          hasShield: false,
-          speed: 1,
+          speed: 1, // Default speed
           invincible: false,
         };
         broadcastGameState();
@@ -374,9 +429,9 @@ wss.on("connection", (ws) => {
         if (sender) {
           const chatMsg = {
             type: "chatMessage",
-            data: { nickname: sender.nickname, text: data.text }
+            data: { nickname: sender.nickname, text: data.text },
           };
-          Object.values(clients).forEach(c => {
+          Object.values(clients).forEach((c) => {
             if (c.ws.readyState === WebSocket.OPEN) {
               c.ws.send(JSON.stringify(chatMsg));
             }
@@ -393,6 +448,7 @@ wss.on("connection", (ws) => {
     clearInterval(hbInterval);
     const { playerId } = clients[id] || {};
     if (playerId) {
+      freeID(playerId);
       delete gameState.players[playerId];
       gameState.playerCount--;
     }

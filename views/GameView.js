@@ -1,13 +1,12 @@
 import { createElement } from "../src/main.js";
-import { socket } from "../client.js";
+import { getSocket, closeSocket  } from "../client.js";
 import chatMsgs from "../components/ChatCmp.js";
 
 // All keyboard handling functions have been removed from this file.
 function quiteGame(gameState, sendToServer) {
  
-  if (socket) {
-    socket.close();
-  }
+            closeSocket()
+
   sendToServer({ type: "quitGame" });
   gameState.setState({
     players: {},
@@ -29,6 +28,11 @@ export default function renderGameScreen(gameState, sendToServer) {
   const state = gameState.getState();
   const maze = state.maze;
   const CELL_SIZE = 30;
+  let socket = getSocket()
+  if (!state.gameStarted || !socket) {
+     window.location.hash = "#/gameFull";
+     return
+  }
 
   if (!maze) {
     // No need to call removePlayerControls() anymore
