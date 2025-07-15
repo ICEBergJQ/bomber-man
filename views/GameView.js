@@ -50,9 +50,9 @@ export default function renderGameScreen(gameState, sendToServer) {
 
     // Determine which image to use based on powerup type
     const imageSrc = {
-      'speedBoost': '/assets/img/extraSpeed.png',
-      'extraLife': '/assets/img/life.png',
-      'shield': '/assets/img/sheld.jpg'  // Add this line for the shield
+      speedBoost: "/assets/img/extraSpeed.png",
+      extraLife: "/assets/img/life.png",
+      shield: "/assets/img/sheld.jpg",
     }[powerup.type];
 
     return createElement("div", {
@@ -70,8 +70,8 @@ export default function renderGameScreen(gameState, sendToServer) {
         background-position: center;
         z-index: 2;
       `,
-        'data-type': powerup.type
-      }
+        "data-type": powerup.type,
+      },
     });
   });
   const mapChildren = maze?.flatMap((row) =>
@@ -110,37 +110,34 @@ export default function renderGameScreen(gameState, sendToServer) {
   const playerChildren = Object.values(state.players)
     .map((p) => {
       if (!p.alive) return null;
-      let playerClass = `player player${p.playerId} ${p.invincible ? 'invincible' : ''}`;
-      if (p.invincible) playerClass += " invincible";
+      // Cleaned up class assignment for clarity
+      const playerClasses = ["player", `player${p.playerId}`];
+      if (p.invincible) {
+        playerClasses.push("invincible");
+      }
       return createElement("div", {
         attrs: {
-          class: playerClass,
+          class: playerClasses.join(" "),
           id: `player-${p.playerId}`,
-          style: `transform: translate(${p.x}px, ${p.y}px);`,
         },
       });
     })
     .filter(Boolean);
 
-  // const playerList = Object.values(state.players).map((p) => {
-  //   const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
-  //   return createElement("li", {
-  //     children: [`${p.nickname}: ${lifeDisplay}`],
-  //     attrs: {
-  //       style: p.alive ? "" : "color: #888; text-decoration: line-through;",
-  //     },
-  //   });
-  // });
-
   const playerList = Object.values(state.players).map((p) => {
     const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
     const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
 
-    return createElement("div", {
+    return createElement("li", {
+      children: [`${p.nickname}: ${lifeDisplay} ${speedDisplay}`],
       attrs: {
-        class: 'game-player',
-        style: p.alive ? "" : "color: #888; text-decoration: line-through;"
+        style: p.alive ? "" : "color: #888; text-decoration: line-through;",
       },
+    });
+  });
+
+  const chatMessages = (state.chatMessages || []).map((msg) =>
+    createElement("p", {
       children: [
         createElement('span', {
           children: [p.nickname]
@@ -169,10 +166,27 @@ export default function renderGameScreen(gameState, sendToServer) {
       chatMsgs(state, sendToServer, 'game-chat'),
 
       createElement("button", {
-        attrs: { id: "quit-btn", class: 'btn' },
+        attrs: { id: "quit-btn", class: "btn" },
         children: ["Quit"],
         events: {
-          click: () => quiteGame(gameState, sendToServer)
+          click: () => {
+            if (socket) {
+              socket.close();
+            }
+            gameState.setState({
+              players: {},
+              bombs: [],
+              explosions: [],
+              gameOver: false,
+              winner: null,
+              gameStarted: false,
+              maze: null,
+              currentScreen: "join",
+              nickname: "",
+              chatMessages: [],
+            });
+            window.location.hash = "#/";
+          },
         },
       }),
 
@@ -192,7 +206,6 @@ export default function renderGameScreen(gameState, sendToServer) {
                 attrs: { class: "game-board" },
                 children: mapChildren,
               }),
-              // FIX: Wrap dynamic elements in their own stable containers
               createElement("div", {
                 attrs: { class: "explosions-container" },
                 children: explosionChildren,
@@ -211,16 +224,6 @@ export default function renderGameScreen(gameState, sendToServer) {
               }),
             ],
           })
-        ],
-      }),
-      createElement("div", {
-        attrs: {
-          style:
-            "margin-top: 20px; background: #222; padding: 10px; font-family: monospace; white-space: pre;",
-        },
-        children: [
-          createElement("h4", { children: ["Live Animation State"] }),
-          createElement("div", { attrs: { id: "live-debug-output" } }),
         ],
       }),
     ],
