@@ -16,7 +16,7 @@ h1 {
   border-radius: 10px;
   margin-top: 10rem;
   position: relative;
-  border: 2px solid var(--col2); 
+  border: 2px solid var(--col2);
 }
 
 .wrapper::after {
@@ -27,7 +27,7 @@ h1 {
   position: absolute;
   left: 0;
   top: 0;
-  background: url(../img/bg_dot.png); 
+  background: url(../img/bg_dot.png);
 }
 
 .wrapper::before {
@@ -39,30 +39,30 @@ h1 {
   right: -50px;
   background: url("../img/menu_obj_right.png") no-repeat;
 }
- 
+
 
 .join-screen button,
 .join-screen input[type=text] {
-  width: 250px;
   z-index: 2;
-  color: var(--col1);
-  box-sizing: border-box;
-  border: 2px #fff solid;
-  outline: 2px  solid var(--col2);
-  border-radius: 10px;
-  height: 46px;
 }
 
 .join-screen input[type=text] {
+  height: 46px;
   outline: none;
   background: -moz-linear-gradient(top, #fffae4, #fffae4);
   font-size: 16px;
   border: 2px #f67f00 solid;
+  color: var(--col1);
+  border-radius: 10px;
+  box-sizing: border-box;
+  width: 250px;
 
+  border: 2px #fff solid;
+  outline: 2px solid var(--col2);
 }
 
 .join-screen input[type=text]::placeholder {
   color: var(--col1);
   font-size: 12px;
   text-transform: capitalize;
-} 
+}

@@ -1,28 +1,48 @@
+import { closeSocket } from "../client.js";
+
 export default function routes(gameState) {
   return {
-    "/": () => { 
-      gameState.setState({ ...gameState.getState(), currentScreen: "join" });
+    "/": () => {
+      closeSocket();
+      gameState.setState({
+        players: {},
+        bombs: [],
+        explosions: [],
+        gameOver: false,
+        winner: null,
+        gameStarted: false,
+        maze: null,
+        currentScreen: "join",
+        nickname: "",
+        chatMessages: [],
+        winner: "",
+      });
     },
     "/lobby": () => {
-      if (!gameState.getState().nickname) {
+      const nickname = gameState.getState().nickname;
+      if (!nickname || nickname.length < 2 || nickname.length > 10) {
         window.location.hash = "#/";
         return;
-      } 
+      }
       gameState.setState({ ...gameState.getState(), currentScreen: "lobby" });
     },
     "/game": () => {
-      if (!gameState.getState().nickname) {
+      const nickname = gameState.getState().nickname;
+      if (!nickname || nickname.length < 2 || nickname.length > 10) {
         window.location.hash = "#/";
         return;
-      } 
+      }
       gameState.setState({ ...gameState.getState(), currentScreen: "game" });
     },
-    "/404": () => { 
+    "/404": () => {
       gameState.setState({ ...gameState.getState(), currentScreen: "404" });
     },
     "/gameFull": () => {
       // This handler's only job is to update the state
-      gameState.setState({ ...gameState.getState(), currentScreen: "gameFull" });
+      gameState.setState({
+        ...gameState.getState(),
+        currentScreen: "game",
+      });
     },
   };
 }

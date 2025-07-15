@@ -1,13 +1,41 @@
 import { createElement } from "../src/main.js";
-import { socket } from "../client.js";
-// All keyboard handling functions have been removed from this file.
+import { getSocket, closeSocket } from "../client.js";
+import chatMsgs from "../components/ChatCmp.js";
 
+// All keyboard handling functions have been removed from this file.
+function quiteGame(gameState, sendToServer) {
+
+  closeSocket()
+
+  sendToServer({ type: "quitGame" });
+  gameState.setState({
+    players: {},
+    bombs: [],
+    explosions: [],
+    gameOver: false,
+    winner: null,
+    gameStarted: false,
+    maze: null,
+    currentScreen: "join",
+    isPlayer1: false,
+    nickname: "",
+    chatMessages: [],
+  });
+  location.hash = "#/";
+
+}
 export default function renderGameScreen(gameState, sendToServer) {
   const state = gameState.getState();
   const maze = state.maze;
   const CELL_SIZE = 30;
+  let socket = getSocket()
+  if (!state.gameStarted || !socket) {
+    window.location.hash = "#/gameFull";
+    return
+  }
 
   if (!maze) {
+
     // No need to call removePlayerControls() anymore
     return createElement("div", {
       attrs: { class: "screen loading-screen" },
@@ -46,7 +74,7 @@ export default function renderGameScreen(gameState, sendToServer) {
       },
     });
   });
-  const mapChildren = maze.flatMap((row) =>
+  const mapChildren = maze?.flatMap((row) =>
     row.map((cellType) => {
       let className = "cell";
       if (cellType === "#") className += " wall";
@@ -111,15 +139,32 @@ export default function renderGameScreen(gameState, sendToServer) {
   const chatMessages = (state.chatMessages || []).map((msg) =>
     createElement("p", {
       children: [
-        createElement("strong", { children: [`${msg.nickname}: `] }),
-        msg.text,
+        createElement('span', {
+          children: [p.nickname]
+        }),
+        createElement('img', {
+          attrs: { src: '../assets/img/player/front-frame1.png' }
+        }),
+        createElement('div', {
+          children: [
+            createElement('div', {
+              children: [lifeDisplay]
+            }),
+            createElement('div', {
+              children: [lifeDisplay]//speedDisplay
+            })
+          ]
+        })
       ],
-    })
-  );
+
+    });
+  });
 
   return createElement("div", {
     attrs: { class: "screen game-screen" },
     children: [
+      chatMsgs(state, sendToServer, 'game-chat'),
+
       createElement("button", {
         attrs: { id: "quit-btn", class: "btn" },
         children: ["Quit"],
@@ -149,6 +194,12 @@ export default function renderGameScreen(gameState, sendToServer) {
         attrs: { class: "game-container" },
         children: [
           createElement("div", {
+            attrs: { class: "game-sidebar" },
+            children: [
+              createElement("div", { children: playerList }),
+            ],
+          }),
+          createElement("div", {
             attrs: { class: "game-board-container" },
             children: [
               createElement("div", {
@@ -172,42 +223,7 @@ export default function renderGameScreen(gameState, sendToServer) {
                 children: playerChildren,
               }),
             ],
-          }),
-          createElement("div", {
-            attrs: { class: "game-sidebar" },
-            children: [
-              createElement("h3", { children: ["Players"] }),
-              createElement("ul", { children: playerList }),
-              createElement("h3", {
-                children: ["Chat"],
-                attrs: { style: "margin-top: 20px;" },
-              }),
-              createElement("div", {
-                attrs: { class: "chat-messages" },
-                children: chatMessages,
-              }),
-              createElement("input", {
-                attrs: {
-                  type: "text",
-                  id: "chat-input",
-                  placeholder: "Type and press Enter...",
-                  autocomplete: "off",
-                },
-                events: {
-                  keypress: (e) => {
-                    if (e.key === "Enter") {
-                      const input = e.target;
-                      const text = input.value.trim();
-                      if (text) {
-                        sendToServer({ type: "chat", text: text });
-                        input.value = "";
-                      }
-                    }
-                  },
-                },
-              }),
-            ],
-          }),
+          })
         ],
       }),
     ],
