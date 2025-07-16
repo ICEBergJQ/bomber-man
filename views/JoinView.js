@@ -45,8 +45,12 @@ export default function renderJoinScreen(gameState, sendToServer) {
   return createElement("div", {
     attrs: { class: "  join-screen container" },
     children: [
-      createElement("h1", { children: ["Welcome to Bomberman!"] }),
-      //createElement("h1", { children: ["-------------!"] }),
+      createElement("h1", {
+        attrs:{
+          class:'title'
+        } ,
+        children: ["Welcome to Bomberman!"] 
+      }),
       createElement("div", {
         attrs: { class: "wrapper" },
         children: [

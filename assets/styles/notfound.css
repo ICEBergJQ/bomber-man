@@ -3,7 +3,6 @@
 .x404-screen {
     text-align: center;
     padding: 40px;
-    background-color: #101622;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -13,7 +12,6 @@
 
 .x404-screen h1 {
     font-size: 3em;
-    color: #ff6347;
     /* Tomato color */
 }
 
@@ -29,11 +27,9 @@
 
 .x404-screen button {
     background-color: #007bff;
-    color: white;
     border: none;
     padding: 10px 20px;
     font-size: 1em;
-    cursor: pointer;
     margin-top: 20px;
     border-radius: 5px;
 }

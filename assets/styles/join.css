@@ -8,7 +8,7 @@ h1 {
   position: relative;
 }
 
-h1::after {
+h1.title::after {
   content: "";
   width: 365px;
   height: 255px;

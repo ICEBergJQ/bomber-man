@@ -71,7 +71,6 @@ export default function renderLobbyScreen(gameState, sendToServer) {
       children: [
         createElement("h2", { children: ["welcome to the waiting area"] }),
 
-        createElement("h2", { children: ["welcome to waiting area"] }),
         createElement("div", {
           attrs: { class: "countdown" },
           children: [returnCount(gameState)],

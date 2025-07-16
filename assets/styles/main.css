@@ -32,11 +32,13 @@ a {
   text-decoration: none;
   margin: 5px;
 }
+button{
 
+  cursor: pointer;
+}
 button,
 input {
   padding: 5px 10px;
-  cursor: pointer;
   border: none;
 }
 
