@@ -3,9 +3,8 @@ import { getSocket, closeSocket } from "../client.js";
 import chatMsgs from "../components/ChatCmp.js";
 
 // All keyboard handling functions have been removed from this file.
-function quiteGame(gameState, sendToServer) {
-
-  closeSocket()
+export function quiteGame(gameState, sendToServer) {
+  closeSocket();
 
   sendToServer({ type: "quitGame" });
   gameState.setState({
@@ -22,20 +21,18 @@ function quiteGame(gameState, sendToServer) {
     chatMessages: [],
   });
   location.hash = "#/";
-
 }
 export default function renderGameScreen(gameState, sendToServer) {
   const state = gameState.getState();
   const maze = state.maze;
   const CELL_SIZE = 30;
-  let socket = getSocket()
+  let socket = getSocket();
   if (!state.gameStarted || !socket) {
     window.location.hash = "#/gameFull";
-    return
+    return;
   }
 
   if (!maze) {
-
     // No need to call removePlayerControls() anymore
     return createElement("div", {
       attrs: { class: "screen loading-screen" },
@@ -124,69 +121,58 @@ export default function renderGameScreen(gameState, sendToServer) {
     })
     .filter(Boolean);
 
+  // const playerList = Object.values(state.players).map((p) => {
+  //   const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
+  //   const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
+
+  //   return createElement("li", {
+  //     children: [`${p.nickname}: ${lifeDisplay} ${speedDisplay}`],
+  //     attrs: {
+  //       style: p.alive ? "" : "color: #888; text-decoration: line-through;",
+  //     },
+  //   });
+  // });
+
   const playerList = Object.values(state.players).map((p) => {
     const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
     const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
 
-    return createElement("li", {
-      children: [`${p.nickname}: ${lifeDisplay} ${speedDisplay}`],
+    return createElement("div", {
       attrs: {
+        class: "game-player",
         style: p.alive ? "" : "color: #888; text-decoration: line-through;",
       },
-    });
-  });
-
-  const chatMessages = (state.chatMessages || []).map((msg) =>
-    createElement("p", {
       children: [
-        createElement('span', {
-          children: [p.nickname]
+        createElement("span", {
+          children: [p.nickname],
         }),
-        createElement('img', {
-          attrs: { src: '../assets/img/player/front-frame1.png' }
+        createElement("img", {
+          attrs: { src: "../assets/img/player/front-frame1.png" },
         }),
-        createElement('div', {
+        createElement("div", {
           children: [
-            createElement('div', {
-              children: [lifeDisplay]
+            createElement("div", {
+              children: [lifeDisplay],
             }),
-            createElement('div', {
-              children: [lifeDisplay]//speedDisplay
-            })
-          ]
-        })
+            createElement("div", {
+              children: [lifeDisplay], //speedDisplay
+            }),
+          ],
+        }),
       ],
-
     });
   });
 
   return createElement("div", {
     attrs: { class: "screen game-screen" },
     children: [
-      chatMsgs(state, sendToServer, 'game-chat'),
+      chatMsgs(state, sendToServer, "game-chat"),
 
       createElement("button", {
         attrs: { id: "quit-btn", class: "btn" },
         children: ["Quit"],
         events: {
-          click: () => {
-            if (socket) {
-              socket.close();
-            }
-            gameState.setState({
-              players: {},
-              bombs: [],
-              explosions: [],
-              gameOver: false,
-              winner: null,
-              gameStarted: false,
-              maze: null,
-              currentScreen: "join",
-              nickname: "",
-              chatMessages: [],
-            });
-            window.location.hash = "#/";
-          },
+          click: () => quiteGame(gameState, sendToServer),
         },
       }),
 
@@ -195,9 +181,7 @@ export default function renderGameScreen(gameState, sendToServer) {
         children: [
           createElement("div", {
             attrs: { class: "game-sidebar" },
-            children: [
-              createElement("div", { children: playerList }),
-            ],
+            children: [createElement("div", { children: playerList })],
           }),
           createElement("div", {
             attrs: { class: "game-board-container" },
@@ -223,7 +207,17 @@ export default function renderGameScreen(gameState, sendToServer) {
                 children: playerChildren,
               }),
             ],
-          })
+          }),
+        ],
+      }),
+      createElement("div", {
+        attrs: {
+          style:
+            "margin-top: 20px; background: #222; padding: 10px; font-family: monospace; white-space: pre;",
+        },
+        children: [
+          createElement("h4", { children: ["Live Animation State"] }),
+          createElement("div", { attrs: { id: "live-debug-output" } }),
         ],
       }),
     ],
