@@ -23,16 +23,28 @@
   align-items: center;
 }
 
+.players-container {
+  position: fixed;
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  width: 95%;
+  height: 95%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  transform: translate(-50%, -50%);
+}
+
 .player-card {
   height: 105px;
   width: 75px;
+  position: relative;
   text-align: center;
   border: 2px solid var(--col11);
   outline: 2px solid var(--col1);
-  position: absolute;
   border-radius: 8px;
   box-shadow: 0 2px 5px var(--col2);
-  background-color: var(--col1);
+  background-color: var(--col11);
   overflow: hidden;
 }
 
@@ -49,34 +61,30 @@
   transform: translateX(-50%);
 }
 
-.player-card:nth-of-type(2) {
-  left: 20px;
-  top: 20px;
+
+.players-container .player-card:nth-child(2) {
+  justify-self: end;
 }
 
-.player-card:nth-of-type(3) {
-  right: 20px;
-  top: 20px;
+.players-container .player-card:nth-child(3) {
+  align-self: end;
 }
 
-.player-card:nth-of-type(4) {
-  left: 20px;
-  bottom: 20px;
+.players-container .player-card:nth-child(4) {
+
+  justify-self: end;
+  align-self: end;
 }
 
-.player-card:nth-of-type(5) {
-  right: 20px;
-  bottom: 20px;
-}
 
 .player-card span {
   display: block;
-  text-transform: capitalize;
   margin-top: 60px;
   font-size: 13px;
 }
 
 .chat-container {
+  margin-top: 2rem;
   display: flex;
   justify-content: center;
 }
@@ -172,16 +180,66 @@
   background-color: var(--col11);
 }
 
-@media screen and (max-width:600px) {
-  .player-card:nth-of-type(2) {
-    top: auto;
-    left: 125px !important;
-    bottom: 20px;
+.bounce {
+  background-color: var(--col1);
+  animation: bounce 0.8s infinite alternate;
+  box-shadow: 0  0 5px 2px cyan;
+}
+
+@keyframes bounce {
+  from {
+    transform: scale(0.97);
   }
 
-  .player-card:nth-of-type(3) {
-    top: auto;
-    right: 125px !important;
-    bottom: 20px;
+  to {
+    transform: scale(1.03);
   }
+}
+
+#quit-btn {
+  background-color: transparent;
+  width: 60px;
+  padding: 0;
+  cursor: pointer;
+}
+
+#quit-btn img {
+  width: 100%;
+}
+
+/* media query */
+@media screen and (max-width:768px) {
+  .chat-wrapper::after {
+    bottom: 150px;
+    right: 10px;
+    z-index: -2;
+  }
+}
+
+@media screen and (max-width:600px) {
+
+
+  .chat-messages {
+    height: 50vh;
+  }
+
+  .players-container {
+    position: static;
+    margin-top: 2rem;
+    width: 100%;
+    height: auto;
+    grid-template-columns: repeat(4, 1fr);
+    transform: none;
+  }
+
+  .players-container>div.player-card {
+    justify-self: auto !important;
+  }
+}
+
+@media screen and (max-width:400px) {
+  .player-card {
+    width: 60px;
+  }
+
 }

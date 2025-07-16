@@ -3,25 +3,25 @@ import { connectWebSocket, getSocket } from "../client.js";
 import chatMsgs from "../components/ChatCmp.js";
 import { quiteGame } from "./GameView.js";
 
-export function toGamefull(gameState) {
-  closeSocket();
+// export function toGamefull(gameState) {
+//   closeSocket();
 
-  gameState.setState({
-    players: {},
-    bombs: [],
-    explosions: [],
-    gameOver: false,
-    winner: null,
-    gameStarted: false,
-    maze: null,
-    currentScreen: "gameFull",
-    nickname: "",
-    chatMessages: [],
-    countD : 0,
-    phase: "",
-  });
-  window.location.hash = "#/gameFull"
-}
+//   gameState.setState({
+//     players: {},
+//     bombs: [],
+//     explosions: [],
+//     gameOver: false,
+//     winner: null,
+//     gameStarted: false,
+//     maze: null,
+//     currentScreen: "gameFull",
+//     nickname: "",
+//     chatMessages: [],
+//     countD : 0,
+//     phase: "",
+//   });
+//   window.location.hash = "#/gameFull"
+// }
 
 // https://excalidraw.com/#json=RJHu_-G6zzsMdhMu2waTM,Z0zJ3AAK6CPd9QM1WjLqew
 let defaultplayers = new Array(4).fill(null);
@@ -31,7 +31,7 @@ function returnCount(gameState) {
   if (state.phase === "") {
     return ""
   } else {
-    return state.phase +" "+ state.countD
+    return state.phase + " " + state.countD
   }
 }
 
@@ -46,21 +46,24 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   // console.log(defaultplayers, defaultplayers.length);
   let socket = getSocket();
   if (!socket) {
-    toGamefull(gameState);
+    // toGamefull(gameState);
   } else if (!state.nickname || state.currentScreen !== "lobby") {
     quiteGame(gameState);
   }
 
-  const playersList = defaultplayers.map((player) =>
-    createElement("div", {
-      attrs: { class: "player-card" },
-      children: [
-        createElement("span", {
-          children: [player.nickname],
-        }),
-      ],
-    })
-  );
+  const playersList = createElement('div', {
+    attrs: { class: 'players-container' },
+    children: defaultplayers.map((player) =>
+      createElement("div", {
+        attrs: { class: `player-card ${state.nickname == player.nickname ? 'bounce' : ''} ` },
+        children: [
+          createElement("span", {
+            children: [player.nickname],
+          }),
+        ],
+      })
+    )
+  })
 
   let lobbyContent;
 
@@ -76,8 +79,15 @@ export default function renderLobbyScreen(gameState, sendToServer) {
           children: [returnCount(gameState)],
         }),
         createElement("button", {
-          attrs: { id: "quit-btn" },
-          children: ["Quit"],
+          attrs: { id: "quit-btn", title:'quit' },
+          children: [
+            createElement('img', {
+              attrs:{
+                src:'../assets/img/off.png',
+                alt:'Quit'
+              }
+            })
+          ],
           events: {
             click: () => quiteGame(gameState),
           },
@@ -85,7 +95,7 @@ export default function renderLobbyScreen(gameState, sendToServer) {
       ],
     }),
     chatMsgs(state, sendToServer),
-    ...playersList,
+    playersList,
   ];
 
   return createElement("div", {

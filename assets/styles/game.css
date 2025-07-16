@@ -1,5 +1,5 @@
-#quit-btn{
-  width: 90px;
+#quit-btn {
+  width: 60px;
 }
 
 .game-sidebar {
@@ -57,7 +57,7 @@
 
 .game-container {
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   margin-top: 25px;
   align-items: center;
 }
@@ -268,13 +268,14 @@
 
 
 .powerup {
+  width: var(--cell-size);
+  /* Use CSS variable for consistency */
+  height: var(--cell-size);
   position: absolute;
   background-size: 25px 25px;
   background-position: center center;
   background-repeat: no-repeat;
   animation: float 2s infinite ease-in-out;
-  width: var(--cell-size); /* Use CSS variable for consistency */
-  height: var(--cell-size);
   z-index: 2;
 }
 
