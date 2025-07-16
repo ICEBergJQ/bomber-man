@@ -38,7 +38,7 @@ const gameState = createStore({
   gameStarted: false,
   maze: null,
   currentScreen: "join",
-  nickname: "qsd11",
+  nickname: "",
   chatMessages: [],
   winner: '',
 });
@@ -95,7 +95,9 @@ export function renderApp(newVDomTree) {
   currentVDomTree = newVDomTree;
 }
 const routes = getRoutes(gameState);
+
 createRouter(routes);
+
 const screens = {
   join: renderJoinScreen,
   lobby: renderLobbyScreen,
@@ -103,6 +105,7 @@ const screens = {
   404: NotfoundView,
   gameFull: renderGameErr,
 };
+
 gameState.subscribe(() => {
   const state = gameState.getState();
   const currentScreenName = state.currentScreen;

@@ -55,17 +55,10 @@ export default function renderGameScreen(gameState, sendToServer) {
     return createElement("div", {
       attrs: {
         class: `powerup powerup-${powerup.type}`,
-        style: `
-        position: absolute;
+        style: ` 
         left: ${x}px;
-        top: ${y}px;
-        width: ${CELL_SIZE}px;
-        height: ${CELL_SIZE}px;
-        background-image: url('${imageSrc}');
-        background-size: 80%;
-        background-repeat: no-repeat;
-        background-position: center;
-        z-index: 2;
+        top: ${y}px; 
+        background-image: url('${imageSrc}'); 
       `,
         "data-type": powerup.type,
       },
