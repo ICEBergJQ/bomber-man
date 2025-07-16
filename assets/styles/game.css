@@ -109,12 +109,12 @@
 
 .wall {
   background-color: #666;
-  background-image: url("../img/obsidian.jpg");
+  background-image: url("../img/obsidian.png");
 }
 
 .box {
   background-color: #8b4513;
-  background-image: url("../img/stone.jpg");
+  background-image: url("../img/stone.png");
 }
 
 .empty {
