@@ -1,4 +1,4 @@
-#quit-btn {
+#quit-btn{
   width: 90px;
 }
 
@@ -269,14 +269,26 @@
 
 .powerup {
   position: absolute;
-  width: 30px;
-  height: 30px;
-  z-index: 3;
   background-size: 25px 25px;
   background-position: center center;
   background-repeat: no-repeat;
   animation: float 2s infinite ease-in-out;
-  /* Centers in 30px cell */
+  width: var(--cell-size); /* Use CSS variable for consistency */
+  height: var(--cell-size);
+  z-index: 2;
+}
+
+
+.powerup-speedBoost {
+  background-image: url('/assets/img/extraSpeed.png');
+}
+
+.powerup-extraLife {
+  background-image: url('/assets/img/life.png');
+}
+
+.powerup-shield {
+  background-image: url('/assets/img/sheld.png');
 }
 
 .powerup[data-type="extraLife"] {
