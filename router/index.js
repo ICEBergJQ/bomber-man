@@ -40,8 +40,16 @@ export default function routes(gameState) {
     "/gameFull": () => {
       // This handler's only job is to update the state
       gameState.setState({
-        ...gameState.getState(),
-        currentScreen: "game",
+        players: {},
+        bombs: [],
+        explosions: [],
+        gameOver: false,
+        winner: null,
+        gameStarted: false,
+        maze: null,
+        currentScreen: "gameFull",
+        nickname: "",
+        chatMessages: [],
       });
     },
   };

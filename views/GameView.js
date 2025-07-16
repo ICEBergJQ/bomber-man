@@ -3,10 +3,9 @@ import { getSocket, closeSocket } from "../client.js";
 import chatMsgs from "../components/ChatCmp.js";
 
 // All keyboard handling functions have been removed from this file.
-export function quiteGame(gameState, sendToServer) {
+export function quiteGame(gameState) {
   closeSocket();
 
-  sendToServer({ type: "quitGame" });
   gameState.setState({
     players: {},
     bombs: [],
@@ -16,7 +15,6 @@ export function quiteGame(gameState, sendToServer) {
     gameStarted: false,
     maze: null,
     currentScreen: "join",
-    isPlayer1: false,
     nickname: "",
     chatMessages: [],
   });
@@ -172,7 +170,7 @@ export default function renderGameScreen(gameState, sendToServer) {
         attrs: { id: "quit-btn", class: "btn" },
         children: ["Quit"],
         events: {
-          click: () => quiteGame(gameState, sendToServer),
+          click: () => quiteGame(gameState),
         },
       }),
 

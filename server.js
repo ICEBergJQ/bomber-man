@@ -330,6 +330,13 @@ function movePlayer(playerId, dir) {
 
 function forceStartGame() {
   gameState.gameStarted = true;
+  for (const [clientId, client] of Object.entries(clients)) {
+    if (client.playerId === null) {
+      client.ws.close(1000, "Disconnected: Game started without registration");
+      delete clients[clientId];
+      console.log(`Unregistered client ${clientId} removed on game start`);
+    }
+  }
   broadcastGameState();
 }
 
@@ -389,11 +396,20 @@ wss.on("connection", (ws) => {
     switch (data.type) {
       case "registerPlayer":
         if (!data.nickname) return;
-        if (
-          clients[id].playerId != null ||
-          gameState.playerCount >= MAX_PLAYERS
-        )
-          return;
+
+        if (  clients[id].playerId != null ||
+          gameState.playerCount >= MAX_PLAYERS) {
+          for (const [clientId, client] of Object.entries(clients)) {
+            if (client.playerId === null) {
+              client.ws.close(1000, "Disconnected: max players reached");
+              delete clients[clientId];
+              console.log(
+                `Unregistered client ${clientId} removed on game start`
+              );
+            }
+          }
+          return
+        }
 
         gameState.playerCount++;
         const playerId = assignID();

@@ -38,7 +38,7 @@ const gameState = createStore({
   gameStarted: false,
   maze: null,
   currentScreen: "join",
-  nickname: "qsd11",
+  nickname: "",
   chatMessages: [],
   winner: '',
 });
@@ -48,23 +48,21 @@ export function connectWebSocket() {
   socket.onopen = () => console.log("WebSocket connection established.");
   socket.onclose = (e) => {
     console.log("WebSocket connection closed" + e.reason);
-    if (e.reason === "Game is full or has already started") {
-      gameState.setState({
-        players: {},
-        bombs: [],
-        explosions: [],
-        gameOver: false,
-        winner: null,
-        gameStarted: false,
-        maze: null,
-        nickname: "",
-        chatMessages: [],
-        currentScreen: "gameFull",
-      });
-      if (window.location.hash !== "#/") {
-        window.location.reload();
-      }
-    }
+    if (e.reason === "Game is full or has already started" || e.reason === "Disconnected: max players reached") {
+        gameState.setState({
+          players: {},
+          bombs: [],
+          explosions: [],
+          gameOver: false,
+          winner: null,
+          gameStarted: false,
+          maze: null,
+          nickname: "",
+          chatMessages: [],
+          currentScreen: "gameFull",
+        });
+        window.location.hash= '#/gameFull'
+    } 
   };
   socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);
