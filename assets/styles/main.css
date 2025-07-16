@@ -1,15 +1,20 @@
 @import url("https://fonts.googleapis.com/css2?family=DynaPuff:wght@400..700&display=swap");
 
 :root {
-  --col1: #ee4f71;
+  /* --col1: #ee4f71;
     --col11: #ce3657;
     --col111: #ce3657ad;
-    --col2: #f67f00;
+    --col2: #f67f00; 
+  --gradient1: #ffad1e;
+  --gradient2: #ffd94b;
+*/
+  --col1: #4ab0dc;
+  --col11: #258ab5;
+  --col111: #05529999;
+  --col2: #068dba;
 
-   /* --col1: #8b2336;
-  --col11: #701b2c;
-  --col111: #701b2c99;
-  --col2: #a35700; */
+  --gradient1: #1ec3ff;
+  --gradient2: #79ceff;
 }
 
 body {
@@ -19,6 +24,7 @@ body {
   color: white;
   background-image: url("../img/bg_pattern.jpg");
 }
+
 a {
   color: #eee;
   text-decoration: none;

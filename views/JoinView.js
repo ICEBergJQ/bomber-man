@@ -55,8 +55,8 @@ export default function renderJoinScreen(gameState, sendToServer) {
               type: "text",
               placeholder: "Enter your nickname",
               id: "nicknameInput",
-              minlength:'2',
-              maxlength:'10',
+              minlength: '2',
+              maxlength: '10',
               autofocus: true
             },
             events: {

@@ -17,29 +17,32 @@ function handleInput(e, sendToServer) {
         }
     }
 }
-function toggleChat(e){
+function toggleChat(e) {
     e.target.parentElement.classList.toggle('show')
 }
 export default function ChatUI(state, sendToServer, className = '') {
-    console.log('chat ui');
+    console.log('chat ui', state);
 
     const chatMsgs = (state.chatMessages || []).map((msg) =>
         createElement("span", {
+            attrs: { class: msg.nickname === state.nickname ? 'right' : '' },
             children: [
-                createElement("strong", { children: [`${msg.nickname}`] }),
+                createElement("strong", {
+                    children: [`${msg.nickname}`]
+                }),
                 msg.text,
             ],
         })
     );
 
     return createElement("div", {
-       //    attrs: { class: `chat-container ${className} show` },
-      attrs: { class: `chat-container ${className} ` },
+        //    attrs: { class: `chat-container ${className} show` },
+        attrs: { class: `chat-container ${className} show` },
         children: [
             className && createElement('span', {
                 attrs: { class: 'opener' },
-                events:{
-                    click:(e)=> toggleChat(e)
+                events: {
+                    click: (e) => toggleChat(e)
                 }
             }),
             createElement('div', {
