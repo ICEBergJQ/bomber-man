@@ -1,3 +1,7 @@
+:root {
+  --cell-size: 30px; /* Define once, use everywhere */
+}
+
 #quit-btn{
   width: 90px;
 }
@@ -266,15 +270,25 @@
 
 .powerup {
   position: absolute;
-  width: 24px;
-  height: 24px;
-  background-size: contain;
+  width: var(--cell-size); /* Use CSS variable for consistency */
+  height: var(--cell-size);
+  background-size: 80%;
   background-repeat: no-repeat;
   background-position: center;
-  z-index: 3;
-  animation: float 2s infinite ease-in-out;
-  margin: 3px;
-  /* Centers in 30px cell */
+  z-index: 2;
+}
+
+
+.powerup-speedBoost {
+  background-image: url('/assets/img/extraSpeed.png');
+}
+
+.powerup-extraLife {
+  background-image: url('/assets/img/life.png');
+}
+
+.powerup-shield {
+  background-image: url('/assets/img/sheld.png');
 }
 
 .powerup[data-type="extraLife"] {
