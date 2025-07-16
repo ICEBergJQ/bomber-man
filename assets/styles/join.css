@@ -15,7 +15,7 @@ h1.title::after {
   position: absolute;
   left: 0;
   top: 100%;
-  background: url(../img/more_chara_1.png);
+  background: url(../img/more_chara_1.png) no-repeat;
 }
 
 .wrapper {
@@ -33,8 +33,8 @@ h1.title::after {
 .wrapper::after {
   content: "";
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 112px;
+  height: 99px;
   position: absolute;
   left: 0;
   top: 0;
@@ -76,4 +76,22 @@ h1.title::after {
   color: var(--col1);
   font-size: 12px;
   text-transform: capitalize;
+}
+
+@media screen and (max-width:440px) {
+
+  h1.title::after {
+    width: 210px;
+    height: 255px;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    background-size: 200px;
+    top: 100%;
+  }
+
+  .wrapper::before {
+
+    left: 40%;
+  }
 }

@@ -42,7 +42,6 @@ export default function routes(gameState) {
     "/gameFull": () => {
       // This handler's only job is to update the state
       gameState.setState({
-
         players: {},
         bombs: [],
         explosions: [],

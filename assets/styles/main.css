@@ -24,7 +24,7 @@ body {
   font-family: Arial, sans-serif;
   background-color: #1a1a1a;
   color: white;
-  background-image: url("../img/bg_pattern.jpg");
+  /* background-image: url("../img/bg_pattern.jpg"); */
 }
 
 a {
@@ -32,10 +32,12 @@ a {
   text-decoration: none;
   margin: 5px;
 }
-button{
+
+button {
 
   cursor: pointer;
 }
+
 button,
 input {
   padding: 5px 10px;
@@ -45,4 +47,12 @@ input {
 label {
   cursor: pointer;
   display: block;
+}
+
+@media screen and (max-width: 440px) {
+
+  h1, h2 {
+    font-size: 1.2rem;
+  }
+
 }
