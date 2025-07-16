@@ -16,6 +16,8 @@ export default function routes(gameState) {
         nickname: "",
         chatMessages: [],
         winner: "",
+        countD: 0,
+        phase: "",
       });
     },
     "/lobby": () => {
@@ -50,6 +52,8 @@ export default function routes(gameState) {
         currentScreen: "gameFull",
         nickname: "",
         chatMessages: [],
+        countD: 0,
+        phase: "",
       });
     },
   };

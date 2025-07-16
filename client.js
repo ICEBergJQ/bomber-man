@@ -13,7 +13,6 @@ export function getSocket() {
   return socket;
 }
 
-
 export function closeSocket() {
   if (socket) {
     socket.close();
@@ -27,9 +26,9 @@ function sendToServer(message) {
 }
 const gameState = createStore({
   players: {
-    alive:true,
-    lives:3,
-    speed:1.5
+    alive: true,
+    lives: 3,
+    speed: 1.5,
   },
   bombs: [],
   explosions: [],
@@ -40,7 +39,7 @@ const gameState = createStore({
   currentScreen: "join",
   nickname: "",
   chatMessages: [],
-  winner: '',
+  winner: "",
 });
 export function connectWebSocket() {
   if (socket && socket.readyState === WebSocket.OPEN) return;
@@ -48,33 +47,41 @@ export function connectWebSocket() {
   socket.onopen = () => console.log("WebSocket connection established.");
   socket.onclose = (e) => {
     console.log("WebSocket connection closed" + e.reason);
-    if (e.reason === "Game is full or has already started" || e.reason === "Disconnected: max players reached") {
-        gameState.setState({
-          players: {},
-          bombs: [],
-          explosions: [],
-          gameOver: false,
-          winner: null,
-          gameStarted: false,
-          maze: null,
-          nickname: "",
-          chatMessages: [],
-          currentScreen: "gameFull",
-        });
-        window.location.hash= '#/gameFull'
-    } 
+    if (
+      e.reason === "Game is full or has already started" ||
+      e.reason === "Disconnected: max players reached"
+    ) {
+      gameState.setState({
+        players: {},
+        bombs: [],
+        explosions: [],
+        gameOver: false,
+        winner: null,
+        gameStarted: false,
+        maze: null,
+        nickname: "",
+        chatMessages: [],
+        currentScreen: "gameFull",
+        countD: 0,
+        phase: "",
+      });
+      window.location.hash = "#/gameFull";
+    }
   };
   socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);
-    if (msg.type === "gameState") {
-      console.log(msg);
-      
+    console.log(msg);
+    if (msg.type === "countdown"){
+      gameState.setState({ ...gameState.getState(), countD: msg.time, phase: msg.phase });
+    } else if (msg.type === "gameState") {
       gameState.setState({ ...gameState.getState(), ...msg.data });
     } else if (msg.type === "chatMessage") {
       const currentState = gameState.getState();
       const newMessages = [...currentState.chatMessages, msg.data];
       if (newMessages.length > 20) newMessages.shift();
       gameState.setState({ ...currentState, chatMessages: newMessages });
+    } else if (msg.type === "stopped"){
+      gameState.setState({ ...gameState.getState(), countD: 0, phase: "" })
     }
   };
 }

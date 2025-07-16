@@ -17,6 +17,8 @@ export function quiteGame(gameState) {
     currentScreen: "join",
     nickname: "",
     chatMessages: [],
+    countD : 0,
+    phase: "",
   });
   location.hash = "#/";
 }

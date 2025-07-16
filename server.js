@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const WebSocket = require("ws");
 const os = require("os");
+const { start } = require("repl");
 
 const requestHandler = (req, res) => {
   let filePath = path.join(__dirname, req.url === "/" ? "index.html" : req.url);
@@ -44,7 +45,7 @@ const wss = new WebSocket.Server({ server });
 // --- Game Logic ---
 const MAX_PLAYERS = 4;
 const HEARTBEAT_INTERVAL = 30000;
-let ReInter;
+// let reInter;
 
 const CELL_SIZE = 30;
 const MOVE_INCREMENT = 7.5;
@@ -340,6 +341,72 @@ function forceStartGame() {
   broadcastGameState();
 }
 
+let waitInterval = null;
+let startInterval = null;
+
+function broadcast(type, data = {}) {
+  const msg = JSON.stringify({ type, ...data });
+  Object.values(clients).forEach((c) => {
+    if (c.ws.readyState === WebSocket.OPEN) c.ws.send(msg);
+  });
+}
+
+function startGameInten() {
+  let timeLeft = 10;
+
+  clearInterval(startInterval); // prevent duplicates
+
+  startInterval = setInterval(() => {
+    broadcast("countdown", { phase: "start", time: timeLeft });
+    console.log(`Game start countdown: ${timeLeft}`);
+
+    timeLeft--;
+
+    if (timeLeft < 0) {
+      clearInterval(startInterval);
+      startInterval = null;
+
+      console.log("Starting game...");
+      forceStartGame();
+    }
+  }, 1000);
+}
+
+function startWait() {
+  let timeLeft = 20;
+
+  clearInterval(waitInterval); // prevent duplicates
+
+  waitInterval = setInterval(() => {
+    broadcast("countdown", { phase: "wait", time: timeLeft });
+    console.log(`Wait countdown: ${timeLeft}`);
+
+    timeLeft--;
+
+    if (timeLeft < 0) {
+      clearInterval(waitInterval);
+      waitInterval = null;
+
+      startGameInten();
+    }
+  }, 1000);
+}
+
+function cancelAllCountdowns() {
+  if (waitInterval) {
+    clearInterval(waitInterval);
+    waitInterval = null;
+    console.log("cleared wait interval");
+  }
+  if (startInterval) {
+    clearInterval(startInterval);
+    startInterval = null;
+    console.log("cleared start interval");
+  }
+
+  broadcast("stopped");
+}
+
 function assignID() {
   const available = IDs.find((id) => !id.taken);
   if (!available) {
@@ -397,8 +464,10 @@ wss.on("connection", (ws) => {
       case "registerPlayer":
         if (!data.nickname) return;
 
-        if (  clients[id].playerId != null ||
-          gameState.playerCount >= MAX_PLAYERS) {
+        if (
+          clients[id].playerId != null ||
+          gameState.playerCount >= MAX_PLAYERS
+        ) {
           for (const [clientId, client] of Object.entries(clients)) {
             if (client.playerId === null) {
               client.ws.close(1000, "Disconnected: max players reached");
@@ -408,7 +477,7 @@ wss.on("connection", (ws) => {
               );
             }
           }
-          return
+          return;
         }
 
         gameState.playerCount++;
@@ -433,10 +502,13 @@ wss.on("connection", (ws) => {
           invincible: false,
         };
         broadcastGameState();
+        if (gameState.playerCount > 1 && !gameState.gameStarted) {
+          startWait();
+        }
         break;
-      case "startGame":
-        forceStartGame();
-        break;
+      // case "startGame":
+      //   forceStartGame();
+      //   break;
       case "move":
         movePlayer(clients[id]?.playerId, data.direction);
         break;
@@ -474,6 +546,31 @@ wss.on("connection", (ws) => {
     delete clients[id];
     console.log(`Connection closed: ${id}, Player ID: ${playerId}`);
     console.log(`Active players: ${Object.keys(gameState.players).length}`);
+    // if (gameState.playerCount <= 1) {
+    //   let wasCleared = false;
+
+    //   if (waitTimeout) {
+    //     clearTimeout(waitTimeout);
+    //     waitTimeout = null;
+    //     wasCleared = true;
+    //     console.log("cleared wait timeout");
+    //   }
+
+    //   if (startTimeout) {
+    //     clearTimeout(startTimeout);
+    //     startTimeout = null;
+    //     wasCleared = true;
+    //     console.log("cleared start timeout");
+    //   }
+
+    //   if (wasCleared) {
+    //     broadcast("stopped");
+    //   }
+    // }
+    if (gameState.playerCount <= 1) {
+      cancelAllCountdowns();
+    }
+
     if (gameState.playerCount === 0) {
       initializeGame();
       console.log("All players left: game fully reset");

@@ -17,12 +17,23 @@ export function toGamefull(gameState) {
     currentScreen: "gameFull",
     nickname: "",
     chatMessages: [],
+    countD : 0,
+    phase: "",
   });
   window.location.hash = "#/gameFull"
 }
 
 // https://excalidraw.com/#json=RJHu_-G6zzsMdhMu2waTM,Z0zJ3AAK6CPd9QM1WjLqew
 let defaultplayers = new Array(4).fill(null);
+
+function returnCount(gameState) {
+  const state = gameState.getState()
+  if (state.phase === "") {
+    return ""
+  } else {
+    return state.phase +" "+ state.countD
+  }
+}
 
 export default function renderLobbyScreen(gameState, sendToServer) {
   const state = gameState.getState();
@@ -59,10 +70,9 @@ export default function renderLobbyScreen(gameState, sendToServer) {
       attrs: { class: "container" },
       children: [
         createElement("h2", { children: ["welcome to waiting area"] }),
-        createElement("button", {
-          attrs: { class: "btn-success" },
-          children: ["Start Game"],
-          events: { click: () => sendToServer({ type: "startGame" }) },
+        createElement("div", {
+          attrs: { class: "countdown" },
+          children: [returnCount(gameState)],
         }),
         createElement("button", {
           attrs: { id: "quit-btn" },
