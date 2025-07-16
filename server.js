@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const WebSocket = require("ws");
 const os = require("os");
-const { start } = require("repl");
+// const { start } = require("repl");
 
 const requestHandler = (req, res) => {
   let filePath = path.join(__dirname, req.url === "/" ? "index.html" : req.url);
@@ -563,9 +563,6 @@ wss.on("connection", (ws) => {
           startWait();
         }
         break;
-      // case "startGame":
-      //   forceStartGame();
-      //   break;
       case "move":
         movePlayer(clients[id]?.playerId, data.direction);
         break;
@@ -603,27 +600,6 @@ wss.on("connection", (ws) => {
     delete clients[id];
     console.log(`Connection closed: ${id}, Player ID: ${playerId}`);
     console.log(`Active players: ${Object.keys(gameState.players).length}`);
-    // if (gameState.playerCount <= 1) {
-    //   let wasCleared = false;
-
-    //   if (waitTimeout) {
-    //     clearTimeout(waitTimeout);
-    //     waitTimeout = null;
-    //     wasCleared = true;
-    //     console.log("cleared wait timeout");
-    //   }
-
-    //   if (startTimeout) {
-    //     clearTimeout(startTimeout);
-    //     startTimeout = null;
-    //     wasCleared = true;
-    //     console.log("cleared start timeout");
-    //   }
-
-    //   if (wasCleared) {
-    //     broadcast("stopped");
-    //   }
-    // }
     if (gameState.playerCount <= 1) {
       cancelAllCountdowns();
     }

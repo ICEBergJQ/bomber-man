@@ -3,7 +3,7 @@
 .x404-screen {
     text-align: center;
     padding: 40px;
-    background-color: #101622;
+    background-color: transparent;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
