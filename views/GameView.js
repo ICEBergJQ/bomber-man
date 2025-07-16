@@ -49,7 +49,7 @@ export default function renderGameScreen(gameState, sendToServer) {
     const imageSrc = {
       speedBoost: "/assets/img/extraSpeed.png",
       extraLife: "/assets/img/life.png",
-      shield: "/assets/img/sheld.jpg",
+      shield: "/assets/img/sheld.png",
     }[powerup.type];
 
     return createElement("div", {
