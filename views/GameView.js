@@ -3,10 +3,9 @@ import { getSocket, closeSocket } from "../client.js";
 import chatMsgs from "../components/ChatCmp.js";
 
 // All keyboard handling functions have been removed from this file.
-export function quiteGame(gameState, sendToServer) {
+export function quiteGame(gameState) {
   closeSocket();
 
-  sendToServer({ type: "quitGame" });
   gameState.setState({
     players: {},
     bombs: [],
@@ -16,9 +15,10 @@ export function quiteGame(gameState, sendToServer) {
     gameStarted: false,
     maze: null,
     currentScreen: "join",
-    isPlayer1: false,
     nickname: "",
     chatMessages: [],
+    countD: 0,
+    phase: "",
   });
   location.hash = "#/";
 }
@@ -40,32 +40,16 @@ export default function renderGameScreen(gameState, sendToServer) {
     });
   }
 
-  // No need to call addPlayerControls() anymore
   const powerupChildren = (state.powerups || []).map((powerup) => {
     const x = powerup.col * CELL_SIZE;
     const y = powerup.row * CELL_SIZE;
-
-    // Determine which image to use based on powerup type
-    const imageSrc = {
-      speedBoost: "/assets/img/extraSpeed.png",
-      extraLife: "/assets/img/life.png",
-      shield: "/assets/img/sheld.jpg",
-    }[powerup.type];
 
     return createElement("div", {
       attrs: {
         class: `powerup powerup-${powerup.type}`,
         style: `
-        position: absolute;
         left: ${x}px;
         top: ${y}px;
-        width: ${CELL_SIZE}px;
-        height: ${CELL_SIZE}px;
-        background-image: url('${imageSrc}');
-        background-size: 80%;
-        background-repeat: no-repeat;
-        background-position: center;
-        z-index: 2;
       `,
         "data-type": powerup.type,
       },
@@ -172,7 +156,7 @@ export default function renderGameScreen(gameState, sendToServer) {
         attrs: { id: "quit-btn", class: "btn" },
         children: ["Quit"],
         events: {
-          click: () => quiteGame(gameState, sendToServer),
+          click: () => quiteGame(gameState),
         },
       }),
 

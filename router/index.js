@@ -16,6 +16,8 @@ export default function routes(gameState) {
         nickname: "",
         chatMessages: [],
         winner: "",
+        countD: 0,
+        phase: "",
       });
     },
     "/lobby": () => {
@@ -40,8 +42,19 @@ export default function routes(gameState) {
     "/gameFull": () => {
       // This handler's only job is to update the state
       gameState.setState({
-        ...gameState.getState(),
-        currentScreen: "game",
+
+        players: {},
+        bombs: [],
+        explosions: [],
+        gameOver: false,
+        winner: null,
+        gameStarted: false,
+        maze: null,
+        currentScreen: "gameFull",
+        nickname: "",
+        chatMessages: [],
+        countD: 0,
+        phase: "",
       });
     },
   };

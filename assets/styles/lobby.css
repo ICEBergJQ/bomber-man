@@ -1,7 +1,7 @@
 .lobby-screen .container h2 {
   padding: 0 20px;
   border-radius: 20px;
-  background-color: var(--col1);
+  background-color: var(--col11);
   position: relative;
 }
 
@@ -27,7 +27,7 @@
   height: 105px;
   width: 75px;
   text-align: center;
-  border: 2px solid #fff;
+  border: 2px solid var(--col11);
   outline: 2px solid var(--col1);
   position: absolute;
   border-radius: 8px;
@@ -45,7 +45,7 @@
   left: 50%;
   top: 10px;
   position: absolute;
-  border: 2px solid #fff;
+  border: 2px solid var(--col11);
   transform: translateX(-50%);
 }
 
@@ -83,7 +83,19 @@
 
 .chat-wrapper {
   border-radius: 15px;
+  position: relative;
   box-shadow: 0 0 5px 2px var(--col1);
+}
+
+.chat-wrapper::after {
+  content: "";
+  background: url("../img/movie_chara_2.png") no-repeat;
+  position: absolute;
+  width: 244px;
+  height: 235px;
+  bottom: -50px;
+  right: -200px;
+  z-index: 2;
 }
 
 .chat-messages {
@@ -94,14 +106,16 @@
   padding: 10px 5px;
   scrollbar-color: #fff #fff;
   scrollbar-width: thin;
+  display: flex;
+  flex-direction: column;
   background-color: var(--col111);
 }
 
 .chat-messages span {
   display: block;
   width: fit-content;
-  padding: 3px 8px;
-  border-radius: 0 10px 10px;
+  padding: 3px 12px;
+  border-radius: 0 12px 12px;
   word-wrap: anywhere;
   margin: 8px 0;
   box-shadow: 0 0 5px var(--col11);
@@ -109,6 +123,11 @@
   background-color: #fff;
   font-size: 14px;
   animation: msg 0.6s ease-out 1;
+}
+
+.chat-messages .right {
+  border-radius: 12px 0 12px 12px;
+  align-self: end;
 }
 
 .chat-messages strong {

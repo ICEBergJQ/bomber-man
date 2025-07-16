@@ -2,19 +2,30 @@
 
 h1 {
   font-family: "DynaPuff", system-ui;
-  background-color: var(--col1);
+  background-color: var(--col11);
   padding: 0 20px;
   border-radius: 20px;
+  position: relative;
+}
+
+h1.title::after {
+  content: "";
+  width: 365px;
+  height: 255px;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  background: url(../img/more_chara_1.png);
 }
 
 .wrapper {
   display: flex;
-  background: linear-gradient(to left, #ffad1e, #ffd94b);
+  background: linear-gradient(to left, var(--gradient1), var(--gradient2));
   flex-direction: column;
   align-items: center;
   padding: 20px 40px;
   border-radius: 10px;
-  margin-top: 10rem;
+  margin-top: 14rem;
   position: relative;
   border: 2px solid var(--col2);
 }

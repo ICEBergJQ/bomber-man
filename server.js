@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const WebSocket = require("ws");
 const os = require("os");
+const { start } = require("repl");
 
 const requestHandler = (req, res) => {
   let filePath = path.join(__dirname, req.url === "/" ? "index.html" : req.url);
@@ -44,7 +45,7 @@ const wss = new WebSocket.Server({ server });
 // --- Game Logic ---
 const MAX_PLAYERS = 4;
 const HEARTBEAT_INTERVAL = 30000;
-let ReInter;
+// let reInter;
 
 const CELL_SIZE = 30;
 const MOVE_INCREMENT = 7.5;
@@ -222,12 +223,10 @@ function explodeBomb(bomb) {
 
   broadcastGameState();
 }
-
 function checkPowerupCollection() {
   Object.values(gameState.players).forEach((p) => {
     if (!p.alive) return;
 
-    // Use player's center for more reliable collection
     const p_col = Math.floor((p.x + CELL_SIZE / 2) / CELL_SIZE);
     const p_row = Math.floor((p.y + CELL_SIZE / 2) / CELL_SIZE);
 
@@ -235,34 +234,93 @@ function checkPowerupCollection() {
       (pu) => pu.row === p_row && pu.col === p_col
     );
 
-    if (powerupIndex !== -1) {
-      const powerup = gameState.powerups[powerupIndex];
-      if (powerup.type === "extraLife") {
-        p.lives++;
-      } else if (powerup.type === "speedBoost") {
+    if (powerupIndex === -1) return;
+
+    const powerup = gameState.powerups[powerupIndex];
+
+    switch (powerup.type) {
+      case "extraLife":
+        if (p.lives < 3) {
+          p.lives++;
+        } else {
+          return;  
+        }
+        break;
+
+      case "speedBoost":
         p.speed = (p.speed || 1) * 2;
         setTimeout(() => {
-          // Ensure player still exists before changing their state
           if (gameState.players[p.playerId]) {
-            gameState.players[p.playerId].speed /= 2;
+            gameState.players[p.playerId].speed /= 2;;
             broadcastGameState();
           }
-        }, 20000); // Speed boost lasts 20 seconds
-      } else if (powerup.type === "shield") {
+        }, 20000);
+        break;
+
+      case "shield":
         p.invincible = true;
         setTimeout(() => {
-          // Ensure player still exists
           if (gameState.players[p.playerId]) {
-            p.invincible = false;
+            gameState.players[p.playerId].invincible = false;
+            console.log('sheild TSALAAAAA');
             broadcastGameState();
           }
-        }, 20000); // Shield lasts 20 seconds
-      }
-      gameState.powerups.splice(powerupIndex, 1);
-      broadcastGameState();
+        }, 20000);
+        break;
     }
+
+    gameState.powerups.splice(powerupIndex, 1);
+    broadcastGameState();
   });
 }
+
+
+// function checkPowerupCollection() {
+//   Object.values(gameState.players).forEach((p) => {
+//     if (!p.alive) {
+//       return
+//     }
+//     const p_col = Math.floor((p.x + CELL_SIZE / 2) / CELL_SIZE);
+//     const p_row = Math.floor((p.y + CELL_SIZE / 2) / CELL_SIZE);
+//     const powerupIndex = gameState.powerups.findIndex(
+//       (pu) => pu.row === p_row && pu.col === p_col
+//     );
+//     console.log(powerupIndex, 'powerupIndex');
+//     let ff = true
+//     if (powerupIndex !== -1) {
+//       const powerup = gameState.powerups[powerupIndex];
+//       if (powerup.type === "extraLife") {
+//         if (p.lifes >= 3) {
+//           ff = false
+//           return
+//         }
+//         p.lives++;
+//       } else if (powerup.type === "speedBoost") {
+//         p.speed = (p.speed || 1) * 2;
+//         setTimeout(() => {
+//           // is player still exists
+//           if (gameState.players[p.playerId]) {
+//             gameState.players[p.playerId].speed /= 2;
+//             broadcastGameState();
+//           }
+//         }, 20000);
+//       } else if (powerup.type === "shield") {
+//         p.invincible = true;
+//         setTimeout(() => {
+//           // 7ta hna .....
+//           if (gameState.players[p.playerId]) {
+//             p.invincible = false;
+//             broadcastGameState();
+//           }
+//         }, 20000);
+//       }
+//       if (!ff) {
+//         gameState.powerups.splice(powerupIndex, 1);
+//         broadcastGameState();
+//       }
+//     }
+//   });
+// }
 
 function placeBomb(playerId) {
   const p = gameState.players[playerId];
@@ -330,7 +388,80 @@ function movePlayer(playerId, dir) {
 
 function forceStartGame() {
   gameState.gameStarted = true;
+  for (const [clientId, client] of Object.entries(clients)) {
+    if (client.playerId === null) {
+      client.ws.close(1000, "Disconnected: Game started without registration");
+      delete clients[clientId];
+      console.log(`Unregistered client ${clientId} removed on game start`);
+    }
+  }
   broadcastGameState();
+}
+
+let waitInterval = null;
+let startInterval = null;
+
+function broadcast(type, data = {}) {
+  const msg = JSON.stringify({ type, ...data });
+  Object.values(clients).forEach((c) => {
+    if (c.ws.readyState === WebSocket.OPEN) c.ws.send(msg);
+  });
+}
+
+function startGameInten() {
+  let timeLeft = 10;
+
+  clearInterval(startInterval); // prevent duplicates
+
+  startInterval = setInterval(() => {
+    broadcast("countdown", { phase: "start", time: timeLeft });
+    console.log(`Game start countdown: ${timeLeft}`);
+
+    timeLeft--;
+
+    if (timeLeft < 0) {
+      clearInterval(startInterval);
+      startInterval = null;
+
+      console.log("Starting game...");
+      forceStartGame();
+    }
+  }, 1000);
+}
+
+function startWait() {
+  let timeLeft = 20;
+
+  clearInterval(waitInterval); // prevent duplicates
+
+  waitInterval = setInterval(() => {
+    broadcast("countdown", { phase: "wait", time: timeLeft });
+    console.log(`Wait countdown: ${timeLeft}`);
+
+    timeLeft--;
+
+    if (timeLeft < 0) {
+      clearInterval(waitInterval);
+      waitInterval = null;
+
+      startGameInten();
+    }
+  }, 1000);
+}
+
+function cancelAllCountdowns() {
+  if (waitInterval) {
+    clearInterval(waitInterval);
+    waitInterval = null;
+    console.log("cleared wait interval");
+  }
+  if (startInterval) {
+    clearInterval(startInterval);
+    startInterval = null;
+    console.log("cleared start interval");
+  }
+
+  broadcast("stopped");
 }
 
 function assignID() {
@@ -389,11 +520,22 @@ wss.on("connection", (ws) => {
     switch (data.type) {
       case "registerPlayer":
         if (!data.nickname) return;
+
         if (
           clients[id].playerId != null ||
           gameState.playerCount >= MAX_PLAYERS
-        )
+        ) {
+          for (const [clientId, client] of Object.entries(clients)) {
+            if (client.playerId === null) {
+              client.ws.close(1000, "Disconnected: max players reached");
+              delete clients[clientId];
+              console.log(
+                `Unregistered client ${clientId} removed on game start`
+              );
+            }
+          }
           return;
+        }
 
         gameState.playerCount++;
         const playerId = assignID();
@@ -417,10 +559,13 @@ wss.on("connection", (ws) => {
           invincible: false,
         };
         broadcastGameState();
+        if (gameState.playerCount > 1 && !gameState.gameStarted) {
+          startWait();
+        }
         break;
-      case "startGame":
-        forceStartGame();
-        break;
+      // case "startGame":
+      //   forceStartGame();
+      //   break;
       case "move":
         movePlayer(clients[id]?.playerId, data.direction);
         break;
@@ -458,6 +603,31 @@ wss.on("connection", (ws) => {
     delete clients[id];
     console.log(`Connection closed: ${id}, Player ID: ${playerId}`);
     console.log(`Active players: ${Object.keys(gameState.players).length}`);
+    // if (gameState.playerCount <= 1) {
+    //   let wasCleared = false;
+
+    //   if (waitTimeout) {
+    //     clearTimeout(waitTimeout);
+    //     waitTimeout = null;
+    //     wasCleared = true;
+    //     console.log("cleared wait timeout");
+    //   }
+
+    //   if (startTimeout) {
+    //     clearTimeout(startTimeout);
+    //     startTimeout = null;
+    //     wasCleared = true;
+    //     console.log("cleared start timeout");
+    //   }
+
+    //   if (wasCleared) {
+    //     broadcast("stopped");
+    //   }
+    // }
+    if (gameState.playerCount <= 1) {
+      cancelAllCountdowns();
+    }
+
     if (gameState.playerCount === 0) {
       initializeGame();
       console.log("All players left: game fully reset");
