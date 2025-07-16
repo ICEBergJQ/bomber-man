@@ -5,7 +5,7 @@
     --col11: #ce3657;
     --col111: #ce3657ad;
     --col2: #f67f00;
-
+    --cell-size: 30px; /* Define once, use everywhere */
    /* --col1: #8b2336;
   --col11: #701b2c;
   --col111: #701b2c99;
