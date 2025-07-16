@@ -1,6 +1,7 @@
 import { createElement } from "../src/main.js";
 import {  getSocket } from "../client.js";
 import chatMsgs from "../components/ChatCmp.js";
+import { quiteGame } from "./GameView.js";
 
 // https://excalidraw.com/#json=RJHu_-G6zzsMdhMu2waTM,Z0zJ3AAK6CPd9QM1WjLqew
 let defaultplayers = new Array(4).fill(null)
@@ -52,27 +53,7 @@ export default function renderLobbyScreen(gameState, sendToServer) {
           attrs: { id: "quit-btn" },
           children: ["Quit"],
           events: {
-            click: () => {  
-              if (socket) {
-                socket.close();
-                socket = null;
-              }
-              gameState.setState({
-                players: {},
-                bombs: [],
-                explosions: [],
-                gameOver: false,
-                winner: null,
-                gameStarted: false,
-                maze: null,
-                currentScreen: "join",
-                isPlayer1: false,
-                nickname: "",
-                chatMessages: [],
-              });
-              // location.hash = "#/";
-              location.reload()
-            },
+            click: () => quiteGame(gameState, sendToServer),
           },
         })
       ]
