@@ -43,7 +43,7 @@ export default function renderLobbyScreen(gameState, sendToServer) {
     createElement("header", {
       attrs: { class: 'container' },
       children: [
-        createElement("h2", { children: ["welcome to waiting area"] }),
+        createElement("h2", { children: ["welcome to the waiting area"] }),
         createElement("button", {
           attrs: { class: "btn-success" },
           children: ["Start Game"],
