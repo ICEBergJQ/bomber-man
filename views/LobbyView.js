@@ -52,7 +52,7 @@ export default function renderLobbyScreen(gameState, sendToServer) {
   }
 
   const playersList = createElement('div', {
-    attrs: { class: 'players-container' },
+    attrs: { class: 'players-containersssssssss' },
     children: defaultplayers.map((player) =>
       createElement("div", {
         attrs: { class: `player-card ${state.nickname == player.nickname ? 'bounce' : ''} ` },

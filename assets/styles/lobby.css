@@ -16,14 +16,7 @@
   margin-top: 2px;
 }
 
-
-.lobby-screen header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.players-container {
+.players-containersssssssss {
   position: fixed;
   z-index: -1;
   top: 50%;
@@ -62,15 +55,15 @@
 }
 
 
-.players-container .player-card:nth-child(2) {
+.players-containersssssssss .player-card:nth-child(2) {
   justify-self: end;
 }
 
-.players-container .player-card:nth-child(3) {
+.players-containersssssssss .player-card:nth-child(3) {
   align-self: end;
 }
 
-.players-container .player-card:nth-child(4) {
+.players-containersssssssss .player-card:nth-child(4) {
 
   justify-self: end;
   align-self: end;
@@ -223,7 +216,7 @@
     height: 50vh;
   }
 
-  .players-container {
+  .players-containersssssssss {
     position: static;
     margin-top: 2rem;
     width: 100%;
@@ -232,7 +225,7 @@
     transform: none;
   }
 
-  .players-container>div.player-card {
+  .players-containersssssssss>div.player-card {
     justify-self: auto !important;
   }
 }
