@@ -67,7 +67,6 @@ export default function renderLobbyScreen(gameState, sendToServer) {
 
   let lobbyContent;
 
-  // if (state.isPlayer1) {
   lobbyContent = [
     createElement("header", {
       attrs: { class: "container" },
