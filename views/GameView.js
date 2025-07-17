@@ -127,16 +127,13 @@ export default function renderGameScreen(gameState, sendToServer) {
         style: p.alive ? "" : "color: #888; text-decoration: line-through;",
       },
       children: [
-        createElement("span", {
-          children: [p.nickname],
-        }),
         createElement("img", {
           attrs: { src: "../assets/img/player/front-frame1.png" },
         }),
         createElement("div", {
           children: [
-            createElement("div", {
-              children: [lifeDisplay],
+            createElement("span", {
+              children: [p.nickname],
             }),
             createElement("div", {
               children: [lifeDisplay],
@@ -151,8 +148,7 @@ export default function renderGameScreen(gameState, sendToServer) {
 
   return createElement("div", {
     attrs: { class: "screen game-screen" },
-    children: [
-      chatMsgs(state, sendToServer, "game-chat"),
+    children: !state.winner ? [
 
       createElement("button", {
         attrs: { id: "quit-btn", class: "btn" },
@@ -196,16 +192,20 @@ export default function renderGameScreen(gameState, sendToServer) {
           }),
         ],
       }),
-      createElement("div", {
-        attrs: {
-          style:
-            "margin-top: 20px; background: #222; padding: 10px; font-family: monospace; white-space: pre;",
-        },
-        children: [
-          createElement("h4", { children: ["Live Animation State"] }),
-          createElement("div", { attrs: { id: "live-debug-output" } }),
-        ],
-      }),
-    ],
+      chatMsgs(state, sendToServer, "game-chat"),
+
+    ] :
+      [
+        createElement('div', {
+          attrs: { class: 'win' },
+          children: [
+            
+            createElement('span', {
+              children: [ `${state.nickname} Win!`]
+            }
+            )
+          ]
+        })
+      ]
   });
 }

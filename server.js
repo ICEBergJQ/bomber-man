@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const WebSocket = require("ws");
 const os = require("os");
-const { start } = require("repl");
+// const { start } = require("repl");
 
 const requestHandler = (req, res) => {
   let filePath = path.join(__dirname, req.url === "/" ? "index.html" : req.url);
@@ -78,6 +78,10 @@ function initializeGame() {
     winner: null,
     playerCount: 0,
   };
+  freeAllIDs();
+  console.log(IDs);
+  
+  cancelReset();
 }
 function broadcastGameState() {
   checkPowerup();
@@ -157,15 +161,16 @@ function checkPlayerDeaths() {
   });
 }
 function checkWinCondition() {
+  if (!gameState.gameStarted) return;
   const alive = Object.values(gameState.players).filter((p) => p.alive);
-  const isMultiplayer = gameState.playerCount > 1;
 
   // Game ends if one player is left in a multiplayer match, or the only player dies.
-  if (isMultiplayer && alive.length <= 1) {
+  if (alive.length === 1) {
     gameState.gameOver = true;
     gameState.winner = alive[0] || null;
+    resetGame();
     broadcastGameState();
-  } else if (!isMultiplayer && alive.length === 0) {
+  } else if (gameState.playerCount === 0) {
     gameState.gameOver = true;
     gameState.winner = null;
     broadcastGameState();
@@ -244,6 +249,7 @@ function checkPowerup() {
         if (p.lives < 3) {
           p.lives++;
         } else {
+          return;
           return;
         }
         break;
@@ -392,6 +398,14 @@ function movePlayer(playerId, dir) {
   }
 }
 
+function removeAllCon() {
+  for (const [clientId, client] of Object.entries(clients)) {
+    client.ws.close(1000, "Disconnected: game reset");
+    delete clients[clientId];
+    console.log(`cleared cons`);
+  }
+}
+
 function forceStartGame() {
   gameState.gameStarted = true;
   for (const [clientId, client] of Object.entries(clients)) {
@@ -402,6 +416,23 @@ function forceStartGame() {
     }
   }
   broadcastGameState();
+}
+
+//reset timeout
+let resetTO = null;
+function resetGame() {
+  resetTO = setTimeout(() => {
+    // broadcast("reset");
+    removeAllCon();
+    initializeGame();
+  }, 15000);
+}
+
+function cancelReset() {
+  if (resetTO !== null) {
+    clearTimeout(resetTO);
+    resetTO = null;
+  }
 }
 
 let waitInterval = null;
@@ -415,7 +446,7 @@ function broadcast(type, data = {}) {
 }
 
 function startGameInten() {
-  let timeLeft = 10;
+  let timeLeft = 2;
 
   clearInterval(startInterval); // prevent duplicates
 
@@ -436,6 +467,8 @@ function startGameInten() {
 }
 
 function startWait() {
+
+  if (startInterval !== null) return;
   let timeLeft = 5;
 
   clearInterval(waitInterval); // prevent duplicates
@@ -477,6 +510,12 @@ function assignID() {
   }
   available.taken = true;
   return available.id;
+}
+
+function freeAllIDs() {
+  IDs.forEach((id) => {
+    id.taken = false;
+  });
 }
 
 function freeID(playerId) {
@@ -572,9 +611,6 @@ wss.on("connection", (ws) => {
           startWait();
         }
         break;
-      // case "startGame":
-      //   forceStartGame();
-      //   break;
       case "move":
         movePlayer(clients[id]?.playerId, data.direction);
         break;
@@ -606,36 +642,19 @@ wss.on("connection", (ws) => {
     const { playerId } = clients[id] || {};
     if (playerId) {
       freeID(playerId);
+      console.log(IDs);
+
       delete gameState.players[playerId];
       gameState.playerCount--;
     }
     delete clients[id];
     console.log(`Connection closed: ${id}, Player ID: ${playerId}`);
     console.log(`Active players: ${Object.keys(gameState.players).length}`);
-    // if (gameState.playerCount <= 1) {
-    //   let wasCleared = false;
-
-    //   if (waitTimeout) {
-    //     clearTimeout(waitTimeout);
-    //     waitTimeout = null;
-    //     wasCleared = true;
-    //     console.log("cleared wait timeout");
-    //   }
-
-    //   if (startTimeout) {
-    //     clearTimeout(startTimeout);
-    //     startTimeout = null;
-    //     wasCleared = true;
-    //     console.log("cleared start timeout");
-    //   }
-
-    //   if (wasCleared) {
-    //     broadcast("stopped");
-    //   }
-    // }
     if (gameState.playerCount <= 1) {
       cancelAllCountdowns();
     }
+
+    checkWinCondition();
 
     if (gameState.playerCount === 0) {
       initializeGame();

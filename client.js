@@ -5,6 +5,7 @@ import renderGameScreen from "./views/GameView.js";
 import NotfoundView from "./views/NotfoundView.js";
 import getRoutes from "./router/index.js";
 import renderGameErr from "./views/gameFullView.js";
+import { quiteGame } from "./views/GameView.js";
 
 // --- WebSocket & State Management ---
 let socket;
@@ -66,6 +67,8 @@ export function connectWebSocket() {
         phase: "",
       });
       window.location.hash = "#/gameFull";
+    } else if (e.reason === "Disconnected: game reset") {
+      quiteGame(gameState);
     }
   };
   socket.onmessage = (event) => {
@@ -82,7 +85,10 @@ export function connectWebSocket() {
       gameState.setState({ ...currentState, chatMessages: newMessages });
     } else if (msg.type === "stopped"){
       gameState.setState({ ...gameState.getState(), countD: 0, phase: "" })
-    }
+    } 
+    // else if (msg.type === "reset") {
+      // quiteGame(gameState);
+    // }
   };
 }
 

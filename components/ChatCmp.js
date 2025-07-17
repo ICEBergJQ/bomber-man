@@ -20,8 +20,9 @@ function handleInput(e, sendToServer) {
 function toggleChat(e) {
     e.target.parentElement.classList.toggle('show')
 }
+
 export default function ChatUI(state, sendToServer, className = '') {
-    console.log('chat ui', state);
+    console.log('chat ui', state, document.activeElement);
 
     const chatMsgs = (state.chatMessages || []).map((msg) =>
         createElement("span", {
@@ -37,10 +38,11 @@ export default function ChatUI(state, sendToServer, className = '') {
 
     return createElement("div", {
         //    attrs: { class: `chat-container ${className} show` },
-        attrs: { class: `chat-container ${className} show` },
+        attrs: { class: `chat-container ${className}` },
         children: [
-            className && createElement('span', {
-                attrs: { class: 'opener' },
+            className && createElement('button', {
+                attrs: { class: 'opener btn' },
+                children: ['Chat'],
                 events: {
                     click: (e) => toggleChat(e)
                 }

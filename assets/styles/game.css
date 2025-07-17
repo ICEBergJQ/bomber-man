@@ -16,18 +16,19 @@
   padding: 10px;
   border-radius: 5px;
   background-color: var(--col1);
-  background: linear-gradient(to left, #ffad1e, #ffd94b);
+  background: linear-gradient(to left, #ffad1e91, #ffd94b8c);
+  text-align: center;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 0 5px 2px #fda400;
+  border: 1px solid #fff;
 }
 
 .game-player span {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  margin-bottom: 2px;
+  display: inline-block;
   color: var(--col1);
 }
 
@@ -43,17 +44,6 @@
   margin-left: 10px;
 }
 
-/* .game {
-  display: grid;
-  grid-template-columns: repeat(23, 25px);
-  grid-template-rows: repeat(13, 25px);
-  gap: 1px;
-  margin: 20px auto;
-  width: fit-content;
-  background-color: #333;
-  padding: 10px;
-  border-radius: 5px;
-} */
 
 .game-container {
   display: flex;
@@ -63,6 +53,7 @@
 }
 
 .game-board-container {
+  /* display: none; */
   position: relative;
   width: 690px;
   height: 390px;
@@ -424,42 +415,58 @@
 
 .game-chat {
   position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 10px;
+  right: 15px;
   z-index: 3;
-  right: -263px;
-  transition: right 0.5s;
+  width: 250px;
+  height: 64vh;
 }
 
 .game-chat .opener {
-  width: 20px;
-  height: 60px;
+  width: 80px;
   position: absolute;
-  left: -20px;
-  top: 20px;
+  left: 50%;
+  bottom: calc(100% + 10px);
   cursor: pointer;
-  border-radius: 15px 0 0 15px;
+  transform: translateX(-50%);
   background-color: var(--col11);
 }
 
-.show {
-  right: 0px;
+.game-chat .chat-wrapper {
+  display: none;
 
 }
 
+.show .chat-wrapper {
+  display: block;
 
-.powerup-bombRange {
-  background-image: url('/assets/img/bomb.png');
 }
 
-.powerup-extraBomb {
-  background-image: url('/assets/img/extraBomb.png');
+.game-chat .chat-wrapper::after {
+  bottom: 150px;
+  right: 10px;
+  z-index: -2;
 }
 
-.powerup[data-type="bombRange"] {
-  filter: drop-shadow(0 0 5px rgba(255, 100, 100, 0.7));
+.win {
+  font-size: 3rem;
+  border: 2px solid var(--col1);
+  border-radius: 20px;
+  display: flex;
+  position: relative; 
+  justify-content: center;
+  height: 60vh;
+  color: var(--col1);
+  background-color: #ffffff91;
 }
 
-.powerup[data-type="extraBomb"] {
-  filter: drop-shadow(0 0 5px rgba(100, 255, 100, 0.7));
+.win::after {
+  content: "";
+  position: absolute;
+  background-image: url("../img/ww.png");
+  width: 300px;
+  height: 300px;
+  background-size: auto 300px;
+  background-repeat: no-repeat;
+  top: 80px;
 }
