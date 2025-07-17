@@ -11,8 +11,19 @@
 }
 
 .x404-screen h1 {
-    font-size: 3em;
+    font-size:2rem;
     /* Tomato color */
+    position: relative;
+}
+.x404-screen h1::after{
+    content: "";
+    position: absolute;
+    width: 250px;
+    height: 250px;
+    bottom: 100%;
+    left: 50%;
+    background: url("../img/444.png") no-repeat 100% 100%;
+    transform: translateX(-50%);
 }
 
 .x404-screen p {
@@ -27,7 +38,6 @@
 
 .x404-screen button {
     background-color: #007bff;
-    border: none;
     padding: 10px 20px;
     font-size: 1em;
     margin-top: 20px;

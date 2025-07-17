@@ -13,6 +13,7 @@ h2 {
 }
 .countdown{
   color: black;
+  height: 20px;
 }
 .screen {
   position: relative;
@@ -25,35 +26,11 @@ h2 {
   align-items: center;
   justify-content: center;
 }
-
-.btn {
-  margin-top: 15px;
-  display: block;
-  font-family: "DynaPuff", system-ui;
-  height: 46px;
-  width: 250px;
-  position: relative;
-  font-size: 1.2rem;
-  font-weight: 600;
-  background-image: linear-gradient(to bottom, #fff, #ffde6a);
-  background-size: 100% 150%;
-  background-position: top;
-  transition: background-position 0.3s;
-  color: var(--col1);
-  border-radius: 10px;
-
-  border: 2px #fff solid;
-  outline: 2px solid var(--col2);
-}
-
-.btn:hover {
-  background-position: bottom;
-}
-
+  
 .bg{
   font-size: 20px;
   padding: 0 20px;
   border-radius: 20px;
-  background-color: var(--col11);
+  background-color: var(--col3);
 
 }
