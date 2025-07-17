@@ -48,7 +48,7 @@ const HEARTBEAT_INTERVAL = 30000;
 // let reInter;
 
 const CELL_SIZE = 30;
-const MOVE_INCREMENT = 7.5;
+const MOVE_INCREMENT = 5;
 
 const IDs = [
   { id: 1, taken: false },
@@ -354,7 +354,7 @@ function placeBomb(playerId) {
 // }
 
 function isValidPosition(x, y) {
-  const collisionBoxSize = 28; 
+  const collisionBoxSize = 22; 
   const halfBox = collisionBoxSize / 2;
 
   // Calculate the absolute center of the player's sprite at its potential new location.
