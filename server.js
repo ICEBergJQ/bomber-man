@@ -58,9 +58,9 @@ const IDs = [
 ];
 const startingPositions = [
   { row: 1, col: 1 },
+  { row: 11, col: 21 },
   { row: 1, col: 21 },
   { row: 11, col: 1 },
-  { row: 11, col: 21 },
 ];
 let gameState = {};
 let connectionIdCounter = 0;
@@ -409,7 +409,7 @@ function broadcast(type, data = {}) {
 }
 
 function startGameInten() {
-  let timeLeft = 10;
+  let timeLeft = 2;
 
   clearInterval(startInterval); // prevent duplicates
 
@@ -430,7 +430,7 @@ function startGameInten() {
 }
 
 function startWait() {
-  let timeLeft = 20;
+  let timeLeft = 2;
 
   clearInterval(waitInterval); // prevent duplicates
 

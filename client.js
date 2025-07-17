@@ -9,6 +9,13 @@ import renderGameErr from "./views/gameFullView.js";
 // --- WebSocket & State Management ---
 let socket;
 
+const startingPositions = [
+  { row: 1, col: 1 },
+  { row: 11, col: 21 },
+  { row: 1, col: 21 },
+  { row: 11, col: 1 },
+];
+
 export function getSocket() {
   return socket;
 }
@@ -71,8 +78,12 @@ export function connectWebSocket() {
   socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);
     console.log(msg);
-    if (msg.type === "countdown"){
-      gameState.setState({ ...gameState.getState(), countD: msg.time, phase: msg.phase });
+    if (msg.type === "countdown") {
+      gameState.setState({
+        ...gameState.getState(),
+        countD: msg.time,
+        phase: msg.phase,
+      });
     } else if (msg.type === "gameState") {
       gameState.setState({ ...gameState.getState(), ...msg.data });
     } else if (msg.type === "chatMessage") {
@@ -80,8 +91,8 @@ export function connectWebSocket() {
       const newMessages = [...currentState.chatMessages, msg.data];
       if (newMessages.length > 20) newMessages.shift();
       gameState.setState({ ...currentState, chatMessages: newMessages });
-    } else if (msg.type === "stopped"){
-      gameState.setState({ ...gameState.getState(), countD: 0, phase: "" })
+    } else if (msg.type === "stopped") {
+      gameState.setState({ ...gameState.getState(), countD: 0, phase: "" });
     }
   };
 }
@@ -148,8 +159,8 @@ window.addEventListener("keydown", (e) => {
   if (myClientState.isMoving) {
     return;
   }
+let direction = null;
 
-  let direction = null;
   switch (e.key) {
     case "ArrowUp":
       direction = "up";
@@ -166,6 +177,8 @@ window.addEventListener("keydown", (e) => {
     case " ":
       e.preventDefault();
       sendToServer({ type: "bomb" });
+      return;
+    default:
       return;
   }
 
@@ -192,7 +205,7 @@ function gameLoop(currentTime) {
         playerElement.style.display = "none";
         return;
       }
-      playerElement.style.display = "";
+      // playerElement.style.display = "";
 
       if (!clientPlayerState[serverPlayer.playerId]) {
         clientPlayerState[serverPlayer.playerId] = {
@@ -207,17 +220,18 @@ function gameLoop(currentTime) {
         };
       }
       const localPlayer = clientPlayerState[serverPlayer.playerId];
-
+      let direction 
       if (
         localPlayer.targetX !== serverPlayer.x ||
         localPlayer.targetY !== serverPlayer.y
       ) {
+        direction = getDirection(localPlayer,serverPlayer)
         localPlayer.isMoving = true;
         localPlayer.moveProgress = 0;
         localPlayer.startX = localPlayer.x;
         localPlayer.startY = localPlayer.y;
         localPlayer.targetX = serverPlayer.x;
-        localPlayer.targetY = serverPlayer.y;
+        localPlayer.targetY = serverPlayer.y;        
       }
 
       const playerState = state.players[serverPlayer.playerId];
@@ -237,6 +251,8 @@ function gameLoop(currentTime) {
           localPlayer.x = localPlayer.targetX;
           localPlayer.y = localPlayer.targetY;
         }
+        
+        animatePlayer(playerElement, currentTime, direction);
       }
       const hasSpeedBoost = playerState?.speed > 1;
       playerElement.classList.toggle("speed-boosted", hasSpeedBoost);
@@ -245,6 +261,38 @@ function gameLoop(currentTime) {
   }
 
   requestAnimationFrame(gameLoop);
+}
+
+let sprite = {
+  down: 0,
+  left: 90,
+  right: 60,
+  up: 30,
+};
+
+let lastTime = 0;
+let fram = 0;
+
+function animatePlayer(playerElem, time, dir) {
+  if (time - lastTime > 100) {    
+    lastTime = time;
+    let x = ((fram + 1) % 4) * 30;
+    fram += 1
+    playerElem.style.backgroundPosition = `${x}px ${sprite[dir]}px`;
+  }
+}
+
+function getDirection(localPlayer, serverPlayer) {
+  
+  const dx = localPlayer.targetX - serverPlayer.x;
+  const dy = localPlayer.targetY - serverPlayer.y;
+
+  if (Math.abs(dx) != 0) {
+    return dx < 0 ? "right" : "left";
+  } else if (dy !== 0) {
+    return dy < 0 ? "down" : "up";
+  }
+  return null; // no movement
 }
 
 // --- Start Application ---
