@@ -271,7 +271,7 @@
 }
 
 
-.powerup-speedBoost {
+.powerup-speed {
   background-image: url('/assets/img/extraSpeed.png');
 }
 
@@ -288,7 +288,7 @@
 }
 
 /* Speed Boost Power-up */
-.powerup[data-type="speedBoost"] {
+.powerup[data-type="speed"] {
   filter: drop-shadow(0 0 4px rgba(50, 150, 255, 0.7));
   animation: pulse 0.8s infinite alternate;
 }
@@ -315,7 +315,7 @@
   }
 }
 
-.speed-boosted {
+.speed {
   filter: drop-shadow(0 0 8px rgba(255, 200, 0, 0.8));
   animation: pulse-glow 0.5s infinite alternate;
 }
@@ -330,16 +330,16 @@
   }
 }
 
-.player-list li::after {
+/* .player-list li::after {
   content: " ⚡";
   color: gold;
   font-size: 0.9em;
   display: none;
-}
+} */
 
-.player-list li[data-has-speed]::after {
+/* .player-list li[data-has-speed]::after {
   display: inline;
-}
+} */
 
 /* .powerup img {
   width: 100%;
