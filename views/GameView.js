@@ -102,6 +102,7 @@ export default function renderGameScreen(gameState, sendToServer) {
         attrs: {
           class: playerClasses.join(" "),
           id: `player-${p.playerId}`,
+          // style:`transform: translate(${32}px, ${32}px)`
         },
       });
     })

@@ -10,6 +10,13 @@ import { quiteGame } from "./views/GameView.js";
 // --- WebSocket & State Management ---
 let socket;
 
+const startingPositions = [
+  { row: 1, col: 1 },
+  { row: 11, col: 21 },
+  { row: 1, col: 21 },
+  { row: 11, col: 1 },
+];
+
 export function getSocket() {
   return socket;
 }
@@ -77,7 +84,11 @@ export function connectWebSocket() {
     const msg = JSON.parse(event.data);
     console.log(msg);
     if (msg.type === "countdown") {
-      gameState.setState({ ...gameState.getState(), countD: msg.time, phase: msg.phase });
+      gameState.setState({
+        ...gameState.getState(),
+        countD: msg.time,
+        phase: msg.phase,
+      });
     } else if (msg.type === "gameState") {
       gameState.setState({ ...gameState.getState(), ...msg.data });
     } else if (msg.type === "chatMessage") {
@@ -86,7 +97,7 @@ export function connectWebSocket() {
       if (newMessages.length > 20) newMessages.shift();
       gameState.setState({ ...currentState, chatMessages: newMessages });
     } else if (msg.type === "stopped") {
-      gameState.setState({ ...gameState.getState(), countD: 0, phase: "" })
+      gameState.setState({ ...gameState.getState(), countD: 0, phase: "" });
     }
     // else if (msg.type === "reset") {
     // quiteGame(gameState);
@@ -137,51 +148,68 @@ const MOVEMENT_SPEED = 50; // Time in milliseconds to cross one tile.
 let clientPlayerState = {};
 let lastFrameTime = performance.now();
 
-// --- NEW Input Handling ---
-addEventListener("keydown", (e) => {
-  // We only process input if we are on the game screen
-  if (gameState.getState().currentScreen !== "game") return;
+const keyState = {
+  up: false,
+  down: false,
+  left: false,
+  right: false,
+};
 
+window.addEventListener("keydown", (e) => {
   // Ignore input if we are typing in chat
   if (document.activeElement.id === "chat-input") return;
 
-  // Find our player in the local state
-  const myPlayerId = Object.values(gameState.getState().players).find(
-    (p) => p.nickname === gameState.getState().nickname
-  )?.playerId;
-  const myClientState = clientPlayerState[myPlayerId];
-  if (!myClientState) return;
-
-  // Only accept a new move command if the player is NOT already moving.
-  if (myClientState.isMoving) {
-    return;
-  }
-
-  let direction = null;
   switch (e.key) {
     case "ArrowUp":
-      direction = "up";
+      keyState.up = true;
       break;
     case "ArrowDown":
-      direction = "down";
+      keyState.down = true;
       break;
     case "ArrowLeft":
-      direction = "left";
+      keyState.left = true;
       break;
     case "ArrowRight":
-      direction = "right";
+      keyState.right = true;
       break;
     case " ":
       e.preventDefault();
       sendToServer({ type: "bomb" });
-      return;
-  }
-
-  if (direction) {
-    e.preventDefault();
-    sendToServer({ type: "move", direction });
+      break;
   }
 });
+
+window.addEventListener("keyup", (e) => {
+  switch (e.key) {
+    case "ArrowUp":
+      keyState.up = false;
+      break;
+    case "ArrowDown":
+      keyState.down = false;
+      break;
+    case "ArrowLeft":
+      keyState.left = false;
+      break;
+    case "ArrowRight":
+      keyState.right = false;
+      break;
+  }
+});
+
+setInterval(() => {
+  if (gameState.getState().currentScreen !== "game") return;
+
+  // Send the last pressed direction (handles diagonal preference)
+  let direction = null;
+  if (keyState.up) direction = "up";
+  if (keyState.down) direction = "down";
+  if (keyState.left) direction = "left";
+  if (keyState.right) direction = "right";
+  
+  if (direction) {
+    sendToServer({ type: "move", direction });
+  }
+}, 50);
 
 function gameLoop(currentTime) {
   const state = gameState.getState();
@@ -200,7 +228,7 @@ function gameLoop(currentTime) {
         playerElement.style.display = "none";
         return;
       }
-      playerElement.style.display = "";
+      // playerElement.style.display = "";
 
       if (!clientPlayerState[serverPlayer.playerId]) {
         clientPlayerState[serverPlayer.playerId] = {
@@ -212,20 +240,22 @@ function gameLoop(currentTime) {
           targetY: serverPlayer.y,
           isMoving: false,
           moveProgress: 0,
+          direction: "down",
         };
       }
       const localPlayer = clientPlayerState[serverPlayer.playerId];
-
+      // let direction 
       if (
         localPlayer.targetX !== serverPlayer.x ||
         localPlayer.targetY !== serverPlayer.y
       ) {
+        localPlayer.direction = getDirection(localPlayer,serverPlayer)
         localPlayer.isMoving = true;
         localPlayer.moveProgress = 0;
         localPlayer.startX = localPlayer.x;
         localPlayer.startY = localPlayer.y;
         localPlayer.targetX = serverPlayer.x;
-        localPlayer.targetY = serverPlayer.y;
+        localPlayer.targetY = serverPlayer.y;        
       }
 
       const playerState = state.players[serverPlayer.playerId];
@@ -245,6 +275,8 @@ function gameLoop(currentTime) {
           localPlayer.x = localPlayer.targetX;
           localPlayer.y = localPlayer.targetY;
         }
+        
+        animatePlayer(playerElement, currentTime, localPlayer.direction);
       }
       // const hasSpeedBoost = playerState?.speed > 1;
       // playerElement.classList.toggle("speed-boosted", hasSpeedBoost);
@@ -253,6 +285,38 @@ function gameLoop(currentTime) {
   }
 
   requestAnimationFrame(gameLoop);
+}
+
+let sprite = {
+  down: 0,
+  left: 90,
+  right: 60,
+  up: 30,
+};
+
+let lastTime = 0;
+let fram = 0;
+
+function animatePlayer(playerElem, time, dir) {
+  if (time - lastTime > 60) {    
+    lastTime = time;
+    let x = ((fram + 1) % 4) * 30;
+    fram += 1
+    playerElem.style.backgroundPosition = `${x}px ${sprite[dir]}px`;
+  }
+}
+
+function getDirection(localPlayer, serverPlayer) {
+  
+  const dx = serverPlayer.x - localPlayer.targetX;
+  const dy = serverPlayer.y - localPlayer.targetY;
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    return dx > 0 ? "right" : "left";
+  } else if (Math.abs(dy) > 0) {
+    return dy > 0 ? "down" : "up";
+  }
+  return localPlayer.direction;
 }
 
 // --- Start Application ---
