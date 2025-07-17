@@ -78,6 +78,10 @@ function initializeGame() {
     winner: null,
     playerCount: 0,
   };
+  freeAllIDs();
+  console.log(IDs);
+  
+  cancelReset();
 }
 function broadcastGameState() {
   checkPowerupCollection();
@@ -157,15 +161,16 @@ function checkPlayerDeaths() {
   });
 }
 function checkWinCondition() {
+  if (!gameState.gameStarted) return;
   const alive = Object.values(gameState.players).filter((p) => p.alive);
-  const isMultiplayer = gameState.playerCount > 1;
 
   // Game ends if one player is left in a multiplayer match, or the only player dies.
-  if (isMultiplayer && alive.length <= 1) {
+  if (alive.length === 1) {
     gameState.gameOver = true;
     gameState.winner = alive[0] || null;
+    resetGame();
     broadcastGameState();
-  } else if (!isMultiplayer && alive.length === 0) {
+  } else if (gameState.playerCount === 0) {
     gameState.gameOver = true;
     gameState.winner = null;
     broadcastGameState();
@@ -243,7 +248,7 @@ function checkPowerupCollection() {
         if (p.lives < 3) {
           p.lives++;
         } else {
-          return;  
+          return;
         }
         break;
 
@@ -251,7 +256,7 @@ function checkPowerupCollection() {
         p.speed = (p.speed || 1) * 2;
         setTimeout(() => {
           if (gameState.players[p.playerId]) {
-            gameState.players[p.playerId].speed /= 2;;
+            gameState.players[p.playerId].speed /= 2;
             broadcastGameState();
           }
         }, 20000);
@@ -262,7 +267,7 @@ function checkPowerupCollection() {
         setTimeout(() => {
           if (gameState.players[p.playerId]) {
             gameState.players[p.playerId].invincible = false;
-            console.log('sheild TSALAAAAA');
+            console.log("sheild TSALAAAAA");
             broadcastGameState();
           }
         }, 20000);
@@ -273,7 +278,6 @@ function checkPowerupCollection() {
     broadcastGameState();
   });
 }
-
 
 // function checkPowerupCollection() {
 //   Object.values(gameState.players).forEach((p) => {
@@ -386,6 +390,14 @@ function movePlayer(playerId, dir) {
   }
 }
 
+function removeAllCon() {
+  for (const [clientId, client] of Object.entries(clients)) {
+    client.ws.close(1000, "Disconnected: game reset");
+    delete clients[clientId];
+    console.log(`cleared cons`);
+  }
+}
+
 function forceStartGame() {
   gameState.gameStarted = true;
   for (const [clientId, client] of Object.entries(clients)) {
@@ -396,6 +408,23 @@ function forceStartGame() {
     }
   }
   broadcastGameState();
+}
+
+//reset timeout
+let resetTO = null;
+function resetGame() {
+  resetTO = setTimeout(() => {
+    // broadcast("reset");
+    removeAllCon();
+    initializeGame();
+  }, 15000);
+}
+
+function cancelReset() {
+  if (resetTO !== null) {
+    clearTimeout(resetTO);
+    resetTO = null;
+  }
 }
 
 let waitInterval = null;
@@ -410,7 +439,6 @@ function broadcast(type, data = {}) {
 
 function startGameInten() {
   let timeLeft = 10;
-
   clearInterval(startInterval); // prevent duplicates
 
   startInterval = setInterval(() => {
@@ -430,6 +458,7 @@ function startGameInten() {
 }
 
 function startWait() {
+  if (startInterval !== null) return;
   let timeLeft = 5;
 
   clearInterval(waitInterval); // prevent duplicates
@@ -471,6 +500,12 @@ function assignID() {
   }
   available.taken = true;
   return available.id;
+}
+
+function freeAllIDs() {
+  IDs.forEach((id) => {
+    id.taken = false;
+  });
 }
 
 function freeID(playerId) {
@@ -594,6 +629,8 @@ wss.on("connection", (ws) => {
     const { playerId } = clients[id] || {};
     if (playerId) {
       freeID(playerId);
+      console.log(IDs);
+
       delete gameState.players[playerId];
       gameState.playerCount--;
     }
@@ -603,6 +640,8 @@ wss.on("connection", (ws) => {
     if (gameState.playerCount <= 1) {
       cancelAllCountdowns();
     }
+
+    checkWinCondition();
 
     if (gameState.playerCount === 0) {
       initializeGame();
