@@ -28,7 +28,7 @@ const gameState = createStore({
   players: {
     alive: true,
     lives: 3,
-    speed: 1.5,
+    //speed: 1.5,
   },
   bombs: [],
   explosions: [],
@@ -222,8 +222,8 @@ function gameLoop(currentTime) {
 
       const playerState = state.players[serverPlayer.playerId];
       if (localPlayer.isMoving) {
-        const speedMultiplier = playerState?.speed || 1;
-        localPlayer.moveProgress += (delta / MOVEMENT_SPEED) * speedMultiplier;
+        //const speedMultiplier = playerState?.speed || 1;
+        localPlayer.moveProgress += delta / MOVEMENT_SPEED
         localPlayer.x =
           localPlayer.startX +
           (localPlayer.targetX - localPlayer.startX) * localPlayer.moveProgress;
@@ -238,8 +238,8 @@ function gameLoop(currentTime) {
           localPlayer.y = localPlayer.targetY;
         }
       }
-      const hasSpeedBoost = playerState?.speed > 1;
-      playerElement.classList.toggle("speed-boosted", hasSpeedBoost);
+      // const hasSpeedBoost = playerState?.speed > 1;
+      // playerElement.classList.toggle("speed-boosted", hasSpeedBoost);
       playerElement.style.transform = `translate(${localPlayer.x}px, ${localPlayer.y}px)`;
     });
   }

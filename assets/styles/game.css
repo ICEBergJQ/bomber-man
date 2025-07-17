@@ -280,7 +280,7 @@
 }
 
 
-.powerup-speedBoost {
+.powerup-speed {
   background-image: url('/assets/img/extraSpeed.png');
 }
 
@@ -297,7 +297,7 @@
 }
 
 /* Speed Boost Power-up */
-.powerup[data-type="speedBoost"] {
+.powerup[data-type="speed"] {
   filter: drop-shadow(0 0 4px rgba(50, 150, 255, 0.7));
   animation: pulse 0.8s infinite alternate;
 }
@@ -324,7 +324,7 @@
   }
 }
 
-.speed-boosted {
+.speed {
   filter: drop-shadow(0 0 8px rgba(255, 200, 0, 0.8));
   animation: pulse-glow 0.5s infinite alternate;
 }
@@ -339,16 +339,16 @@
   }
 }
 
-.player-list li::after {
+/* .player-list li::after {
   content: " ⚡";
   color: gold;
   font-size: 0.9em;
   display: none;
-}
+} */
 
-.player-list li[data-has-speed]::after {
+/* .player-list li[data-has-speed]::after {
   display: inline;
-}
+} */
 
 /* .powerup img {
   width: 100%;
@@ -445,4 +445,21 @@
 .show {
   right: 0px;
 
+}
+
+
+.powerup-bombRange {
+  background-image: url('/assets/img/bomb.png');
+}
+
+.powerup-extraBomb {
+  background-image: url('/assets/img/extraBomb.png');
+}
+
+.powerup[data-type="bombRange"] {
+  filter: drop-shadow(0 0 5px rgba(255, 100, 100, 0.7));
+}
+
+.powerup[data-type="extraBomb"] {
+  filter: drop-shadow(0 0 5px rgba(100, 255, 100, 0.7));
 }

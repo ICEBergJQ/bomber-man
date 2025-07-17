@@ -119,7 +119,7 @@ export default function renderGameScreen(gameState, sendToServer) {
 
   const playerList = Object.values(state.players).map((p) => {
     const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
-    const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
+    // const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
 
     return createElement("div", {
       attrs: {
@@ -139,13 +139,15 @@ export default function renderGameScreen(gameState, sendToServer) {
               children: [lifeDisplay],
             }),
             createElement("div", {
-              children: [lifeDisplay], //speedDisplay
+              children: [lifeDisplay],
             }),
           ],
         }),
       ],
     });
   });
+
+
 
   return createElement("div", {
     attrs: { class: "screen game-screen" },
