@@ -371,8 +371,24 @@
   height: 30px;
   background-size: 120px 120px;
   z-index: 10;
-  background-image: url('/assets/img/player/blackmage_m.png');
+  /* background-image: url('/assets/img/player/blackmage_m.png'); */
   transition: transform 0.15s linear;
+}
+
+#player-1{
+  background-image: url('/assets/img/player/sith.png');
+}
+
+#player-2{
+  background-image: url('/assets/img/player/weddingguy03.png');
+}
+
+#player-3 {
+  background-image: url('/assets/img/player/blackmage_m.png');
+}
+
+#player-4{
+  background-image: url('/assets/img/player/modernguy05.png');
 }
 
 

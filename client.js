@@ -140,53 +140,68 @@ const MOVEMENT_SPEED = 50; // Time in milliseconds to cross one tile.
 let clientPlayerState = {};
 let lastFrameTime = performance.now();
 
-// --- NEW Input Handling ---
-window.addEventListener("keydown", (e) => {
-  // We only process input if we are on the game screen
-  if (gameState.getState().currentScreen !== "game") return;
+const keyState = {
+  up: false,
+  down: false,
+  left: false,
+  right: false,
+};
 
+window.addEventListener("keydown", (e) => {
   // Ignore input if we are typing in chat
   if (document.activeElement.id === "chat-input") return;
 
-  // Find our player in the local state
-  const myPlayerId = Object.values(gameState.getState().players).find(
-    (p) => p.nickname === gameState.getState().nickname
-  )?.playerId;
-  const myClientState = clientPlayerState[myPlayerId];
-  if (!myClientState) return;
-
-  // Only accept a new move command if the player is NOT already moving.
-  if (myClientState.isMoving) {
-    return;
-  }
-let direction = null;
-
   switch (e.key) {
     case "ArrowUp":
-      direction = "up";
+      keyState.up = true;
       break;
     case "ArrowDown":
-      direction = "down";
+      keyState.down = true;
       break;
     case "ArrowLeft":
-      direction = "left";
+      keyState.left = true;
       break;
     case "ArrowRight":
-      direction = "right";
+      keyState.right = true;
       break;
     case " ":
       e.preventDefault();
       sendToServer({ type: "bomb" });
-      return;
-    default:
-      return;
-  }
-
-  if (direction) {
-    e.preventDefault();
-    sendToServer({ type: "move", direction });
+      break;
   }
 });
+
+window.addEventListener("keyup", (e) => {
+  switch (e.key) {
+    case "ArrowUp":
+      keyState.up = false;
+      break;
+    case "ArrowDown":
+      keyState.down = false;
+      break;
+    case "ArrowLeft":
+      keyState.left = false;
+      break;
+    case "ArrowRight":
+      keyState.right = false;
+      break;
+  }
+});
+
+setInterval(() => {
+  if (gameState.getState().currentScreen !== "game") return;
+
+  // Send the last pressed direction (handles diagonal preference)
+  let direction = null;
+  if (keyState.up) direction = "up";
+  if (keyState.down) direction = "down";
+  if (keyState.left) direction = "left";
+  if (keyState.right) direction = "right";
+  
+  if (direction) {
+    sendToServer({ type: "move", direction });
+  }
+}, 50);
 
 function gameLoop(currentTime) {
   const state = gameState.getState();
@@ -217,15 +232,16 @@ function gameLoop(currentTime) {
           targetY: serverPlayer.y,
           isMoving: false,
           moveProgress: 0,
+          direction: "down",
         };
       }
       const localPlayer = clientPlayerState[serverPlayer.playerId];
-      let direction 
+      // let direction 
       if (
         localPlayer.targetX !== serverPlayer.x ||
         localPlayer.targetY !== serverPlayer.y
       ) {
-        direction = getDirection(localPlayer,serverPlayer)
+        localPlayer.direction = getDirection(localPlayer,serverPlayer)
         localPlayer.isMoving = true;
         localPlayer.moveProgress = 0;
         localPlayer.startX = localPlayer.x;
@@ -252,7 +268,7 @@ function gameLoop(currentTime) {
           localPlayer.y = localPlayer.targetY;
         }
         
-        animatePlayer(playerElement, currentTime, direction);
+        animatePlayer(playerElement, currentTime, localPlayer.direction);
       }
       const hasSpeedBoost = playerState?.speed > 1;
       playerElement.classList.toggle("speed-boosted", hasSpeedBoost);
@@ -274,7 +290,7 @@ let lastTime = 0;
 let fram = 0;
 
 function animatePlayer(playerElem, time, dir) {
-  if (time - lastTime > 100) {    
+  if (time - lastTime > 60) {    
     lastTime = time;
     let x = ((fram + 1) % 4) * 30;
     fram += 1
@@ -284,15 +300,15 @@ function animatePlayer(playerElem, time, dir) {
 
 function getDirection(localPlayer, serverPlayer) {
   
-  const dx = localPlayer.targetX - serverPlayer.x;
-  const dy = localPlayer.targetY - serverPlayer.y;
+  const dx = serverPlayer.x - localPlayer.targetX;
+  const dy = serverPlayer.y - localPlayer.targetY;
 
-  if (Math.abs(dx) != 0) {
-    return dx < 0 ? "right" : "left";
-  } else if (dy !== 0) {
-    return dy < 0 ? "down" : "up";
+  if (Math.abs(dx) > Math.abs(dy)) {
+    return dx > 0 ? "right" : "left";
+  } else if (Math.abs(dy) > 0) {
+    return dy > 0 ? "down" : "up";
   }
-  return null; // no movement
+  return localPlayer.direction;
 }
 
 // --- Start Application ---
