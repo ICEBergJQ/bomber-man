@@ -430,7 +430,7 @@ function startGameInten() {
 }
 
 function startWait() {
-  let timeLeft = 20;
+  let timeLeft = 5;
 
   clearInterval(waitInterval); // prevent duplicates
 

@@ -17,7 +17,7 @@ export function quiteGame(gameState) {
     currentScreen: "join",
     nickname: "",
     chatMessages: [],
-    countD : 0,
+    countD: 0,
     phase: "",
   });
   location.hash = "#/";
@@ -40,32 +40,16 @@ export default function renderGameScreen(gameState, sendToServer) {
     });
   }
 
-  // No need to call addPlayerControls() anymore
   const powerupChildren = (state.powerups || []).map((powerup) => {
     const x = powerup.col * CELL_SIZE;
     const y = powerup.row * CELL_SIZE;
-
-    // Determine which image to use based on powerup type
-    const imageSrc = {
-      speedBoost: "/assets/img/extraSpeed.png",
-      extraLife: "/assets/img/life.png",
-      shield: "/assets/img/sheld.png",
-    }[powerup.type];
 
     return createElement("div", {
       attrs: {
         class: `powerup powerup-${powerup.type}`,
         style: `
-        position: absolute;
         left: ${x}px;
         top: ${y}px;
-        width: ${CELL_SIZE}px;
-        height: ${CELL_SIZE}px;
-        background-image: url('${imageSrc}');
-        background-size: 80%;
-        background-repeat: no-repeat;
-        background-position: center;
-        z-index: 2;
       `,
         "data-type": powerup.type,
       },
