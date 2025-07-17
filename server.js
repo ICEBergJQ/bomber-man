@@ -250,7 +250,6 @@ function checkPowerup() {
           p.lives++;
         } else {
           return;
-          return;
         }
         break;
 
