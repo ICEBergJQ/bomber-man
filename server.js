@@ -243,7 +243,7 @@ function checkPowerupCollection() {
         if (p.lives < 3) {
           p.lives++;
         } else {
-          return;  
+          return;
         }
         break;
 
@@ -409,7 +409,7 @@ function broadcast(type, data = {}) {
 }
 
 function startGameInten() {
-  let timeLeft = 10;
+  let timeLeft = 2;
 
   clearInterval(startInterval); // prevent duplicates
 
@@ -430,7 +430,7 @@ function startGameInten() {
 }
 
 function startWait() {
-  let timeLeft = 5;
+  let timeLeft = 2;
 
   clearInterval(waitInterval); // prevent duplicates
 

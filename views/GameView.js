@@ -197,8 +197,9 @@ export default function renderGameScreen(gameState, sendToServer) {
         createElement('div', {
           attrs: { class: 'win' },
           children: [
+            
             createElement('span', {
-              children: ['You Win!']
+              children: [ `${state.nickname} Win!`]
             }
             )
           ]
