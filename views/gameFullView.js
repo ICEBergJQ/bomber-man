@@ -10,10 +10,9 @@ export default function renderGameErr() {
         attrs: { class: 'bg' },
         children: ["Oops! the game is full or has already started, wait for the game to end and try again."]
       }),
-
-      // Button to go back to the home screen
+ 
       createElement("button", {
-        attrs: { class: "btn btn-primary", style: "margin-top: 20px;" },
+        attrs: { class: "btn " },
         children: ["try again"],
         events: {
           click: () => {

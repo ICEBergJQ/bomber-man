@@ -50,7 +50,7 @@
   left: 50%;
   top: 10px;
   position: absolute;
-  border: 2px solid var(--col11);
+  border: 2px solid #fff;
   transform: translateX(-50%);
 }
 
@@ -76,19 +76,19 @@
   font-size: 13px;
 }
 
-.chat-container {
+.chat {
   margin-top: 61px;
   display: flex;
   justify-content: center;
 }
 
-.chat-wrapper {
+.chat>div {
   border-radius: 15px;
   position: relative;
   box-shadow: 0 0 5px 2px var(--col1);
 }
 
-.chat-wrapper::after {
+.chat>div::after {
   content: "";
   background: url("../img/movie_chara_2.png") no-repeat;
   position: absolute;
@@ -198,11 +198,15 @@
 
 #quit-btn img {
   width: 100%;
+  transition: transform 0.3s;
+}
+#quit-btn img:hover {
+  transform: rotate(30deg) translate(5px, 5px);
 }
 
 /* media query */
 @media screen and (max-width:768px) {
-  .chat-wrapper::after {
+  .chat >div::after {
     bottom: 150px;
     right: 10px;
     z-index: -2;
@@ -210,7 +214,6 @@
 }
 
 @media screen and (max-width:600px) {
-
 
   .chat-messages {
     height: 50vh;

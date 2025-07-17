@@ -41,6 +41,7 @@ const gameState = createStore({
   nickname: "",
   chatMessages: [],
   winner: "",
+  isChatOpen: false
 });
 export function connectWebSocket() {
   if (socket && socket.readyState === WebSocket.OPEN) return;
@@ -65,6 +66,7 @@ export function connectWebSocket() {
         currentScreen: "gameFull",
         countD: 0,
         phase: "",
+        isChatOpen: false
       });
       window.location.hash = "#/gameFull";
     } else if (e.reason === "Disconnected: game reset") {
@@ -74,7 +76,7 @@ export function connectWebSocket() {
   socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);
     console.log(msg);
-    if (msg.type === "countdown"){
+    if (msg.type === "countdown") {
       gameState.setState({ ...gameState.getState(), countD: msg.time, phase: msg.phase });
     } else if (msg.type === "gameState") {
       gameState.setState({ ...gameState.getState(), ...msg.data });
@@ -83,11 +85,11 @@ export function connectWebSocket() {
       const newMessages = [...currentState.chatMessages, msg.data];
       if (newMessages.length > 20) newMessages.shift();
       gameState.setState({ ...currentState, chatMessages: newMessages });
-    } else if (msg.type === "stopped"){
+    } else if (msg.type === "stopped") {
       gameState.setState({ ...gameState.getState(), countD: 0, phase: "" })
-    } 
+    }
     // else if (msg.type === "reset") {
-      // quiteGame(gameState);
+    // quiteGame(gameState);
     // }
   };
 }
@@ -136,7 +138,7 @@ let clientPlayerState = {};
 let lastFrameTime = performance.now();
 
 // --- NEW Input Handling ---
-window.addEventListener("keydown", (e) => {
+addEventListener("keydown", (e) => {
   // We only process input if we are on the game screen
   if (gameState.getState().currentScreen !== "game") return;
 

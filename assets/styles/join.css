@@ -8,7 +8,7 @@ h1 {
   position: relative;
 }
 
-h1.title::after {
+.join-screen h1::after {
   content: "";
   width: 365px;
   height: 255px;
@@ -18,7 +18,7 @@ h1.title::after {
   background: url(../img/more_chara_1.png) no-repeat;
 }
 
-.wrapper {
+.join-screen>div {
   display: flex;
   background: linear-gradient(to left, var(--gradient1), var(--gradient2));
   flex-direction: column;
@@ -30,18 +30,18 @@ h1.title::after {
   border: 2px solid var(--col2);
 }
 
-.wrapper::after {
+.join-screen>div::after {
   content: "";
   display: block;
-  width: 112px;
-  height: 99px;
+  width: 100%;
+  height: 100%;
   position: absolute;
   left: 0;
   top: 0;
   background: url(../img/bg_dot.png);
 }
 
-.wrapper::before {
+.join-screen>div::before {
   content: "";
   width: 100px;
   height: 100px;
@@ -80,7 +80,7 @@ h1.title::after {
 
 @media screen and (max-width:440px) {
 
-  h1.title::after {
+  .join-screen h1::after {
     width: 210px;
     height: 255px;
     position: absolute;
@@ -90,7 +90,7 @@ h1.title::after {
     top: 100%;
   }
 
-  .wrapper::before {
+  .join-screen>div::before {
 
     left: 40%;
   }
