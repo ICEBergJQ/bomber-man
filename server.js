@@ -438,7 +438,8 @@ function broadcast(type, data = {}) {
 }
 
 function startGameInten() {
-  let timeLeft = 10;
+  let timeLeft = 2;
+
   clearInterval(startInterval); // prevent duplicates
 
   startInterval = setInterval(() => {
@@ -458,6 +459,7 @@ function startGameInten() {
 }
 
 function startWait() {
+
   if (startInterval !== null) return;
   let timeLeft = 5;
 
