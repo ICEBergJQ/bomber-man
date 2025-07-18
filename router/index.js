@@ -1,24 +1,25 @@
-import { closeSocket } from "../client.js";
+import { quiteGame, toGamefull } from "../clientUtils/stateUtils.js";
 
 export default function routes(gameState) {
   return {
     "/": () => {
-      closeSocket();
-      gameState.setState({
-        players: {},
-        bombs: [],
-        explosions: [],
-        gameOver: false,
-        winner: null,
-        gameStarted: false,
-        maze: null,
-        currentScreen: "join",
-        nickname: "",
-        chatMessages: [],
-        winner: "",
-        countD: 0,
-        phase: "",
-      });
+      // closeSocket();
+      // gameState.setState({
+      //   players: {},
+      //   bombs: [],
+      //   explosions: [],
+      //   gameOver: false,
+      //   winner: null,
+      //   gameStarted: false,
+      //   maze: null,
+      //   currentScreen: "join",
+      //   nickname: "",
+      //   chatMessages: [],
+      //   winner: "",
+      //   countD: 0,
+      //   phase: "",
+      // });
+      quiteGame(gameState, true);
     },
     "/lobby": () => {
       const nickname = gameState.getState().nickname;
@@ -41,20 +42,21 @@ export default function routes(gameState) {
     },
     "/gameFull": () => {
       // This handler's only job is to update the state
-      gameState.setState({
-        players: {},
-        bombs: [],
-        explosions: [],
-        gameOver: false,
-        winner: null,
-        gameStarted: false,
-        maze: null,
-        currentScreen: "gameFull",
-        nickname: "",
-        chatMessages: [],
-        countD: 0,
-        phase: "",
-      });
+      // gameState.setState({
+      //   players: {},
+      //   bombs: [],
+      //   explosions: [],
+      //   gameOver: false,
+      //   winner: null,
+      //   gameStarted: false,
+      //   maze: null,
+      //   currentScreen: "gameFull",
+      //   nickname: "",
+      //   chatMessages: [],
+      //   countD: 0,
+      //   phase: "",
+      // });
+      toGamefull(gameState, true);
     },
   };
 }

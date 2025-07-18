@@ -1,27 +1,8 @@
 import { createElement } from "../src/main.js";
-import { connectWebSocket, getSocket } from "../client.js";
+import { getSocket } from "../clientUtils/WS.js";
 import chatMsgs from "../components/ChatCmp.js";
-import { quiteGame } from "./GameView.js";
-
-// export function toGamefull(gameState) {
-//   closeSocket();
-
-//   gameState.setState({
-//     players: {},
-//     bombs: [],
-//     explosions: [],
-//     gameOver: false,
-//     winner: null,
-//     gameStarted: false,
-//     maze: null,
-//     currentScreen: "gameFull",
-//     nickname: "",
-//     chatMessages: [],
-//     countD : 0,
-//     phase: "",
-//   });
-//   window.location.hash = "#/gameFull"
-// }
+// import { quiteGame } from "./GameView.js";
+import { quiteGame } from "../clientUtils/stateUtils.js";
 
 // https://excalidraw.com/#json=RJHu_-G6zzsMdhMu2waTM,Z0zJ3AAK6CPd9QM1WjLqew
 let defaultplayers = new Array(4).fill(null);

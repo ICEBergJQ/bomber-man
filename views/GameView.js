@@ -1,34 +1,16 @@
 import { createElement } from "../src/main.js";
-import { getSocket, closeSocket } from "../client.js";
+import { getSocket } from "../clientUtils/WS.js";
 import chatMsgs from "../components/ChatCmp.js";
+import { quiteGame, toGamefull } from "../clientUtils/stateUtils.js";
 
-// All keyboard handling functions have been removed from this file.
-export function quiteGame(gameState) {
-  closeSocket();
-
-  gameState.setState({
-    players: {},
-    bombs: [],
-    explosions: [],
-    gameOver: false,
-    winner: null,
-    gameStarted: false,
-    maze: null,
-    currentScreen: "join",
-    nickname: "",
-    chatMessages: [],
-    countD: 0,
-    phase: "",
-  });
-  location.hash = "#/";
-}
 export default function renderGameScreen(gameState, sendToServer) {
   const state = gameState.getState();
   const maze = state.maze;
   const CELL_SIZE = 30;
   let socket = getSocket();
   if (!state.gameStarted || !socket) {
-    window.location.hash = "#/gameFull";
+    toGamefull(gameState);
+    // window.location.hash = "#/gameFull";
     return;
   }
 

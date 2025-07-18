@@ -1,5 +1,5 @@
 import { createElement } from "../src/main.js";
-import { connectWebSocket, getSocket } from "../client.js";
+import { connectWebSocket, getSocket } from "../clientUtils/WS.js";
 
 let nickname = "";
 
@@ -37,7 +37,7 @@ function handleInput(gameState, sendToServer) {
 export default function renderJoinScreen(gameState, sendToServer) {
   let socket = getSocket();
   if (!socket) {
-    connectWebSocket();
+    connectWebSocket(gameState);
     console.log("[JoinView.js] WebSocket connection established.");
   }
 

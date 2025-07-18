@@ -1,5 +1,5 @@
 import { createElement } from "../src/main.js";
-import { closeSocket } from "../client.js";
+import { closeSocket } from "../clientUtils/WS.js";
 
 export default function renderGameErr() {
   return createElement("div", {
@@ -7,8 +7,10 @@ export default function renderGameErr() {
     children: [
       // Header: Page Not Found
       createElement("p", {
-        attrs: { class: 'bg' },
-        children: ["Oops! the game is full or has already started, wait for the game to end and try again."]
+        attrs: { class: "bg" },
+        children: [
+          "Oops! the game is full or has already started, wait for the game to end and try again.",
+        ],
       }),
 
       // Button to go back to the home screen

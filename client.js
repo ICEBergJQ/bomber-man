@@ -5,26 +5,8 @@ import renderGameScreen from "./views/GameView.js";
 import NotfoundView from "./views/NotfoundView.js";
 import getRoutes from "./router/index.js";
 import renderGameErr from "./views/gameFullView.js";
-import { quiteGame } from "./views/GameView.js";
+import { connectWebSocket, sendToServer } from "./clientUtils/WS.js";
 
-// --- WebSocket & State Management ---
-let socket;
-
-export function getSocket() {
-  return socket;
-}
-
-export function closeSocket() {
-  if (socket) {
-    socket.close();
-    socket = null;
-  }
-}
-
-function sendToServer(message) {
-  if (socket && socket.readyState === WebSocket.OPEN)
-    socket.send(JSON.stringify(message));
-}
 const gameState = createStore({
   players: {
     alive: true,
@@ -42,55 +24,7 @@ const gameState = createStore({
   chatMessages: [],
   winner: "",
 });
-export function connectWebSocket() {
-  if (socket && socket.readyState === WebSocket.OPEN) return;
-  socket = new WebSocket(`ws://${window.location.hostname}:8080`);
-  socket.onopen = () => console.log("WebSocket connection established.");
-  socket.onclose = (e) => {
-    console.log("WebSocket connection closed" + e.reason);
-    if (
-      e.reason === "Game is full or has already started" ||
-      e.reason === "Disconnected: max players reached"
-    ) {
-      gameState.setState({
-        players: {},
-        bombs: [],
-        explosions: [],
-        gameOver: false,
-        winner: null,
-        gameStarted: false,
-        maze: null,
-        nickname: "",
-        chatMessages: [],
-        currentScreen: "gameFull",
-        countD: 0,
-        phase: "",
-      });
-      window.location.hash = "#/gameFull";
-    } else if (e.reason === "Disconnected: game reset") {
-      quiteGame(gameState);
-    }
-  };
-  socket.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-    console.log(msg);
-    if (msg.type === "countdown"){
-      gameState.setState({ ...gameState.getState(), countD: msg.time, phase: msg.phase });
-    } else if (msg.type === "gameState") {
-      gameState.setState({ ...gameState.getState(), ...msg.data });
-    } else if (msg.type === "chatMessage") {
-      const currentState = gameState.getState();
-      const newMessages = [...currentState.chatMessages, msg.data];
-      if (newMessages.length > 20) newMessages.shift();
-      gameState.setState({ ...currentState, chatMessages: newMessages });
-    } else if (msg.type === "stopped"){
-      gameState.setState({ ...gameState.getState(), countD: 0, phase: "" })
-    } 
-    // else if (msg.type === "reset") {
-      // quiteGame(gameState);
-    // }
-  };
-}
+
 
 // --- Rendering & Routing ---
 const appRoot = document.getElementById("app");
@@ -254,5 +188,5 @@ function gameLoop(currentTime) {
 }
 
 // --- Start Application ---
-connectWebSocket();
+connectWebSocket(gameState);
 requestAnimationFrame(gameLoop);
