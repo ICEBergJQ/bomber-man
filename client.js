@@ -241,6 +241,10 @@ function gameLoop(currentTime) {
           isMoving: false,
           moveProgress: 0,
           direction: "down",
+          animation: {
+            fram: 0,
+            lastTime: 0,
+          },
         };
       }
       const localPlayer = clientPlayerState[serverPlayer.playerId];
@@ -276,7 +280,7 @@ function gameLoop(currentTime) {
           localPlayer.y = localPlayer.targetY;
         }
         
-        animatePlayer(playerElement, currentTime, localPlayer.direction);
+        animatePlayer(playerElement, currentTime, localPlayer.direction, localPlayer.animation);
       }
       // const hasSpeedBoost = playerState?.speed > 1;
       // playerElement.classList.toggle("speed-boosted", hasSpeedBoost);
@@ -294,20 +298,18 @@ let sprite = {
   up: 30,
 };
 
-let lastTime = 0;
-let fram = 0;
 
-function animatePlayer(playerElem, time, dir) {
-  if (time - lastTime > 60) {    
-    lastTime = time;
-    let x = ((fram + 1) % 4) * 30;
-    fram += 1
+function animatePlayer(playerElem, time, dir, playerAnimation) {
+  if (time - playerAnimation.lastTime > 60) {    
+    playerAnimation.lastTime = time;
+    playerAnimation.fram = (playerAnimation.fram + 1) % 4;
+    let x = playerAnimation.fram * 30;
     playerElem.style.backgroundPosition = `${x}px ${sprite[dir]}px`;
   }
 }
 
 function getDirection(localPlayer, serverPlayer) {
-  
+
   const dx = serverPlayer.x - localPlayer.targetX;
   const dy = serverPlayer.y - localPlayer.targetY;
 

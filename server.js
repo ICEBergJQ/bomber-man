@@ -396,7 +396,7 @@ function placeBomb(playerId) {
 // }
 
 function isValidPosition(x, y) {
-  const collisionBoxSize = 22;
+  const collisionBoxSize = 26;
   const halfBox = collisionBoxSize / 2;
 
   // Calculate the absolute center of the player's sprite at its potential new location.
