@@ -5,7 +5,7 @@ import { CELL_SIZE } from "./vars.js";
 export const MOVE_INCREMENT = 5;
 
 export function isValidPosition(x, y) {
-  const collisionBoxSize = 26;
+  const collisionBoxSize = 22;
   const halfBox = collisionBoxSize / 2;
 
   // Calculate the absolute center of the player's sprite at its potential new location.

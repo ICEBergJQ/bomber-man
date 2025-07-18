@@ -419,11 +419,12 @@
 }
 
 .win {
+  width: 70vw;
   font-size: 3rem;
   border-radius: 20px;
   display: flex;
   position: relative;
-  margin-top: 3rem;
+  margin-top: 3rem auto;
   justify-content: center;
   height: 60vh;
   color: var(--col1);
