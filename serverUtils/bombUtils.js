@@ -8,7 +8,6 @@ export function explodeBomb(bomb) {
   const explosion = [{ row, col }];
   const player = gameState.players[playerId];
   const range = player?.bombRange || 2;
-
   [
     [-1, 0],
     [1, 0],
@@ -16,17 +15,13 @@ export function explodeBomb(bomb) {
     [0, 1],
   ].forEach(([dr, dc]) => {
     for (let i = 1; i < range; i++) {
-      // Using a fixed bomb range for now
       const nr = row + dr * i;
       const nc = col + dc * i;
       if (!gameState.maze[nr]?.[nc] || gameState.maze[nr][nc] === "#") break;
-
       explosion.push({ row: nr, col: nc });
-      //poweruppp
-
       if (gameState.maze[nr][nc] === "*") {
         gameState.maze[nr][nc] = " ";
-        if (Math.random() < 10) {
+        if (Math.random() < 100) {
           const powerups = [
             "extraLife",
             "bombRange",
@@ -50,14 +45,11 @@ export function explodeBomb(bomb) {
   explosion.forEach((e) => {
     gameState.explosions.push({ ...e, createdAt: Date.now() });
   });
-
   checkPlayerDeaths();
-
   setTimeout(() => {
     gameState.explosions = [];
     broadcastGameState();
   }, 500);
-
   broadcastGameState();
 }
 
@@ -68,14 +60,10 @@ export function placeBomb(playerId) {
   const actualBombsPlaced = gameState.bombs.filter(
     (b) => b.playerId === playerId
   ).length;
-
-  const allowedBombs = p.maxBombs + p.tempBombs;
-
-
+  const allowedBombs = (p.maxBombs || 1) + (p.tempBombs || 0);
   if (actualBombsPlaced >= allowedBombs) {
     return;
   }
-
 
   const bombCol = Math.floor((p.x + CELL_SIZE / 2) / CELL_SIZE);
   const bombRow = Math.floor((p.y + CELL_SIZE / 2) / CELL_SIZE);
@@ -83,18 +71,22 @@ export function placeBomb(playerId) {
     return;
   }
 
-
   const bomb = { row: bombRow, col: bombCol, playerId, placedAt: Date.now() };
   gameState.bombs.push(bomb);
 
-
+  p.phasingThroughBomb = { row: bombRow, col: bombCol };
 
   if (actualBombsPlaced >= p.maxBombs) {
     p.tempBombs--;
   }
 
   setTimeout(() => {
+    // 3-second explosion timer
     gameState.bombs = gameState.bombs.filter((b) => b !== bomb);
+    const playerExists = gameState.players[playerId];
+    if (playerExists) {
+        playerExists.activeBombs = gameState.bombs.filter((b) => b.playerId === playerId).length;
+    }
     explodeBomb(bomb);
   }, 3000);
 

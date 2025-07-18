@@ -61,8 +61,9 @@ gameState.subscribe(() => {
   }
 });
 
-// --- NEW MOVEMENT LOGIC & STATE ---
-const MOVEMENT_SPEED = 50; // Time in milliseconds to cross one tile.
+// --- MOVEMENT LOGIC & STATE ---
+// Time in milliseconds to cross one tile.
+const MOVEMENT_SPEED = 50;
 let clientPlayerState = {};
 let lastFrameTime = performance.now();
 
@@ -127,7 +128,7 @@ setInterval(() => {
   if (direction) {
     sendToServer({ type: "move", direction });
   }
-}, 50);
+}, 30);
 
 function gameLoop(currentTime) {
   const state = gameState.getState();
@@ -207,7 +208,8 @@ function gameLoop(currentTime) {
       }
       // const hasSpeedBoost = playerState?.speed > 1;
       // playerElement.classList.toggle("speed-boosted", hasSpeedBoost);
-      playerElement.style.transform = `translate(${localPlayer.x}px, ${localPlayer.y}px)`;
+      playerElement.style.transform = `translate(${serverPlayer.x}px, ${serverPlayer.y}px)`;
+      // playerElement.style.transform = `translate(${localPlayer.x}px, ${localPlayer.y}px)`;
     });
   }
 
