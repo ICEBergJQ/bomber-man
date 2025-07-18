@@ -424,7 +424,7 @@
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 3;
+  z-index: 12;
   right: -263px;
   transition: right 0.5s;
 }
