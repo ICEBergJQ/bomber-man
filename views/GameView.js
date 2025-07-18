@@ -33,7 +33,7 @@ export default function renderGameScreen(gameState, sendToServer) {
         left: ${x}px;
         top: ${y}px;
       `,
-        "data-type": powerup.type,  
+        "data-type": powerup.type,
       },
     });
   });
@@ -96,8 +96,10 @@ export default function renderGameScreen(gameState, sendToServer) {
         style: p.alive ? "" : "color: #888; text-decoration: line-through;",
       },
       children: [
-        createElement("img", {
-          attrs: { src: "../assets/img/player/front-frame1.png" },
+        createElement("div", {
+          attrs: {
+            class: "game-player-img",
+          },
         }),
         createElement("div", {
           children: [
@@ -113,57 +115,56 @@ export default function renderGameScreen(gameState, sendToServer) {
     });
   });
 
-
   return createElement("div", {
     attrs: { class: "screen game-screen" },
-    children: !state.winner ? [
-      QuitBtn(gameState),
-      createElement("div", {
-        attrs: { class: "game-container" },
-        children: [
+    children: !state.winner
+      ? [
+          QuitBtn(gameState),
           createElement("div", {
-            attrs: { class: "game-sidebar" },
-            children: [createElement("div", { children: playerList })],
-          }),
-          createElement("div", {
-            attrs: { class: "game-board-container" },
+            attrs: { class: "game-container" },
             children: [
               createElement("div", {
-                attrs: { class: "game-board" },
-                children: mapChildren,
+                attrs: { class: "game-sidebar" },
+                children: [createElement("div", { children: playerList })],
               }),
               createElement("div", {
-                attrs: { class: "explosions-container" },
-                children: explosionChildren,
+                attrs: { class: "game-board-container" },
+                children: [
+                  createElement("div", {
+                    attrs: { class: "game-board" },
+                    children: mapChildren,
+                  }),
+                  createElement("div", {
+                    attrs: { class: "explosions-container" },
+                    children: explosionChildren,
+                  }),
+                  createElement("div", {
+                    attrs: { class: "bombs-container" },
+                    children: bombChildren,
+                  }),
+                  createElement("div", {
+                    attrs: { class: "powerups-container" },
+                    children: powerupChildren,
+                  }),
+                  createElement("div", {
+                    attrs: { class: "players-container" },
+                    children: playerChildren,
+                  }),
+                ],
               }),
-              createElement("div", {
-                attrs: { class: "bombs-container" },
-                children: bombChildren,
-              }),
-              createElement("div", {
-                attrs: { class: "powerups-container" },
-                children: powerupChildren,
-              }),
-              createElement("div", {
-                attrs: { class: "players-container" },
-                children: playerChildren,
+            ],
+          }),
+          chatMsgs(state, sendToServer, "game-chat", gameState),
+        ]
+      : [
+          createElement("div", {
+            attrs: { class: "win" },
+            children: [
+              createElement("span", {
+                children: [`${state.winner.nickname} Win!`],
               }),
             ],
           }),
         ],
-      }),
-      chatMsgs(state, sendToServer, "game-chat", gameState)
-    ] :
-      [
-        createElement('div', {
-          attrs: { class: 'win' },
-          children: [
-            createElement('span', {
-              children: [`${state.winner.nickname} Win!`]
-            }
-            )
-          ]
-        })
-      ]
   });
 }

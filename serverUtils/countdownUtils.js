@@ -1,12 +1,17 @@
 import { broadcast } from "./WsUtils.js";
 import { forceStartGame } from "./gameUtils.js";
 
+let hasStartedC = false;
 export let waitInterval = null;
 export let startInterval = null;
 
 
 function startGameInten() {
   let timeLeft = 10;
+  hasStartedC = "true";
+
+  console.log("f hna dlhi  ",hasStartedC);
+  
 
   clearInterval(startInterval); // prevent duplicates
 
@@ -29,7 +34,7 @@ function startGameInten() {
 export function startWait() {
 
   if (startInterval !== null) return;
-  let timeLeft = 20;
+  let timeLeft = 5;
 
   clearInterval(waitInterval); // prevent duplicates
 
@@ -55,6 +60,7 @@ export function cancelAllCountdowns() {
     console.log("cleared wait interval");
   }
   if (startInterval) {
+    hasStartedC = false;
     clearInterval(startInterval);
     startInterval = null;
     console.log("cleared start interval");
@@ -66,4 +72,12 @@ export function cancelAllCountdowns() {
 export function startGameC() {
   if (!waitInterval) return
   startGameInten();
+}
+
+export function changeHsStr(f) {
+  hasStartedC = f;
+}
+
+export function getHasStartedC() {
+  return hasStartedC;
 }

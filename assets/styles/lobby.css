@@ -45,36 +45,30 @@
   content: "";
   width: 40px;
   height: 40px;
-  background: url("../img/player/weddingguy03.png") center center no-repeat;
   border-radius: 50%;
   left: 50%;
   top: 10px;
   position: absolute;
   border: 2px solid #fff;
   transform: translateX(-50%);
+  background-repeat: no-repeat;
   background-position: 0 0;
   background-size: 150px 250px;
 }
-
-.player-card:nth-child(2):after {
-  background: url("../img/player/blackmage_m.png") center center no-repeat;
-  background-position: 0 0;
-  background-size: 150px 250px;
+#player-card-1::after {
+  background-image: url("../img/player/sith.png");
+}
+#player-card-2:nth-child(2):after {
+  background-image: url("../img/player/weddingguy03.png");
 }
 
-.player-card:nth-child(3):after {
-  background: url("../img/player/sith.png") center center no-repeat;
-  background-position: 0 0;
-  background-size: 150px 250px;
+#player-card-3:nth-child(3):after {
+  background-image: url("../img/player/blackmage_m.png");
 }
 
-.player-card:nth-child(4):after {
-  background: url("../img/player/jedi2.png") center center no-repeat;
-  background-position: 0 0;
-  background-size: 150px 250px;
+#player-card-4:nth-child(4):after {
+  background-image: url("../img/player/modernguy05.png");
 }
-
-
 
 .players-containersssssssss .player-card:nth-child(2) {
   justify-self: end;
@@ -101,13 +95,13 @@
   justify-content: center;
 }
 
-.chat>div {
+.chat > div {
   border-radius: 15px;
   position: relative;
   box-shadow: 0 0 5px 2px var(--col1);
 }
 
-.chat>div::after {
+.chat > div::after {
   content: "";
   background: url("../img/movie_chara_2.png") no-repeat;
   position: absolute;
@@ -257,7 +251,7 @@
     justify-items: center;
   }
 
-  .players-containersssssssss>div.player-card {
+  .players-containersssssssss > div.player-card {
     justify-self: auto !important;
   }
 }
