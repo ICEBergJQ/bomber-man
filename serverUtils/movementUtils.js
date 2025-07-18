@@ -28,14 +28,21 @@ export function isValidPosition(x, y, playerId) {
     const tile = gameState.maze[row]?.[col];
 
     if (tile === undefined || ["#", "*"].includes(tile)) {
-      console.log(`!!! Move blocked: Wall or box collision at (${row}, ${col}).`);
       return false;
     }
-    
+
     // The old bomb check logic remains here...
-    const bombAtLocation = gameState.bombs.find((b) => b.row === row && b.col === col);
+    const bombAtLocation = gameState.bombs.find(
+      (b) => b.row === row && b.col === col
+    );
     if (bombAtLocation) {
-      if (player.phasingThroughBomb) {
+      const isPhasing =
+        player.phasingThroughBomb &&
+        player.phasingThroughBomb.row === bombAtLocation.row &&
+        player.phasingThroughBomb.col === bombAtLocation.col &&
+        bombAtLocation.phasingPlayers.includes(playerId);
+
+      if (isPhasing) {
         continue;
       } else {
         return false;
@@ -43,7 +50,6 @@ export function isValidPosition(x, y, playerId) {
     }
   }
 
-  console.log(`--- Move allowed for Player ${playerId} ---`);
   return true;
 }
 
@@ -69,12 +75,12 @@ export function movePlayer(playerId, dir) {
 
     // the bomb solid only after you leave its tile
     if (p.phasingThroughBomb) {
-      const phasingBombTile = p.phasingThroughBomb;
+      const { row, col } = p.phasingThroughBomb;
       const collisionBoxSize = 26;
       const halfBox = collisionBoxSize / 2;
       const spriteCenterX = p.x + CELL_SIZE / 2;
       const spriteCenterY = p.y + CELL_SIZE / 2;
-      
+
       const corners = [
         { x: spriteCenterX - halfBox, y: spriteCenterY - halfBox },
         { x: spriteCenterX + halfBox, y: spriteCenterY - halfBox },
@@ -82,18 +88,17 @@ export function movePlayer(playerId, dir) {
         { x: spriteCenterX + halfBox, y: spriteCenterY + halfBox },
       ];
 
-      // Check if any corner of the player is still on the bomb's tile
-      const isStillOnBombTile = corners.some(corner => 
-          Math.floor(corner.y / CELL_SIZE) === phasingBombTile.row && 
-          Math.floor(corner.x / CELL_SIZE) === phasingBombTile.col
+      const isStillOnBombTile = corners.some(
+        (corner) =>
+          Math.floor(corner.y / CELL_SIZE) === row &&
+          Math.floor(corner.x / CELL_SIZE) === col
       );
 
-      // If the player's entire body is off the bomb tile, it becomes solid.
       if (!isStillOnBombTile) {
         p.phasingThroughBomb = null;
       }
     }
-    
+
     broadcastGameState();
   }
 }

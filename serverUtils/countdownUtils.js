@@ -9,22 +9,14 @@ export let startInterval = null;
 function startGameInten() {
   let timeLeft = 10;
   hasStartedC = "true";
-
-  console.log("f hna dlhi  ",hasStartedC);
-  
-
   clearInterval(startInterval); // prevent duplicates
 
   startInterval = setInterval(() => {
     broadcast("countdown", { phase: "start", time: timeLeft });
-    console.log(`Game start countdown: ${timeLeft}`);
-
     timeLeft--;
-
     if (timeLeft < 0) {
       clearInterval(startInterval);
       startInterval = null;
-
       console.log("Starting game...");
       forceStartGame();
     }
@@ -33,17 +25,14 @@ function startGameInten() {
 
 export function startWait() {
 
-  if (startInterval !== null) return;
-  let timeLeft = 5;
+  if (startInterval !== null || waitInterval !== null) return;
+  let timeLeft = 20;
 
   clearInterval(waitInterval); // prevent duplicates
 
   waitInterval = setInterval(() => {
     broadcast("countdown", { phase: "wait", time: timeLeft });
-    console.log(`Wait countdown: ${timeLeft}`);
-
     timeLeft--;
-
     if (timeLeft < 0) {
       clearInterval(waitInterval);
       waitInterval = null;
@@ -57,13 +46,11 @@ export function cancelAllCountdowns() {
   if (waitInterval) {
     clearInterval(waitInterval);
     waitInterval = null;
-    console.log("cleared wait interval");
   }
   if (startInterval) {
     hasStartedC = false;
     clearInterval(startInterval);
     startInterval = null;
-    console.log("cleared start interval");
   }
 
   broadcast("stopped");

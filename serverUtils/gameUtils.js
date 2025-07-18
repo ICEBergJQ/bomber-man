@@ -11,7 +11,6 @@ export function forceStartGame() {
     if (client.playerId === null) {
       client.ws.close(1000, "Disconnected: Game started without registration");
       delete clients[clientId];
-      console.log(`Unregistered client ${clientId} removed on game start`);
     }
   }
   broadcastGameState();
@@ -21,10 +20,9 @@ export function forceStartGame() {
 export let resetTO = null;
 export function resetGame() {
   resetTO = setTimeout(() => {
-    // broadcast("reset");
     removeAllCon();
     initializeGame();
-  }, 15000);
+  }, 5000);
 }
 
 export function cancelReset() {
@@ -69,7 +67,6 @@ export function initializeGame() {
   });
 
   freeAllIDs();
-  console.log(IDs);
   changeHsStr(false);
   cancelReset();
 }

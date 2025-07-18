@@ -71,10 +71,42 @@ export function placeBomb(playerId) {
     return;
   }
 
-  const bomb = { row: bombRow, col: bombCol, playerId, placedAt: Date.now() };
-  gameState.bombs.push(bomb);
+  const bomb = {
+    row: bombRow,
+    col: bombCol,
+    playerId,
+    placedAt: Date.now(),
+    phasingPlayers: [],
+  };
+  for (const pid in gameState.players) {
+    const player = gameState.players[pid];
+    const collisionBoxSize = 26; // or whatever you're using
+    const halfBox = collisionBoxSize / 2;
 
-  p.phasingThroughBomb = { row: bombRow, col: bombCol };
+    const spriteCenterX = player.x + CELL_SIZE / 2;
+    const spriteCenterY = player.y + CELL_SIZE / 2;
+
+    const corners = [
+      { x: spriteCenterX - halfBox, y: spriteCenterY - halfBox },
+      { x: spriteCenterX + halfBox, y: spriteCenterY - halfBox },
+      { x: spriteCenterX - halfBox, y: spriteCenterY + halfBox },
+      { x: spriteCenterX + halfBox, y: spriteCenterY + halfBox },
+    ];
+
+    const isOverlappingBomb = corners.some(
+      (corner) =>
+        Math.floor(corner.y / CELL_SIZE) === bombRow &&
+        Math.floor(corner.x / CELL_SIZE) === bombCol
+    );
+
+    if (isOverlappingBomb) {
+      bomb.phasingPlayers.push(parseInt(pid));
+      player.phasingThroughBomb = { row: bomb.row, col: bomb.col };
+    }
+  }
+
+  // Then push the bomb to the game state
+  gameState.bombs.push(bomb);
 
   if (actualBombsPlaced >= p.maxBombs) {
     p.tempBombs--;
@@ -83,10 +115,6 @@ export function placeBomb(playerId) {
   setTimeout(() => {
     // 3-second explosion timer
     gameState.bombs = gameState.bombs.filter((b) => b !== bomb);
-    const playerExists = gameState.players[playerId];
-    if (playerExists) {
-        playerExists.activeBombs = gameState.bombs.filter((b) => b.playerId === playerId).length;
-    }
     explodeBomb(bomb);
   }, 3000);
 

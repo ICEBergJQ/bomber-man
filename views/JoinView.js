@@ -11,10 +11,8 @@ function handleInput(gameState, sendToServer) {
     alert("Please enter a nickname between 2 and 10 chars!");
   } else {
     let players = gameState.getState().players;
-    console.log(players);
 
     let [_, value] = Object.entries(players);
-    console.log(value?.nickname);
     let exist = false;
 
     Object.entries(players).forEach(([key, value]) => {
@@ -39,7 +37,6 @@ export default function renderJoinScreen(gameState, sendToServer) {
   let socket = getSocket();
   if (!socket) {
     connectWebSocket(gameState);
-    console.log("[JoinView.js] WebSocket connection established.");
   }
  
   return createElement("div", {

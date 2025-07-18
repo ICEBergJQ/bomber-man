@@ -26,7 +26,6 @@ export default function renderLobbyScreen(gameState, sendToServer) {
     playerID :  lobbyPlayers[i]?.playerId 
   }));
 
-  // console.log(defaultplayers, defaultplayers.length);
   let socket = getSocket();
   if (!socket) {
     // toGamefull(gameState);

@@ -3,8 +3,6 @@ import { createElement } from "../src/main.js";
 
 function handleInput(e, sendToServer) {
     if (e.key === "Enter") {
-        console.log('from handle input');
-
         const input = e.target;
         const text = input.value.trim();
         if (text == '' || text.length > 100) {

@@ -31,30 +31,13 @@ export function connectWebSocket(gameState) {
       e.reason === "Game is full or has already started" ||
       e.reason === "Disconnected: max players reached"
     ) {
-      //   gameState.setState({
-      //     players: {},
-      //     bombs: [],
-      //     explosions: [],
-      //     gameOver: false,
-      //     winner: null,
-      //     gameStarted: false,
-      //     maze: null,
-      //     nickname: "",
-      //     chatMessages: [],
-      //     currentScreen: "gameFull",
-      //     countD: 0,
-      //     phase: "",
-      //   });
       toGamefull(gameState);
-      //   resetStateWscreen(gameState, "gameFull")
-      //   window.location.hash = "#/gameFull";
     } else if (e.reason === "Disconnected: game reset") {
       quiteGame(gameState);
     }
   };
   socket.onmessage = (event) => {
     const msg = JSON.parse(event.data);
-    console.log(msg);
     if (msg.type === "countdown") {
       gameState.setState({
         ...gameState.getState(),

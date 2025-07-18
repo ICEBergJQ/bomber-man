@@ -28,12 +28,8 @@ export function initWS(server) {
     const activePlayers = Object.values(clients).filter(
       (c) => c.playerId
     ).length;
-    console.log("wax starta.... ",getHasStartedC());
     if (activePlayers >= MAX_PLAYERS || gameState.gameStarted || getHasStartedC()) {
       ws.close(1000, "Game is full or has already started");
-      console.log(
-        `Connection rejected: Game is full (${activePlayers}/${MAX_PLAYERS}) or has already started`
-      );
       return;
     }
     ws.isAlive = true;
@@ -69,9 +65,6 @@ export function initWS(server) {
               if (client.playerId === null) {
                 client.ws.close(1000, "Disconnected: max players reached");
                 delete clients[clientId];
-                console.log(
-                  `Unregistered client ${clientId} removed on game start`
-                );
               }
             }
             return;
@@ -81,7 +74,6 @@ export function initWS(server) {
           const playerId = assignID();
           if (!playerId) {
             ws.close(1000, "No starting positions available");
-            console.log(`Connection rejected: No IDS available`);
             return;
           }
           clients[id].playerId = playerId;
@@ -141,14 +133,11 @@ export function initWS(server) {
       const { playerId } = clients[id] || {};
       if (playerId) {
         freeID(playerId);
-        console.log(IDs);
 
         delete gameState.players[playerId];
         gameState.playerCount--;
       }
       delete clients[id];
-      console.log(`Connection closed: ${id}, Player ID: ${playerId}`);
-      console.log(`Active players: ${Object.keys(gameState.players).length}`);
       if (gameState.playerCount <= 1) {
         cancelAllCountdowns();
       }
@@ -157,7 +146,6 @@ export function initWS(server) {
 
       if (gameState.playerCount === 0) {
         initializeGame();
-        console.log("All players left: game fully reset");
       }
       broadcastGameState();
     });
@@ -180,7 +168,6 @@ export function removeAllCon() {
   for (const [clientId, client] of Object.entries(clients)) {
     client.ws.close(1000, "Disconnected: game reset");
     delete clients[clientId];
-    console.log(`cleared cons`);
   }
 }
 

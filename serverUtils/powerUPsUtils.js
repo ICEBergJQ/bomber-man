@@ -35,7 +35,6 @@ export function checkPowerup() {
         setTimeout(() => {
           if (gameState.players[p.playerId]) {
             gameState.players[p.playerId].invincible = false;
-            console.log("sheild TSALAAAAA");
             broadcastGameState();
           }
         }, 20000);
@@ -43,13 +42,10 @@ export function checkPowerup() {
 
       case "extraBomb":
         p.tempBombs += 1;
-        console.log(`Player ${p.playerId} got a temporary bomb`);
         break;
 
       case "speed":
         p.speed = Math.min(p.speed * 1.5, 2.5);
-        console.log(`Player ${p.playerId} speed increased to ${p.speed}`);
-
         setTimeout(() => {
           if (gameState.players[p.playerId]) {
             p.speed = 1;
