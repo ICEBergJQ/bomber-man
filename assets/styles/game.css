@@ -424,7 +424,7 @@
   border-radius: 20px;
   display: flex;
   position: relative;
-  margin-top: 3rem auto;
+  margin: 3rem auto;
   justify-content: center;
   height: 60vh;
   color: var(--col1);
