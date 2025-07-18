@@ -99,6 +99,7 @@ export function initWS(server) {
             maxBombs: 1,
             tempBombs: 0,
             bombRange: 2,
+            phasingThroughBomb: null, 
             invincible: false,
           };
           broadcastGameState();

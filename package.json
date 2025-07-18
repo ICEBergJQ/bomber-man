@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "A minimal JavaScript framework built from scratch to demonstrate how real frameworks like React or Vue work under the hood.",
   "type": "module",
-
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
