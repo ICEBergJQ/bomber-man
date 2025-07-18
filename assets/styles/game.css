@@ -469,3 +469,19 @@
   background-repeat: no-repeat;
   top: 80px;
 }
+
+.powerup-bombRange {
+  background-image: url('/assets/img/bomb.png');
+}
+
+.powerup-extraBomb {
+  background-image: url('/assets/img/extraBomb.png');
+}
+
+.powerup[data-type="bombRange"] {
+  filter: drop-shadow(0 0 5px rgba(255, 100, 100, 0.7));
+}
+
+.powerup[data-type="extraBomb"] {
+  filter: drop-shadow(0 0 5px rgba(100, 255, 100, 0.7));
+}
