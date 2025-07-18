@@ -55,21 +55,8 @@
   background-position: 0 0;
   background-size: 150px 250px;
 }
-#player-card-1::after {
-  background-image: url("../img/player/sith.png");
-}
-#player-card-2:nth-child(2):after {
-  background-image: url("../img/player/weddingguy03.png");
-}
 
-#player-card-3:nth-child(3):after {
-  background-image: url("../img/player/blackmage_m.png");
-}
-
-#player-card-4:nth-child(4):after {
-  background-image: url("../img/player/modernguy05.png");
-}
-
+/* place cards on the grid */
 .players-containersssssssss .player-card:nth-child(2) {
   justify-self: end;
 }

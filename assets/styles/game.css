@@ -41,19 +41,7 @@
   background-position: 0 0;
   background-size: 150px 250px;
 }
-.game-player:nth-child(1) .game-player-img{
-  background-image: url("/assets/img/player/sith.png");
-}
-.game-player:nth-child(2) .game-player-img{
-  background-image: url("/assets/img/player/weddingguy03.png");
-}
-.game-player:nth-child(3) .game-player-img{
-  background-image: url("/assets/img/player/blackmage_m.png");
-}
-.game-player:nth-child(4) .game-player-img{
-  background-image: url("/assets/img/player/modernguy05.png");
-}
-
+ 
 .game-player .game-player-img::after span {
   margin-bottom: 2px;
   display: inline-block;
@@ -371,22 +359,6 @@
   z-index: 10;
   /* background-image: url('/assets/img/player/blackmage_m.png'); */
   transition: transform 0.15s linear;
-}
-
-#player-1 {
-  background-image: url("/assets/img/player/sith.png");
-}
-
-#player-2 {
-  background-image: url("/assets/img/player/weddingguy03.png");
-}
-
-#player-3 {
-  background-image: url("/assets/img/player/blackmage_m.png");
-}
-
-#player-4 {
-  background-image: url("/assets/img/player/modernguy05.png");
 }
 
 /* SHEEELD */
