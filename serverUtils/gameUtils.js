@@ -51,7 +51,11 @@ export function checkWinCondition() {
 }
 
 export function initializeGame() {
-  gameState = {
+  // Clear the properties of the EXISTING gameState object
+  Object.keys(gameState).forEach(key => delete gameState[key]);
+
+  // Re-populate the properties on the SAME object
+  Object.assign(gameState, {
     players: {},
     bombs: [],
     explosions: [],
@@ -61,9 +65,8 @@ export function initializeGame() {
     gameOver: false,
     winner: null,
     playerCount: 0,
-  };
+  });
+
   freeAllIDs();
-  console.log(IDs);
-  
   cancelReset();
 }
