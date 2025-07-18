@@ -14,7 +14,7 @@
   --col11: #258ab5;
   --col111: #05529999;
   --col2: #068dba;
-
+  --col3: #6d65aa;
   --gradient1: #1ec3ff;
   --gradient2: #79ceff;
 }
@@ -33,9 +33,28 @@ a {
   margin: 5px;
 }
 
-button {
-
+button:not(#quit-btn) {
+  margin-top: 15px;
+  display: block;
+  font-family: "DynaPuff", system-ui;
+  height: 46px;
+  width: 250px;
+  position: relative;
+  font-size: 1.2rem;
+  font-weight: 600;
+  background-image: linear-gradient(to bottom, #fff, #ffde6a);
+  background-size: 100% 150%;
+  background-position: top;
+  transition: background-position 0.3s;
+  color: var(--col1);
+  border-radius: 10px;
   cursor: pointer;
+  border: 2px #fff solid;
+  outline: 2px solid var(--col2);
+}
+
+button:hover {
+  background-position: bottom;
 }
 
 button,
@@ -51,7 +70,8 @@ label {
 
 @media screen and (max-width: 440px) {
 
-  h1, h2 {
+  h1,
+  h2 {
     font-size: 1.2rem;
   }
 

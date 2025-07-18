@@ -1,7 +1,6 @@
 
 import { createElement } from "../src/main.js";
 
-
 function handleInput(e, sendToServer) {
     if (e.key === "Enter") {
         console.log('from handle input');
@@ -13,16 +12,24 @@ function handleInput(e, sendToServer) {
         } else {
             sendToServer({ type: "chat", text: text });
             input.value = "";
-
         }
     }
 }
-function toggleChat(e) {
+
+function toggleChat(e, gameState) {
     e.target.parentElement.classList.toggle('show')
+    let state = gameState.getState();
+    gameState.setState({
+        ...state,
+        isChatOpen: !state.isChatOpen,
+    });
 }
 
-export default function ChatUI(state, sendToServer, className = '') {
-    console.log('chat ui', state, document.activeElement);
+export default function ChatUI(state, sendToServer, className = '', gameState = {}) {
+    console.log("gameState : ", gameState);
+    
+    const st = gameState?.getState();
+    const { isChatOpen } = st;
 
     const chatMsgs = (state.chatMessages || []).map((msg) =>
         createElement("span", {
@@ -37,18 +44,16 @@ export default function ChatUI(state, sendToServer, className = '') {
     );
 
     return createElement("div", {
-        //    attrs: { class: `chat-container ${className} show` },
-        attrs: { class: `chat-container ${className}` },
+        attrs: { class: `chat ${className} ${isChatOpen ? 'show' : ''}` },
         children: [
-            className && createElement('button', {
-                attrs: { class: 'opener btn' },
-                children: ['Chat'],
+            className && createElement('span', {
+                attrs: { class: 'opener' },
+                children:['chat'],
                 events: {
-                    click: (e) => toggleChat(e)
+                    click: (e) => toggleChat(e, gameState)
                 }
             }),
             createElement('div', {
-                attrs: { class: 'chat-wrapper' },
                 children: [
                     createElement('div', {
                         attrs: { class: 'chat-messages' },

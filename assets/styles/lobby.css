@@ -50,7 +50,7 @@
   left: 50%;
   top: 10px;
   position: absolute;
-  border: 2px solid var(--col11);
+  border: 2px solid #fff;
   transform: translateX(-50%);
 }
 
@@ -79,13 +79,13 @@
   justify-content: center;
 }
 
-.chat-wrapper {
+.chat>div {
   border-radius: 15px;
   position: relative;
   box-shadow: 0 0 5px 2px var(--col1);
 }
 
-.chat-wrapper::after {
+.chat>div::after {
   content: "";
   background: url("../img/movie_chara_2.png") no-repeat;
   position: absolute;
@@ -197,6 +197,10 @@
 
 #quit-btn img {
   width: 100%;
+  transition: transform 0.3s;
+}
+#quit-btn img:hover {
+  transform: rotate(30deg) translate(5px, 5px);
 }
 .players-counter {
   text-align: center;

@@ -3,6 +3,7 @@ import { connectWebSocket, getSocket } from "../clientUtils/WS.js";
 
 let nickname = "";
 
+///validate and check user nickname
 function handleInput(gameState, sendToServer) {
   nickname = nickname.trim();
 
@@ -28,31 +29,26 @@ function handleInput(gameState, sendToServer) {
     }
 
     gameState.setState({ ...gameState.getState(), nickname });
-    console.log('[JoinView.js] "Join Game" button clicked.', nickname);
+    
     sendToServer({ type: "registerPlayer", nickname });
     location.hash = "#/lobby";
   }
 }
-
+///create join screen elements
 export default function renderJoinScreen(gameState, sendToServer) {
   let socket = getSocket();
   if (!socket) {
     connectWebSocket(gameState);
     console.log("[JoinView.js] WebSocket connection established.");
   }
-
-  console.log("[JoinView.js] Rendering view.");
+ 
   return createElement("div", {
-    attrs: { class: "  join-screen container" },
+    attrs: { class: "join-screen container" },
     children: [
-      createElement("h1", {
-        attrs:{
-          class:'title'
-        } ,
+      createElement("h1", { 
         children: ["Welcome to Bomberman!"] 
       }),
-      createElement("div", {
-        attrs: { class: "wrapper" },
+      createElement("div", { 
         children: [
           createElement("input", {
             attrs: {
@@ -67,8 +63,7 @@ export default function renderJoinScreen(gameState, sendToServer) {
               change: (e) => (nickname = e.target.value),
             },
           }),
-          createElement("button", {
-            attrs: { class: "btn" },
+          createElement("button", { 
             children: ["Join Game"],
             events: {
               click: () => handleInput(gameState, sendToServer),

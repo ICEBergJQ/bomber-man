@@ -11,7 +11,7 @@ export default function render404Screen() {
       }),
 
       createElement("button", {
-        attrs: { class: "btn btn-primary", style: "margin-top: 20px;" },
+        attrs: { class: "btn"  },
         children: ["Go to Home"],
         events: {
           click: () => {

@@ -1,8 +1,12 @@
 import { gameState, initializeGame, checkWinCondition } from "./gameUtils.js";
 import { IDs, startingPositions, freeID, assignID } from "./playerUtils.js";
 import { placeBomb } from "./bombUtils.js";
-import { checkPowerupCollection } from "./powerUPsUtils.js";
-import { startWait, startGameC, cancelAllCountdowns } from "./countdownUtils.js";
+import { checkPowerup } from "./powerUPsUtils.js";
+import {
+  startWait,
+  startGameC,
+  cancelAllCountdowns,
+} from "./countdownUtils.js";
 import { movePlayer } from "./movementUtils.js";
 import { MAX_PLAYERS, HEARTBEAT_INTERVAL, CELL_SIZE } from "./vars.js";
 import { WebSocketServer } from "ws";
@@ -10,7 +14,6 @@ import WebSocket from "ws";
 
 let connectionIdCounter = 0;
 export const clients = {};
-
 
 function heartbeat() {
   this.isAlive = true;
@@ -90,7 +93,10 @@ export function initWS(server) {
             y: pos.row * CELL_SIZE,
             alive: true,
             lives: 3,
-            speed: 1, // Default speed
+            speed: 1,
+            maxBombs: 1,
+            tempBombs: 0,
+            bombRange: 2,
             invincible: false,
           };
           broadcastGameState();
@@ -98,7 +104,7 @@ export function initWS(server) {
             startWait();
           }
           if (gameState.playerCount === 4) {
-            startGameC()
+            startGameC();
           }
           break;
         case "move":
@@ -176,7 +182,7 @@ export function removeAllCon() {
 }
 
 export function broadcastGameState() {
-  checkPowerupCollection();
+  checkPowerup();
   const msg = JSON.stringify({ type: "gameState", data: gameState });
   Object.values(clients).forEach((c) => {
     if (c.ws.readyState === WebSocket.OPEN) c.ws.send(msg);

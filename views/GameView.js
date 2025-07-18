@@ -1,7 +1,8 @@
 import { createElement } from "../src/main.js";
 import { getSocket } from "../clientUtils/WS.js";
 import chatMsgs from "../components/ChatCmp.js";
-import { quiteGame, toGamefull } from "../clientUtils/stateUtils.js";
+import { toGamefull } from "../clientUtils/stateUtils.js";
+import QuitBtn from "../components/QuitBtn.js";
 
 export default function renderGameScreen(gameState, sendToServer) {
   const state = gameState.getState();
@@ -88,7 +89,6 @@ export default function renderGameScreen(gameState, sendToServer) {
 
   const playerList = Object.values(state.players).map((p) => {
     const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
-    const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
 
     return createElement("div", {
       attrs: {
@@ -105,7 +105,7 @@ export default function renderGameScreen(gameState, sendToServer) {
               children: [p.nickname],
             }),
             createElement("div", {
-              children: [lifeDisplay], //speedDisplay
+              children: [lifeDisplay],
             }),
           ],
         }),
@@ -113,18 +113,11 @@ export default function renderGameScreen(gameState, sendToServer) {
     });
   });
 
+
   return createElement("div", {
     attrs: { class: "screen game-screen" },
     children: !state.winner ? [
-
-      createElement("button", {
-        attrs: { id: "quit-btn", class: "btn" },
-        children: ["Quit"],
-        events: {
-          click: () => quiteGame(gameState),
-        },
-      }),
-
+      QuitBtn(gameState),
       createElement("div", {
         attrs: { class: "game-container" },
         children: [
@@ -159,16 +152,14 @@ export default function renderGameScreen(gameState, sendToServer) {
           }),
         ],
       }),
-      chatMsgs(state, sendToServer, "game-chat"),
-
+      chatMsgs(state, sendToServer, "game-chat", gameState)
     ] :
       [
         createElement('div', {
           attrs: { class: 'win' },
           children: [
-            
             createElement('span', {
-              children: [ `${state.nickname} Win!`]
+              children: [`${state.winner.nickname} Win!`]
             }
             )
           ]

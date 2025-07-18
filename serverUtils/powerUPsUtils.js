@@ -1,8 +1,8 @@
 import { gameState } from "./gameUtils.js";
 import { CELL_SIZE } from "./vars.js";
-import { broadcastGameState} from "./WsUtils.js";
+import { broadcastGameState } from "./WsUtils.js";
 
-export function checkPowerupCollection() {
+export function checkPowerup() {
   Object.values(gameState.players).forEach((p) => {
     if (!p.alive) return;
 
@@ -26,14 +26,8 @@ export function checkPowerupCollection() {
         }
         break;
 
-      case "speedBoost":
-        p.speed = (p.speed || 1) * 2;
-        setTimeout(() => {
-          if (gameState.players[p.playerId]) {
-            gameState.players[p.playerId].speed /= 2;
-            broadcastGameState();
-          }
-        }, 20000);
+      case "bombRange":
+        p.bombRange = Math.min(p.bombRange + 1, 3);
         break;
 
       case "shield":
@@ -42,6 +36,23 @@ export function checkPowerupCollection() {
           if (gameState.players[p.playerId]) {
             gameState.players[p.playerId].invincible = false;
             console.log("sheild TSALAAAAA");
+            broadcastGameState();
+          }
+        }, 20000);
+        break;
+
+      case "extraBomb":
+        p.tempBombs += 1;
+        console.log(`Player ${p.playerId} got a temporary bomb`);
+        break;
+
+      case "speed":
+        p.speed = Math.min(p.speed * 1.5, 2.5);
+        console.log(`Player ${p.playerId} speed increased to ${p.speed}`);
+
+        setTimeout(() => {
+          if (gameState.players[p.playerId]) {
+            p.speed = 1;
             broadcastGameState();
           }
         }, 20000);

@@ -1,4 +1,4 @@
-#quit-btn {
+.game-screen>button {
   width: 60px;
 }
 
@@ -187,25 +187,6 @@
   z-index: 15;
 }
 
-.player1 {
-  background-color: #ff4444;
-  border-radius: 50%;
-}
-
-.player2 {
-  background-color: #4444ff;
-  border-radius: 50%;
-}
-
-.player3 {
-  background-color: #44ff44;
-  border-radius: 50%;
-}
-
-.player4 {
-  background-color: #ffff44;
-  border-radius: 50%;
-}
 
 
 @keyframes pulse {
@@ -271,7 +252,7 @@
 }
 
 
-.powerup-speedBoost {
+.powerup-speed {
   background-image: url('/assets/img/extraSpeed.png');
 }
 
@@ -288,7 +269,7 @@
 }
 
 /* Speed Boost Power-up */
-.powerup[data-type="speedBoost"] {
+.powerup[data-type="speed"] {
   filter: drop-shadow(0 0 4px rgba(50, 150, 255, 0.7));
   animation: pulse 0.8s infinite alternate;
 }
@@ -315,7 +296,7 @@
   }
 }
 
-.speed-boosted {
+.speed {
   filter: drop-shadow(0 0 8px rgba(255, 200, 0, 0.8));
   animation: pulse-glow 0.5s infinite alternate;
 }
@@ -330,16 +311,16 @@
   }
 }
 
-.player-list li::after {
+/* .player-list li::after {
   content: " ⚡";
   color: gold;
   font-size: 0.9em;
   display: none;
-}
+} */
 
-.player-list li[data-has-speed]::after {
+/* .player-list li[data-has-speed]::after {
   display: inline;
-}
+} */
 
 /* .powerup img {
   width: 100%;
@@ -379,8 +360,26 @@
   left: 0;
   width: 30px;
   height: 30px;
+  background-size: 120px 120px;
   z-index: 10;
+  /* background-image: url('/assets/img/player/blackmage_m.png'); */
   transition: transform 0.15s linear;
+}
+
+#player-1{
+  background-image: url('/assets/img/player/sith.png');
+}
+
+#player-2{
+  background-image: url('/assets/img/player/weddingguy03.png');
+}
+
+#player-3 {
+  background-image: url('/assets/img/player/blackmage_m.png');
+}
+
+#player-4{
+  background-image: url('/assets/img/player/modernguy05.png');
 }
 
 
@@ -413,51 +412,51 @@
 
 /* chat */
 
-.game-chat {
-  position: fixed;
-  top: 10px;
-  right: 15px;
-  z-index: 3;
-  width: 250px;
-  height: 64vh;
-}
+  
 
-.game-chat .opener {
-  width: 80px;
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 10px);
-  cursor: pointer;
-  transform: translateX(-50%);
-  background-color: var(--col11);
-}
-
-.game-chat .chat-wrapper {
-  display: none;
-
-}
-
-.show .chat-wrapper {
-  display: block;
-
-}
-
-.game-chat .chat-wrapper::after {
+.game-chat>div::after {
   bottom: 150px;
   right: 10px;
   z-index: -2;
 }
 
+.game-chat {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  right: -263px;
+  transition: right 0.5s;
+}
+
+.game-chat .opener {
+  width: 20px;
+  height: 60px;
+  position: absolute;
+  left: -20px;
+  top: 20px;
+  cursor: pointer;
+  border-radius: 15px 0 0 15px;
+  background-color: var(--col11);
+  writing-mode: sideways-lr;
+  text-align: center;
+}
+
+.show {
+  right: 0px;
+}
+
 .win {
   font-size: 3rem;
-  border: 2px solid var(--col1);
   border-radius: 20px;
   display: flex;
-  position: relative; 
+  position: relative;
+  margin-top: 3rem;
   justify-content: center;
   height: 60vh;
   color: var(--col1);
   background-color: #ffffff91;
+  border: 2px solid var(--col1);
 }
 
 .win::after {
@@ -469,4 +468,20 @@
   background-size: auto 300px;
   background-repeat: no-repeat;
   top: 80px;
+}
+
+.powerup-bombRange {
+  background-image: url('/assets/img/bomb.png');
+}
+
+.powerup-extraBomb {
+  background-image: url('/assets/img/extraBomb.png');
+}
+
+.powerup[data-type="bombRange"] {
+  filter: drop-shadow(0 0 5px rgba(255, 100, 100, 0.7));
+}
+
+.powerup[data-type="extraBomb"] {
+  filter: drop-shadow(0 0 5px rgba(100, 255, 100, 0.7));
 }

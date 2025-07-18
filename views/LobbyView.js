@@ -1,9 +1,10 @@
 import { createElement } from "../src/main.js";
 import { getSocket } from "../clientUtils/WS.js";
 import chatMsgs from "../components/ChatCmp.js";
-// import { quiteGame } from "./GameView.js";
 import { quiteGame } from "../clientUtils/stateUtils.js";
 
+import QuitBtn from "../components/QuitBtn.js";
+ 
 // https://excalidraw.com/#json=RJHu_-G6zzsMdhMu2waTM,Z0zJ3AAK6CPd9QM1WjLqew
 let defaultplayers = new Array(4).fill(null);
 
@@ -62,28 +63,10 @@ export default function renderLobbyScreen(gameState, sendToServer) {
           attrs: { class: "countdown" },
           children: [returnCount(gameState)],
         }),
-        createElement("button", {
-          attrs: { id: "quit-btn", title: "quit" },
-          children: [
-            createElement("img", {
-              attrs: {
-                src: "../assets/img/off.png",
-                alt: "Quit",
-              },
-            }),
-          ],
-          events: {
-            click: () => quiteGame(gameState),
-          },
-        }),
+       QuitBtn(gameState),
       ],
     }),
-    chatMsgs(state, sendToServer),
-    ///players counter
-    createElement("div", {
-      attrs: { class: "players-counter" },
-      children: [`Players (${state.playerCount}/4)`],
-    }),
+    chatMsgs(state, sendToServer, '',gameState),
     playersList,
   ];
 
