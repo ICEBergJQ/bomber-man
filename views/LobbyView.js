@@ -1,28 +1,9 @@
 import { createElement } from "../src/main.js";
 import { connectWebSocket, getSocket } from "../client.js";
 import chatMsgs from "../components/ChatCmp.js";
+import QuitBtn from "../components/QuitBtn.js";
 import { quiteGame } from "./GameView.js";
-
-// export function toGamefull(gameState) {
-//   closeSocket();
-
-//   gameState.setState({
-//     players: {},
-//     bombs: [],
-//     explosions: [],
-//     gameOver: false,
-//     winner: null,
-//     gameStarted: false,
-//     maze: null,
-//     currentScreen: "gameFull",
-//     nickname: "",
-//     chatMessages: [],
-//     countD : 0,
-//     phase: "",
-//   });
-//   window.location.hash = "#/gameFull"
-// }
-
+ 
 // https://excalidraw.com/#json=RJHu_-G6zzsMdhMu2waTM,Z0zJ3AAK6CPd9QM1WjLqew
 let defaultplayers = new Array(4).fill(null);
 
@@ -67,7 +48,6 @@ export default function renderLobbyScreen(gameState, sendToServer) {
 
   let lobbyContent;
 
-  // if (state.isPlayer1) {
   lobbyContent = [
     createElement("header", {
       attrs: { class: "container" },
@@ -78,23 +58,10 @@ export default function renderLobbyScreen(gameState, sendToServer) {
           attrs: { class: "countdown" },
           children: [returnCount(gameState)],
         }),
-        createElement("button", {
-          attrs: { id: "quit-btn", title:'quit' },
-          children: [
-            createElement('img', {
-              attrs:{
-                src:'../assets/img/off.png',
-                alt:'Quit'
-              }
-            })
-          ],
-          events: {
-            click: () => quiteGame(gameState),
-          },
-        }),
+       QuitBtn(gameState),
       ],
     }),
-    chatMsgs(state, sendToServer),
+    chatMsgs(state, sendToServer, '',gameState),
     playersList,
   ];
 

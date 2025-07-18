@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const WebSocket = require("ws");
 const os = require("os");
-const { start } = require("repl");
+// const { start } = require("repl");
 
 const requestHandler = (req, res) => {
   let filePath = path.join(__dirname, req.url === "/" ? "index.html" : req.url);
@@ -78,9 +78,13 @@ function initializeGame() {
     winner: null,
     playerCount: 0,
   };
+  freeAllIDs();
+  console.log(IDs);
+  
+  cancelReset();
 }
 function broadcastGameState() {
-  checkPowerupCollection();
+  checkPowerup();
   const msg = JSON.stringify({ type: "gameState", data: gameState });
   Object.values(clients).forEach((c) => {
     if (c.ws.readyState === WebSocket.OPEN) c.ws.send(msg);
@@ -157,15 +161,16 @@ function checkPlayerDeaths() {
   });
 }
 function checkWinCondition() {
+  if (!gameState.gameStarted) return;
   const alive = Object.values(gameState.players).filter((p) => p.alive);
-  const isMultiplayer = gameState.playerCount > 1;
 
   // Game ends if one player is left in a multiplayer match, or the only player dies.
-  if (isMultiplayer && alive.length <= 1) {
+  if (alive.length === 1) {
     gameState.gameOver = true;
     gameState.winner = alive[0] || null;
+    resetGame();
     broadcastGameState();
-  } else if (!isMultiplayer && alive.length === 0) {
+  } else if (gameState.playerCount === 0) {
     gameState.gameOver = true;
     gameState.winner = null;
     broadcastGameState();
@@ -173,8 +178,10 @@ function checkWinCondition() {
 }
 
 function explodeBomb(bomb) {
-  const { row, col } = bomb;
+  const { row, col, playerId } = bomb;
   const explosion = [{ row, col }];
+  const player = gameState.players[playerId];
+  const range = player?.bombRange || 2;
 
   [
     [-1, 0],
@@ -182,7 +189,7 @@ function explodeBomb(bomb) {
     [0, -1],
     [0, 1],
   ].forEach(([dr, dc]) => {
-    for (let i = 1; i < 2; i++) {
+    for (let i = 1; i < range; i++) {
       // Using a fixed bomb range for now
       const nr = row + dr * i;
       const nc = col + dc * i;
@@ -193,9 +200,8 @@ function explodeBomb(bomb) {
 
       if (gameState.maze[nr][nc] === "*") {
         gameState.maze[nr][nc] = " ";
-        // Chance to spawn a power-up
-        if (Math.random() < 0.25) {
-          const powerups = ["extraLife", "speedBoost", "shield"];
+        if (Math.random() < 10) {
+          const powerups = ["extraLife", "bombRange", "shield", "extraBomb", "speed"];
           const type = powerups[Math.floor(Math.random() * powerups.length)];
           gameState.powerups.push({
             row: nr,
@@ -223,7 +229,7 @@ function explodeBomb(bomb) {
 
   broadcastGameState();
 }
-function checkPowerupCollection() {
+function checkPowerup() {
   Object.values(gameState.players).forEach((p) => {
     if (!p.alive) return;
 
@@ -243,18 +249,12 @@ function checkPowerupCollection() {
         if (p.lives < 3) {
           p.lives++;
         } else {
-          return;  
+          return;
         }
         break;
 
-      case "speedBoost":
-        p.speed = (p.speed || 1) * 2;
-        setTimeout(() => {
-          if (gameState.players[p.playerId]) {
-            gameState.players[p.playerId].speed /= 2;;
-            broadcastGameState();
-          }
-        }, 20000);
+      case "bombRange":
+        p.bombRange = Math.min(p.bombRange + 1, 3);
         break;
 
       case "shield":
@@ -267,81 +267,91 @@ function checkPowerupCollection() {
           }
         }, 20000);
         break;
+
+      case "extraBomb":
+        p.maxBombs = Math.min((p.maxBombs || 1) + 1, 2)
+        console.log(`Player ${p.playerId} max bombs increased to ${p.maxBombs}`);
+
+        break;
+
+      case "speed":
+        p.speed = Math.min(p.speed * 1.5, 2.5);
+        console.log(`Player ${p.playerId} speed increased to ${p.speed}`);
+
+        setTimeout(() => {
+          if (gameState.players[p.playerId]) {
+            p.speed = 1;
+            broadcastGameState();
+          }
+        }, 20000);
+        break;
     }
 
     gameState.powerups.splice(powerupIndex, 1);
     broadcastGameState();
   });
 }
-
-
-// function checkPowerupCollection() {
-//   Object.values(gameState.players).forEach((p) => {
-//     if (!p.alive) {
-//       return
-//     }
-//     const p_col = Math.floor((p.x + CELL_SIZE / 2) / CELL_SIZE);
-//     const p_row = Math.floor((p.y + CELL_SIZE / 2) / CELL_SIZE);
-//     const powerupIndex = gameState.powerups.findIndex(
-//       (pu) => pu.row === p_row && pu.col === p_col
-//     );
-//     console.log(powerupIndex, 'powerupIndex');
-//     let ff = true
-//     if (powerupIndex !== -1) {
-//       const powerup = gameState.powerups[powerupIndex];
-//       if (powerup.type === "extraLife") {
-//         if (p.lifes >= 3) {
-//           ff = false
-//           return
-//         }
-//         p.lives++;
-//       } else if (powerup.type === "speedBoost") {
-//         p.speed = (p.speed || 1) * 2;
-//         setTimeout(() => {
-//           // is player still exists
-//           if (gameState.players[p.playerId]) {
-//             gameState.players[p.playerId].speed /= 2;
-//             broadcastGameState();
-//           }
-//         }, 20000);
-//       } else if (powerup.type === "shield") {
-//         p.invincible = true;
-//         setTimeout(() => {
-//           // 7ta hna .....
-//           if (gameState.players[p.playerId]) {
-//             p.invincible = false;
-//             broadcastGameState();
-//           }
-//         }, 20000);
-//       }
-//       if (!ff) {
-//         gameState.powerups.splice(powerupIndex, 1);
-//         broadcastGameState();
-//       }
-//     }
-//   });
-// }
-
+// In the placeBomb function in server.js, replace with this:
 function placeBomb(playerId) {
   const p = gameState.players[playerId];
   if (!p || !p.alive || gameState.gameOver) return;
-  if (gameState.bombs.some((bomb) => bomb.playerId === playerId)) return;
+
+  // Get current active bombs count for this player
+  const activeBombsCount = gameState.bombs.filter(b => b.playerId === playerId).length;
+
+  // Check against maxBombs
+  if (activeBombsCount >= (p.maxBombs || 1)) {
+    return;
+  }
 
   // Place bomb based on player's grid-aligned position
   const bombCol = Math.floor((p.x + CELL_SIZE / 2) / CELL_SIZE);
   const bombRow = Math.floor((p.y + CELL_SIZE / 2) / CELL_SIZE);
 
-  if (gameState.bombs.some((b) => b.row === bombRow && b.col === bombCol))
+  // Check if there's already a bomb at this position
+  if (gameState.bombs.some(b => b.row === bombRow && b.col === bombCol)) {
     return;
+  }
 
   const bomb = { row: bombRow, col: bombCol, playerId, placedAt: Date.now() };
   gameState.bombs.push(bomb);
+
   setTimeout(() => {
     gameState.bombs = gameState.bombs.filter((b) => b !== bomb);
     explodeBomb(bomb);
   }, 3000);
+
   broadcastGameState();
 }
+
+
+// function placeBomb(playerId) {
+//   const p = gameState.players[playerId];
+//   const activeBombsCount = gameState.bombs.filter(b => b.playerId === playerId).length;
+//   if (activeBombsCount >= (p.maxBombs || 1)) {
+//     return;
+//   }
+//   if (!p || !p.alive || gameState.gameOver) return;
+//   if (p.activeBombs >= (p.maxBombs || 1)) return;
+//   if (gameState.bombs.some((bomb) => bomb.playerId === playerId)) return;
+
+//   // Place bomb based on player's grid-aligned position
+//   const bombCol = Math.floor((p.x + CELL_SIZE / 2) / CELL_SIZE);
+//   const bombRow = Math.floor((p.y + CELL_SIZE / 2) / CELL_SIZE);
+//   if (gameState.bombs.some(b => b.row === bombRow && b.col === bombCol)) {
+//     return;
+//   }
+
+//   const bomb = { row: bombRow, col: bombCol, playerId, placedAt: Date.now() };
+//   p.activeBombs++;
+//   gameState.bombs.push(bomb);
+//   setTimeout(() => {
+//     gameState.bombs = gameState.bombs.filter((b) => b !== bomb);
+//     p.activeBombs--;
+//     explodeBomb(bomb);
+//   }, 3000);
+//   broadcastGameState();
+// }
 
 function isValidPosition(x, y) {
   const collisionBoxSize = 26;
@@ -379,7 +389,8 @@ function movePlayer(playerId, dir) {
   let nextX = p.x;
   let nextY = p.y;
   const speed = p.speed || 1;
-  const moveAmount = MOVE_INCREMENT * speed;
+  const moveAmount = MOVE_INCREMENT * (p.speed || 1)
+  // const moveAmount = MOVE_INCREMENT * speed;
 
   if (dir === "up") nextY -= moveAmount;
   else if (dir === "down") nextY += moveAmount;
@@ -396,6 +407,14 @@ function movePlayer(playerId, dir) {
   }
 }
 
+function removeAllCon() {
+  for (const [clientId, client] of Object.entries(clients)) {
+    client.ws.close(1000, "Disconnected: game reset");
+    delete clients[clientId];
+    console.log(`cleared cons`);
+  }
+}
+
 function forceStartGame() {
   gameState.gameStarted = true;
   for (const [clientId, client] of Object.entries(clients)) {
@@ -406,6 +425,23 @@ function forceStartGame() {
     }
   }
   broadcastGameState();
+}
+
+//reset timeout
+let resetTO = null;
+function resetGame() {
+  resetTO = setTimeout(() => {
+    // broadcast("reset");
+    removeAllCon();
+    initializeGame();
+  }, 15000);
+}
+
+function cancelReset() {
+  if (resetTO !== null) {
+    clearTimeout(resetTO);
+    resetTO = null;
+  }
 }
 
 let waitInterval = null;
@@ -481,6 +517,12 @@ function assignID() {
   }
   available.taken = true;
   return available.id;
+}
+
+function freeAllIDs() {
+  IDs.forEach((id) => {
+    id.taken = false;
+  });
 }
 
 function freeID(playerId) {
@@ -565,7 +607,10 @@ wss.on("connection", (ws) => {
           y: pos.row * CELL_SIZE,
           alive: true,
           lives: 3,
-          speed: 1, // Default speed
+          speed: 1,
+          maxBombs: 1,
+          //activeBombs: 0,
+          bombRange: 2,
           invincible: false,
         };
         broadcastGameState();
@@ -573,9 +618,6 @@ wss.on("connection", (ws) => {
           startWait();
         }
         break;
-      // case "startGame":
-      //   forceStartGame();
-      //   break;
       case "move":
         movePlayer(clients[id]?.playerId, data.direction);
         break;
@@ -607,36 +649,19 @@ wss.on("connection", (ws) => {
     const { playerId } = clients[id] || {};
     if (playerId) {
       freeID(playerId);
+      console.log(IDs);
+
       delete gameState.players[playerId];
       gameState.playerCount--;
     }
     delete clients[id];
     console.log(`Connection closed: ${id}, Player ID: ${playerId}`);
     console.log(`Active players: ${Object.keys(gameState.players).length}`);
-    // if (gameState.playerCount <= 1) {
-    //   let wasCleared = false;
-
-    //   if (waitTimeout) {
-    //     clearTimeout(waitTimeout);
-    //     waitTimeout = null;
-    //     wasCleared = true;
-    //     console.log("cleared wait timeout");
-    //   }
-
-    //   if (startTimeout) {
-    //     clearTimeout(startTimeout);
-    //     startTimeout = null;
-    //     wasCleared = true;
-    //     console.log("cleared start timeout");
-    //   }
-
-    //   if (wasCleared) {
-    //     broadcast("stopped");
-    //   }
-    // }
     if (gameState.playerCount <= 1) {
       cancelAllCountdowns();
     }
+
+    checkWinCondition();
 
     if (gameState.playerCount === 0) {
       initializeGame();

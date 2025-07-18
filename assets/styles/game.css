@@ -1,4 +1,4 @@
-#quit-btn {
+.game-screen>button {
   width: 60px;
 }
 
@@ -16,18 +16,19 @@
   padding: 10px;
   border-radius: 5px;
   background-color: var(--col1);
-  background: linear-gradient(to left, #ffad1e, #ffd94b);
+  background: linear-gradient(to left, #ffad1e91, #ffd94b8c);
+  text-align: center;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 0 5px 2px #fda400;
+  border: 1px solid #fff;
 }
 
 .game-player span {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+  margin-bottom: 2px;
+  display: inline-block;
   color: var(--col1);
 }
 
@@ -43,17 +44,6 @@
   margin-left: 10px;
 }
 
-/* .game {
-  display: grid;
-  grid-template-columns: repeat(23, 25px);
-  grid-template-rows: repeat(13, 25px);
-  gap: 1px;
-  margin: 20px auto;
-  width: fit-content;
-  background-color: #333;
-  padding: 10px;
-  border-radius: 5px;
-} */
 
 .game-container {
   display: flex;
@@ -63,6 +53,7 @@
 }
 
 .game-board-container {
+  /* display: none; */
   position: relative;
   width: 690px;
   height: 390px;
@@ -261,7 +252,7 @@
 }
 
 
-.powerup-speedBoost {
+.powerup-speed {
   background-image: url('/assets/img/extraSpeed.png');
 }
 
@@ -278,7 +269,7 @@
 }
 
 /* Speed Boost Power-up */
-.powerup[data-type="speedBoost"] {
+.powerup[data-type="speed"] {
   filter: drop-shadow(0 0 4px rgba(50, 150, 255, 0.7));
   animation: pulse 0.8s infinite alternate;
 }
@@ -305,7 +296,7 @@
   }
 }
 
-.speed-boosted {
+.speed {
   filter: drop-shadow(0 0 8px rgba(255, 200, 0, 0.8));
   animation: pulse-glow 0.5s infinite alternate;
 }
@@ -320,16 +311,16 @@
   }
 }
 
-.player-list li::after {
+/* .player-list li::after {
   content: " ⚡";
   color: gold;
   font-size: 0.9em;
   display: none;
-}
+} */
 
-.player-list li[data-has-speed]::after {
+/* .player-list li[data-has-speed]::after {
   display: inline;
-}
+} */
 
 /* .powerup img {
   width: 100%;
@@ -421,6 +412,14 @@
 
 /* chat */
 
+  
+
+.game-chat>div::after {
+  bottom: 150px;
+  right: 10px;
+  z-index: -2;
+}
+
 .game-chat {
   position: fixed;
   top: 50%;
@@ -439,9 +438,34 @@
   cursor: pointer;
   border-radius: 15px 0 0 15px;
   background-color: var(--col11);
+  writing-mode: sideways-lr;
+  text-align: center;
 }
 
 .show {
   right: 0px;
+}
 
+.win {
+  font-size: 3rem;
+  border-radius: 20px;
+  display: flex;
+  position: relative;
+  margin-top: 3rem;
+  justify-content: center;
+  height: 60vh;
+  color: var(--col1);
+  background-color: #ffffff91;
+  border: 2px solid var(--col1);
+}
+
+.win::after {
+  content: "";
+  position: absolute;
+  background-image: url("../img/ww.png");
+  width: 300px;
+  height: 300px;
+  background-size: auto 300px;
+  background-repeat: no-repeat;
+  top: 80px;
 }

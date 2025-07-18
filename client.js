@@ -5,6 +5,7 @@ import renderGameScreen from "./views/GameView.js";
 import NotfoundView from "./views/NotfoundView.js";
 import getRoutes from "./router/index.js";
 import renderGameErr from "./views/gameFullView.js";
+import { quiteGame } from "./views/GameView.js";
 
 // --- WebSocket & State Management ---
 let socket;
@@ -35,7 +36,7 @@ const gameState = createStore({
   players: {
     alive: true,
     lives: 3,
-    speed: 1.5,
+    //speed: 1.5,
   },
   bombs: [],
   explosions: [],
@@ -47,6 +48,7 @@ const gameState = createStore({
   nickname: "",
   chatMessages: [],
   winner: "",
+  isChatOpen: false
 });
 export function connectWebSocket() {
   if (socket && socket.readyState === WebSocket.OPEN) return;
@@ -71,8 +73,11 @@ export function connectWebSocket() {
         currentScreen: "gameFull",
         countD: 0,
         phase: "",
+        isChatOpen: false
       });
       window.location.hash = "#/gameFull";
+    } else if (e.reason === "Disconnected: game reset") {
+      quiteGame(gameState);
     }
   };
   socket.onmessage = (event) => {
@@ -94,6 +99,9 @@ export function connectWebSocket() {
     } else if (msg.type === "stopped") {
       gameState.setState({ ...gameState.getState(), countD: 0, phase: "" });
     }
+    // else if (msg.type === "reset") {
+    // quiteGame(gameState);
+    // }
   };
 }
 
@@ -256,8 +264,8 @@ function gameLoop(currentTime) {
 
       const playerState = state.players[serverPlayer.playerId];
       if (localPlayer.isMoving) {
-        const speedMultiplier = playerState?.speed || 1;
-        localPlayer.moveProgress += (delta / MOVEMENT_SPEED) * speedMultiplier;
+        //const speedMultiplier = playerState?.speed || 1;
+        localPlayer.moveProgress += delta / MOVEMENT_SPEED
         localPlayer.x =
           localPlayer.startX +
           (localPlayer.targetX - localPlayer.startX) * localPlayer.moveProgress;
@@ -274,8 +282,8 @@ function gameLoop(currentTime) {
         
         animatePlayer(playerElement, currentTime, localPlayer.direction, localPlayer.animation);
       }
-      const hasSpeedBoost = playerState?.speed > 1;
-      playerElement.classList.toggle("speed-boosted", hasSpeedBoost);
+      // const hasSpeedBoost = playerState?.speed > 1;
+      // playerElement.classList.toggle("speed-boosted", hasSpeedBoost);
       playerElement.style.transform = `translate(${localPlayer.x}px, ${localPlayer.y}px)`;
     });
   }

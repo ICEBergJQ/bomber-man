@@ -18,6 +18,7 @@ export default function routes(gameState) {
         winner: "",
         countD: 0,
         phase: "",
+          isChatOpen: false
       });
     },
     "/lobby": () => {
@@ -54,6 +55,7 @@ export default function routes(gameState) {
         chatMessages: [],
         countD: 0,
         phase: "",
+          isChatOpen: false,
       });
     },
   };

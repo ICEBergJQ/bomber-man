@@ -1,6 +1,7 @@
 import { createElement } from "../src/main.js";
 import { getSocket, closeSocket } from "../client.js";
 import chatMsgs from "../components/ChatCmp.js";
+import QuitBtn from "../components/QuitBtn.js";
 
 // All keyboard handling functions have been removed from this file.
 export function quiteGame(gameState) {
@@ -19,6 +20,7 @@ export function quiteGame(gameState) {
     chatMessages: [],
     countD: 0,
     phase: "",
+    isChatOpen: false
   });
   location.hash = "#/";
 }
@@ -120,7 +122,7 @@ export default function renderGameScreen(gameState, sendToServer) {
 
   const playerList = Object.values(state.players).map((p) => {
     const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
-    const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
+    // const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
 
     return createElement("div", {
       attrs: {
@@ -128,19 +130,16 @@ export default function renderGameScreen(gameState, sendToServer) {
         style: p.alive ? "" : "color: #888; text-decoration: line-through;",
       },
       children: [
-        createElement("span", {
-          children: [p.nickname],
-        }),
         createElement("img", {
           attrs: { src: "../assets/img/player/front-frame1.png" },
         }),
         createElement("div", {
           children: [
-            createElement("div", {
-              children: [lifeDisplay],
+            createElement("span", {
+              children: [p.nickname],
             }),
             createElement("div", {
-              children: [lifeDisplay], //speedDisplay
+              children: [lifeDisplay],
             }),
           ],
         }),
@@ -148,19 +147,12 @@ export default function renderGameScreen(gameState, sendToServer) {
     });
   });
 
+
+
   return createElement("div", {
     attrs: { class: "screen game-screen" },
-    children: [
-      chatMsgs(state, sendToServer, "game-chat"),
-
-      createElement("button", {
-        attrs: { id: "quit-btn", class: "btn" },
-        children: ["Quit"],
-        events: {
-          click: () => quiteGame(gameState),
-        },
-      }),
-
+    children: !state.winner ? [
+      QuitBtn(gameState),
       createElement("div", {
         attrs: { class: "game-container" },
         children: [
@@ -195,16 +187,18 @@ export default function renderGameScreen(gameState, sendToServer) {
           }),
         ],
       }),
-      createElement("div", {
-        attrs: {
-          style:
-            "margin-top: 20px; background: #222; padding: 10px; font-family: monospace; white-space: pre;",
-        },
-        children: [
-          createElement("h4", { children: ["Live Animation State"] }),
-          createElement("div", { attrs: { id: "live-debug-output" } }),
-        ],
-      }),
-    ],
+      chatMsgs(state, sendToServer, "game-chat", gameState)
+    ] :
+      [
+        createElement('div', {
+          attrs: { class: 'win' },
+          children: [
+            createElement('span', {
+              children: [`${state.winner.nickname} Win!`]
+            }
+            )
+          ]
+        })
+      ]
   });
 }
