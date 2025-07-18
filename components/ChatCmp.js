@@ -26,7 +26,6 @@ function toggleChat(e, gameState) {
 }
 
 export default function ChatUI(state, sendToServer, className = '', gameState = {}) {
-    console.log("gameState : ", gameState);
     
     const st = gameState?.getState();
     const { isChatOpen } = st;

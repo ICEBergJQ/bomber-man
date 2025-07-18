@@ -6,6 +6,7 @@ import {
   startWait,
   startGameC,
   cancelAllCountdowns,
+  getHasStartedC
 } from "./countdownUtils.js";
 import { movePlayer } from "./movementUtils.js";
 import { MAX_PLAYERS, HEARTBEAT_INTERVAL, CELL_SIZE } from "./vars.js";
@@ -27,7 +28,8 @@ export function initWS(server) {
     const activePlayers = Object.values(clients).filter(
       (c) => c.playerId
     ).length;
-    if (activePlayers >= MAX_PLAYERS || gameState.gameStarted) {
+    console.log("wax starta.... ",getHasStartedC());
+    if (activePlayers >= MAX_PLAYERS || gameState.gameStarted || getHasStartedC()) {
       ws.close(1000, "Game is full or has already started");
       console.log(
         `Connection rejected: Game is full (${activePlayers}/${MAX_PLAYERS}) or has already started`
@@ -61,7 +63,7 @@ export function initWS(server) {
 
           if (
             clients[id].playerId != null ||
-            gameState.playerCount >= MAX_PLAYERS
+            gameState.playerCount >= MAX_PLAYERS || getHasStartedC()
           ) {
             for (const [clientId, client] of Object.entries(clients)) {
               if (client.playerId === null) {

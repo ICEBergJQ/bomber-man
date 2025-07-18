@@ -1,6 +1,7 @@
 import { removeAllCon,broadcastGameState, clients } from "./WsUtils.js";
 import { generateMaze } from "./mazeUtils.js";
 import { IDs, freeAllIDs } from "./playerUtils.js";
+import { changeHsStr } from "./countdownUtils.js";
 
 export let gameState = {};
 
@@ -68,5 +69,7 @@ export function initializeGame() {
   });
 
   freeAllIDs();
+  console.log(IDs);
+  changeHsStr(false);
   cancelReset();
 }
