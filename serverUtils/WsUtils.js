@@ -2,7 +2,7 @@ import { gameState, initializeGame, checkWinCondition } from "./gameUtils.js";
 import { IDs, startingPositions, freeID, assignID } from "./playerUtils.js";
 import { placeBomb } from "./bombUtils.js";
 import { checkPowerupCollection } from "./powerUPsUtils.js";
-import { startWait, cancelAllCountdowns } from "./countdownUtils.js";
+import { startWait, startGameC, cancelAllCountdowns } from "./countdownUtils.js";
 import { movePlayer } from "./movementUtils.js";
 import { MAX_PLAYERS, HEARTBEAT_INTERVAL, CELL_SIZE } from "./vars.js";
 import { WebSocketServer } from "ws";
@@ -96,6 +96,9 @@ export function initWS(server) {
           broadcastGameState();
           if (gameState.playerCount > 1 && !gameState.gameStarted) {
             startWait();
+          }
+          if (gameState.playerCount === 4) {
+            startGameC()
           }
           break;
         case "move":

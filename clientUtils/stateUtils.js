@@ -30,5 +30,6 @@ export function resetStateWscreen(gameState, screen) {
     chatMessages: [],
     countD: 0,
     phase: "",
+    playerCount: 0,
   });
 }

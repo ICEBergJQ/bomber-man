@@ -10,7 +10,6 @@ export default function renderGameScreen(gameState, sendToServer) {
   let socket = getSocket();
   if (!state.gameStarted || !socket) {
     toGamefull(gameState);
-    // window.location.hash = "#/gameFull";
     return;
   }
 
@@ -33,7 +32,7 @@ export default function renderGameScreen(gameState, sendToServer) {
         left: ${x}px;
         top: ${y}px;
       `,
-        "data-type": powerup.type,
+        "data-type": powerup.type,  
       },
     });
   });
@@ -86,18 +85,6 @@ export default function renderGameScreen(gameState, sendToServer) {
       });
     })
     .filter(Boolean);
-
-  // const playerList = Object.values(state.players).map((p) => {
-  //   const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";
-  //   const speedDisplay = p.speed > 1 ? `⚡${p.speed.toFixed(1)}x` : "";
-
-  //   return createElement("li", {
-  //     children: [`${p.nickname}: ${lifeDisplay} ${speedDisplay}`],
-  //     attrs: {
-  //       style: p.alive ? "" : "color: #888; text-decoration: line-through;",
-  //     },
-  //   });
-  // });
 
   const playerList = Object.values(state.players).map((p) => {
     const lifeDisplay = p.alive ? "❤️".repeat(p.lives) : "💀 OUT";

@@ -8,11 +8,11 @@ import { quiteGame } from "../clientUtils/stateUtils.js";
 let defaultplayers = new Array(4).fill(null);
 
 function returnCount(gameState) {
-  const state = gameState.getState()
+  const state = gameState.getState();
   if (state.phase === "") {
-    return ""
+    return "";
   } else {
-    return state.phase + " " + state.countD
+    return state.phase + " " + state.countD;
   }
 }
 
@@ -32,19 +32,23 @@ export default function renderLobbyScreen(gameState, sendToServer) {
     quiteGame(gameState);
   }
 
-  const playersList = createElement('div', {
-    attrs: { class: 'players-containersssssssss' },
+  const playersList = createElement("div", {
+    attrs: { class: "players-containersssssssss" },
     children: defaultplayers.map((player) =>
       createElement("div", {
-        attrs: { class: `player-card ${state.nickname == player.nickname ? 'bounce' : ''} ` },
+        attrs: {
+          class: `player-card ${
+            state.nickname == player.nickname ? "bounce" : ""
+          } `,
+        },
         children: [
           createElement("span", {
             children: [player.nickname],
           }),
         ],
       })
-    )
-  })
+    ),
+  });
 
   let lobbyContent;
 
@@ -59,14 +63,14 @@ export default function renderLobbyScreen(gameState, sendToServer) {
           children: [returnCount(gameState)],
         }),
         createElement("button", {
-          attrs: { id: "quit-btn", title:'quit' },
+          attrs: { id: "quit-btn", title: "quit" },
           children: [
-            createElement('img', {
-              attrs:{
-                src:'../assets/img/off.png',
-                alt:'Quit'
-              }
-            })
+            createElement("img", {
+              attrs: {
+                src: "../assets/img/off.png",
+                alt: "Quit",
+              },
+            }),
           ],
           events: {
             click: () => quiteGame(gameState),
@@ -75,6 +79,11 @@ export default function renderLobbyScreen(gameState, sendToServer) {
       ],
     }),
     chatMsgs(state, sendToServer),
+    ///players counter
+    createElement("div", {
+      attrs: { class: "players-counter" },
+      children: [`Players (${state.playerCount}/4)`],
+    }),
     playersList,
   ];
 

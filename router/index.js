@@ -3,22 +3,6 @@ import { quiteGame, toGamefull } from "../clientUtils/stateUtils.js";
 export default function routes(gameState) {
   return {
     "/": () => {
-      // closeSocket();
-      // gameState.setState({
-      //   players: {},
-      //   bombs: [],
-      //   explosions: [],
-      //   gameOver: false,
-      //   winner: null,
-      //   gameStarted: false,
-      //   maze: null,
-      //   currentScreen: "join",
-      //   nickname: "",
-      //   chatMessages: [],
-      //   winner: "",
-      //   countD: 0,
-      //   phase: "",
-      // });
       quiteGame(gameState, true);
     },
     "/lobby": () => {
@@ -41,21 +25,6 @@ export default function routes(gameState) {
       gameState.setState({ ...gameState.getState(), currentScreen: "404" });
     },
     "/gameFull": () => {
-      // This handler's only job is to update the state
-      // gameState.setState({
-      //   players: {},
-      //   bombs: [],
-      //   explosions: [],
-      //   gameOver: false,
-      //   winner: null,
-      //   gameStarted: false,
-      //   maze: null,
-      //   currentScreen: "gameFull",
-      //   nickname: "",
-      //   chatMessages: [],
-      //   countD: 0,
-      //   phase: "",
-      // });
       toGamefull(gameState, true);
     },
   };

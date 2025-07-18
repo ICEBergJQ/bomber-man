@@ -54,7 +54,6 @@
   transform: translateX(-50%);
 }
 
-
 .players-containersssssssss .player-card:nth-child(2) {
   justify-self: end;
 }
@@ -64,11 +63,9 @@
 }
 
 .players-containersssssssss .player-card:nth-child(4) {
-
   justify-self: end;
   align-self: end;
 }
-
 
 .player-card span {
   display: block;
@@ -77,7 +74,7 @@
 }
 
 .chat-container {
-  margin-top: 61px;
+  margin-top: 10px;
   display: flex;
   justify-content: center;
 }
@@ -140,7 +137,7 @@
 
 @keyframes msg {
   0% {
-    transform: scale(0.90) translate(10px, -5px);
+    transform: scale(0.9) translate(10px, -5px);
   }
 
   25% {
@@ -155,7 +152,6 @@
     transform: scale(1) translate(0px);
   }
 }
-
 
 #chat-input {
   width: 100%;
@@ -172,11 +168,14 @@
   border-radius: 0 0 15px 15px;
   background-color: var(--col11);
 }
+#chat-input::placeholder {
+  color: #fff;
+}
 
 .bounce {
   background-color: var(--col1);
   animation: bounce 0.8s infinite alternate;
-  box-shadow: 0  0 5px 2px cyan;
+  box-shadow: 0 0 5px 2px cyan;
 }
 
 @keyframes bounce {
@@ -199,9 +198,13 @@
 #quit-btn img {
   width: 100%;
 }
-
+.players-counter {
+  text-align: center;
+  color: var(--col11);
+  margin-top: 1rem;
+}
 /* media query */
-@media screen and (max-width:768px) {
+@media screen and (max-width: 768px) {
   .chat-wrapper::after {
     bottom: 150px;
     right: 10px;
@@ -209,9 +212,7 @@
   }
 }
 
-@media screen and (max-width:600px) {
-
-
+@media screen and (max-width: 600px) {
   .chat-messages {
     height: 50vh;
   }
@@ -223,16 +224,16 @@
     height: auto;
     grid-template-columns: repeat(4, 1fr);
     transform: none;
+    justify-items: center;
   }
 
-  .players-containersssssssss>div.player-card {
+  .players-containersssssssss > div.player-card {
     justify-self: auto !important;
   }
 }
 
-@media screen and (max-width:400px) {
+@media screen and (max-width: 400px) {
   .player-card {
     width: 60px;
   }
-
 }

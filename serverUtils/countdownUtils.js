@@ -6,7 +6,7 @@ export let startInterval = null;
 
 
 function startGameInten() {
-  let timeLeft = 2;
+  let timeLeft = 10;
 
   clearInterval(startInterval); // prevent duplicates
 
@@ -29,7 +29,7 @@ function startGameInten() {
 export function startWait() {
 
   if (startInterval !== null) return;
-  let timeLeft = 5;
+  let timeLeft = 20;
 
   clearInterval(waitInterval); // prevent duplicates
 
@@ -61,4 +61,9 @@ export function cancelAllCountdowns() {
   }
 
   broadcast("stopped");
+}
+
+export function startGameC() {
+  if (!waitInterval) return
+  startGameInten();
 }

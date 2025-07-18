@@ -8,11 +8,7 @@ import renderGameErr from "./views/gameFullView.js";
 import { connectWebSocket, sendToServer } from "./clientUtils/WS.js";
 
 const gameState = createStore({
-  players: {
-    alive: true,
-    lives: 3,
-    speed: 1.5,
-  },
+  players: {  },
   bombs: [],
   explosions: [],
   gameOver: false,
@@ -23,6 +19,7 @@ const gameState = createStore({
   nickname: "",
   chatMessages: [],
   winner: "",
+  playerCount:0
 });
 
 
