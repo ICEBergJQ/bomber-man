@@ -187,25 +187,6 @@
   z-index: 15;
 }
 
-.player1 {
-  background-color: #ff4444;
-  border-radius: 50%;
-}
-
-.player2 {
-  background-color: #4444ff;
-  border-radius: 50%;
-}
-
-.player3 {
-  background-color: #44ff44;
-  border-radius: 50%;
-}
-
-.player4 {
-  background-color: #ffff44;
-  border-radius: 50%;
-}
 
 
 @keyframes pulse {
@@ -379,8 +360,26 @@
   left: 0;
   width: 30px;
   height: 30px;
+  background-size: 120px 120px;
   z-index: 10;
+  /* background-image: url('/assets/img/player/blackmage_m.png'); */
   transition: transform 0.15s linear;
+}
+
+#player-1{
+  background-image: url('/assets/img/player/sith.png');
+}
+
+#player-2{
+  background-image: url('/assets/img/player/weddingguy03.png');
+}
+
+#player-3 {
+  background-image: url('/assets/img/player/blackmage_m.png');
+}
+
+#player-4{
+  background-image: url('/assets/img/player/modernguy05.png');
 }
 
 
@@ -469,4 +468,20 @@
   background-size: auto 300px;
   background-repeat: no-repeat;
   top: 80px;
+}
+
+.powerup-bombRange {
+  background-image: url('/assets/img/bomb.png');
+}
+
+.powerup-extraBomb {
+  background-image: url('/assets/img/extraBomb.png');
+}
+
+.powerup[data-type="bombRange"] {
+  filter: drop-shadow(0 0 5px rgba(255, 100, 100, 0.7));
+}
+
+.powerup[data-type="extraBomb"] {
+  filter: drop-shadow(0 0 5px rgba(100, 255, 100, 0.7));
 }

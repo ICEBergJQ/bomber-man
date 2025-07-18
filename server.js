@@ -48,7 +48,7 @@ const HEARTBEAT_INTERVAL = 30000;
 // let reInter;
 
 const CELL_SIZE = 30;
-const MOVE_INCREMENT = 7.5;
+const MOVE_INCREMENT = 5;
 
 const IDs = [
   { id: 1, taken: false },
@@ -58,9 +58,9 @@ const IDs = [
 ];
 const startingPositions = [
   { row: 1, col: 1 },
+  { row: 11, col: 21 },
   { row: 1, col: 21 },
   { row: 11, col: 1 },
-  { row: 11, col: 21 },
 ];
 let gameState = {};
 let connectionIdCounter = 0;
@@ -80,7 +80,7 @@ function initializeGame() {
   };
   freeAllIDs();
   console.log(IDs);
-  
+
   cancelReset();
 }
 function broadcastGameState() {
@@ -269,9 +269,8 @@ function checkPowerup() {
         break;
 
       case "extraBomb":
-        p.maxBombs = Math.min((p.maxBombs || 1) + 1, 2)
-        console.log(`Player ${p.playerId} max bombs increased to ${p.maxBombs}`);
-
+        p.tempBombs += 1;
+        console.log(`Player ${p.playerId} got a temporary bomb`);
         break;
 
       case "speed":
@@ -292,38 +291,81 @@ function checkPowerup() {
   });
 }
 // In the placeBomb function in server.js, replace with this:
+// function placeBomb(playerId) {
+//   const p = gameState.players[playerId];
+//   if (!p || !p.alive || gameState.gameOver) return;
+
+//   // Get current active bombs count for this player
+//   const activeBombsCount = gameState.bombs.filter(b => b.playerId === playerId).length;
+
+//   // Check against maxBombs
+//   if (activeBombsCount >= (p.maxBombs || 1)) {
+//     return;
+//   }
+
+//   // Place bomb based on player's grid-aligned position
+//   const bombCol = Math.floor((p.x + CELL_SIZE / 2) / CELL_SIZE);
+//   const bombRow = Math.floor((p.y + CELL_SIZE / 2) / CELL_SIZE);
+
+//   // Check if there's already a bomb at this position
+//   if (gameState.bombs.some(b => b.row === bombRow && b.col === bombCol)) {
+//     return;
+//   }
+
+//   const bomb = { row: bombRow, col: bombCol, playerId, placedAt: Date.now() };
+//   gameState.bombs.push(bomb);
+
+//   setTimeout(() => {
+//     gameState.bombs = gameState.bombs.filter((b) => b !== bomb);
+//     explodeBomb(bomb);
+//   }, 3000);
+
+//   broadcastGameState();
+// }
+
 function placeBomb(playerId) {
   const p = gameState.players[playerId];
   if (!p || !p.alive || gameState.gameOver) return;
 
-  // Get current active bombs count for this player
-  const activeBombsCount = gameState.bombs.filter(b => b.playerId === playerId).length;
+  // 1. Count ACTUAL bombs placed by this player (most reliable check)
+  const actualBombsPlaced = gameState.bombs.filter(b => b.playerId === playerId).length;
 
-  // Check against maxBombs
-  if (activeBombsCount >= (p.maxBombs || 1)) {
+  // 2. Calculate allowed bombs (permanent + temporary)
+  const allowedBombs = p.maxBombs + p.tempBombs;
+
+  // 3. Strict check against ACTUAL bombs, not just counter
+  if (actualBombsPlaced >= allowedBombs) {
     return;
   }
 
-  // Place bomb based on player's grid-aligned position
+  // 4. Position check
   const bombCol = Math.floor((p.x + CELL_SIZE / 2) / CELL_SIZE);
   const bombRow = Math.floor((p.y + CELL_SIZE / 2) / CELL_SIZE);
-
-  // Check if there's already a bomb at this position
   if (gameState.bombs.some(b => b.row === bombRow && b.col === bombCol)) {
     return;
   }
 
+  // 5. Place bomb
   const bomb = { row: bombRow, col: bombCol, playerId, placedAt: Date.now() };
   gameState.bombs.push(bomb);
 
+  // 6. Update counters (only for tracking, actual check is done against gameState.bombs)
+  p.activeBombs = actualBombsPlaced + 1;
+
+  // 7. Consume temp bomb if needed
+  if (actualBombsPlaced >= p.maxBombs) {
+    p.tempBombs--;
+  }
+
+  // 8. Set explosion timer
   setTimeout(() => {
-    gameState.bombs = gameState.bombs.filter((b) => b !== bomb);
+    gameState.bombs = gameState.bombs.filter(b => b !== bomb);
+    p.activeBombs = gameState.bombs.filter(b => b.playerId === playerId).length;
     explodeBomb(bomb);
   }, 3000);
 
   broadcastGameState();
 }
-
 
 // function placeBomb(playerId) {
 //   const p = gameState.players[playerId];
@@ -354,19 +396,29 @@ function placeBomb(playerId) {
 // }
 
 function isValidPosition(x, y) {
-  const playerSize = CELL_SIZE * 0.9; // Use a slightly smaller bounding box for smoother movement
+  const collisionBoxSize = 22;
+  const halfBox = collisionBoxSize / 2;
+
+  // Calculate the absolute center of the player's sprite at its potential new location.
+  const spriteCenterX = x + (CELL_SIZE / 2);
+  const spriteCenterY = y + (CELL_SIZE / 2);
+
+  // Define the corners of the new, smaller, centered collision box.
   const corners = [
-    { x: x, y: y },
-    { x: x + playerSize, y: y },
-    { x: x, y: y + playerSize },
-    { x: x + playerSize, y: y + playerSize },
+    { x: spriteCenterX - halfBox, y: spriteCenterY - halfBox }, // Top-left
+    { x: spriteCenterX + halfBox, y: spriteCenterY - halfBox }, // Top-right
+    { x: spriteCenterX - halfBox, y: spriteCenterY + halfBox }, // Bottom-left
+    { x: spriteCenterX + halfBox, y: spriteCenterY + halfBox }, // Bottom-right
   ];
+
   for (const corner of corners) {
     const col = Math.floor(corner.x / CELL_SIZE);
     const row = Math.floor(corner.y / CELL_SIZE);
     const tile = gameState.maze[row]?.[col];
+
+    // Check if the corner is outside the map or inside a wall/box.
     if (tile === undefined || ["#", "*"].includes(tile)) {
-      return false;
+      return false; // Collision detected
     }
   }
   return true;
@@ -466,9 +518,7 @@ function startGameInten() {
 }
 
 function startWait() {
-
-  if (startInterval !== null) return;
-  let timeLeft = 5;
+  let timeLeft = 2;
 
   clearInterval(waitInterval); // prevent duplicates
 
@@ -601,6 +651,7 @@ wss.on("connection", (ws) => {
           lives: 3,
           speed: 1,
           maxBombs: 1,
+          tempBombs: 0,
           //activeBombs: 0,
           bombRange: 2,
           invincible: false,
