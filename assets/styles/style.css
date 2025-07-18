@@ -11,26 +11,53 @@
 h2 {
   text-align: center;
 }
-.countdown{
+
+.countdown {
   color: black;
   height: 20px;
 }
+
 .screen {
   position: relative;
   min-height: 94vh;
 
 }
+
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
-  
-.bg{
+
+.bg {
   font-size: 20px;
   padding: 0 20px;
   border-radius: 20px;
   background-color: var(--col3);
 
+}
+
+#player-1,
+.game-player:nth-child(1) .game-player-img,
+#player-card-1::after {
+  background-image: url("../img/player/sith.png");
+}
+
+#player-2,
+.game-player:nth-child(2) .game-player-img,
+#player-card-2:after {
+  background-image: url("../img/player/weddingguy03.png");
+}
+
+#player-3,
+.game-player:nth-child(3) .game-player-img,
+#player-card-3:after {
+  background-image: url("../img/player/blackmage_m.png");
+}
+
+#player-4,
+.game-player:nth-child(4) .game-player-img,
+#player-card-4:after {
+  background-image: url("../img/player/modernguy05.png");
 }

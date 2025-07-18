@@ -41,19 +41,7 @@
   background-position: 0 0;
   background-size: 150px 250px;
 }
-.game-player:nth-child(1) .game-player-img{
-  background-image: url("/assets/img/player/sith.png");
-}
-.game-player:nth-child(2) .game-player-img{
-  background-image: url("/assets/img/player/weddingguy03.png");
-}
-.game-player:nth-child(3) .game-player-img{
-  background-image: url("/assets/img/player/blackmage_m.png");
-}
-.game-player:nth-child(4) .game-player-img{
-  background-image: url("/assets/img/player/modernguy05.png");
-}
-
+ 
 .game-player .game-player-img::after span {
   margin-bottom: 2px;
   display: inline-block;
@@ -373,22 +361,6 @@
   transition: transform 0.15s linear;
 }
 
-#player-1 {
-  background-image: url("/assets/img/player/sith.png");
-}
-
-#player-2 {
-  background-image: url("/assets/img/player/weddingguy03.png");
-}
-
-#player-3 {
-  background-image: url("/assets/img/player/blackmage_m.png");
-}
-
-#player-4 {
-  background-image: url("/assets/img/player/modernguy05.png");
-}
-
 /* SHEEELD */
 /* Shield Power-up */
 .powerup[data-type="shield"] {
@@ -447,11 +419,12 @@
 }
 
 .win {
+  width: 70vw;
   font-size: 3rem;
   border-radius: 20px;
   display: flex;
   position: relative;
-  margin-top: 3rem;
+  margin-top: 3rem auto;
   justify-content: center;
   height: 60vh;
   color: var(--col1);
