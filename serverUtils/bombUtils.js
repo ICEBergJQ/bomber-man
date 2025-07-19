@@ -21,7 +21,7 @@ export function explodeBomb(bomb) {
       explosion.push({ row: nr, col: nc });
       if (gameState.maze[nr][nc] === "*") {
         gameState.maze[nr][nc] = " ";
-        if (Math.random() < 100) {
+        if (Math.random() < 0.4) {
           const powerups = [
             "extraLife",
             "bombRange",
