@@ -1,12 +1,12 @@
 import { gameState, initializeGame, checkWinCondition } from "./gameUtils.js";
-import { IDs, startingPositions, freeID, assignID } from "./playerUtils.js";
+import { startingPositions, freeID, assignID } from "./playerUtils.js";
 import { placeBomb } from "./bombUtils.js";
 import { checkPowerup } from "./powerUPsUtils.js";
 import {
   startWait,
   startGameC,
   cancelAllCountdowns,
-  getHasStartedC
+  getHasStartedC,
 } from "./countdownUtils.js";
 import { movePlayer } from "./movementUtils.js";
 import { MAX_PLAYERS, HEARTBEAT_INTERVAL, CELL_SIZE } from "./vars.js";
@@ -28,7 +28,11 @@ export function initWS(server) {
     const activePlayers = Object.values(clients).filter(
       (c) => c.playerId
     ).length;
-    if (activePlayers >= MAX_PLAYERS || gameState.gameStarted || getHasStartedC()) {
+    if (
+      activePlayers >= MAX_PLAYERS ||
+      gameState.gameStarted ||
+      getHasStartedC()
+    ) {
       ws.close(1000, "Game is full or has already started");
       return;
     }
@@ -59,7 +63,8 @@ export function initWS(server) {
 
           if (
             clients[id].playerId != null ||
-            gameState.playerCount >= MAX_PLAYERS || getHasStartedC()
+            gameState.playerCount >= MAX_PLAYERS ||
+            getHasStartedC()
           ) {
             for (const [clientId, client] of Object.entries(clients)) {
               if (client.playerId === null) {
@@ -91,7 +96,7 @@ export function initWS(server) {
             maxBombs: 1,
             tempBombs: 0,
             bombRange: 2,
-            phasingThroughBomb: null, 
+            phasingThroughBomb: null,
             invincible: false,
           };
           broadcastGameState();
@@ -174,6 +179,14 @@ export function removeAllCon() {
 export function broadcastGameState() {
   checkPowerup();
   const msg = JSON.stringify({ type: "gameState", data: gameState });
+  Object.values(clients).forEach((c) => {
+    if (c.ws.readyState === WebSocket.OPEN) c.ws.send(msg);
+  });
+}
+
+export function broadcastMovement(playerId, x, y) {
+  checkPowerup();
+  const msg = JSON.stringify({ type: "playerMoved", data: { playerId, x, y } });
   Object.values(clients).forEach((c) => {
     if (c.ws.readyState === WebSocket.OPEN) c.ws.send(msg);
   });

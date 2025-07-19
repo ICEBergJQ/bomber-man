@@ -53,6 +53,12 @@ export function connectWebSocket(gameState) {
       gameState.setState({ ...currentState, chatMessages: newMessages });
     } else if (msg.type === "stopped") {
       gameState.setState({ ...gameState.getState(), countD: 0, phase: "" });
+    } else if (msg.type === "playerMoved") {
+      const serverPlayer = gameState.getState().players[msg.data.playerId];
+      if (serverPlayer) {
+        serverPlayer.x = msg.data.x;
+        serverPlayer.y = msg.data.y;
+      }
     }
   };
 }
