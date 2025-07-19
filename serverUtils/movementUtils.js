@@ -1,4 +1,4 @@
-import { broadcastGameState } from "./WsUtils.js";
+import { broadcastGameState, broadcastMovement } from "./WsUtils.js";
 import { gameState } from "./gameUtils.js";
 import { CELL_SIZE } from "./vars.js";
 
@@ -98,7 +98,7 @@ export function movePlayer(playerId, dir) {
         p.phasingThroughBomb = null;
       }
     }
-
-    broadcastGameState();
+     broadcastMovement(playerId, p.x, p.y);
+    // broadcastGameState();
   }
 }
